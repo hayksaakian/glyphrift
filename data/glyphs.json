@@ -1,0 +1,344 @@
+[
+  {
+    "id": "zapplet",
+    "name": "Zapplet",
+    "tier": 1,
+    "affinity": "electric",
+    "gp_cost": 2,
+    "base_hp": 12,
+    "base_atk": 10,
+    "base_def": 8,
+    "base_spd": 14,
+    "base_res": 9,
+    "technique_ids": ["static_snap", "jolt_rush"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "use_technique_count",
+        "params": {"technique_id": "jolt_rush", "target": 3, "current": 0},
+        "description": "Use Jolt Rush 3 times."
+      },
+      {
+        "type": "win_battle_no_ko",
+        "params": {},
+        "description": "Win a battle without Zapplet being knocked out."
+      }
+    ]
+  },
+  {
+    "id": "sparkfin",
+    "name": "Sparkfin",
+    "tier": 1,
+    "affinity": "electric",
+    "gp_cost": 2,
+    "base_hp": 14,
+    "base_atk": 12,
+    "base_def": 9,
+    "base_spd": 11,
+    "base_res": 10,
+    "technique_ids": ["static_snap", "spark_shower"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "apply_status",
+        "params": {"status_id": "stun", "technique_id": "spark_shower"},
+        "description": "Successfully apply Stun to an enemy via Spark Shower."
+      },
+      {
+        "type": "win_battle_back_row",
+        "params": {},
+        "description": "Win a battle where Sparkfin is in the back row."
+      }
+    ]
+  },
+  {
+    "id": "stonepaw",
+    "name": "Stonepaw",
+    "tier": 1,
+    "affinity": "ground",
+    "gp_cost": 2,
+    "base_hp": 15,
+    "base_atk": 11,
+    "base_def": 13,
+    "base_spd": 8,
+    "base_res": 11,
+    "technique_ids": ["rock_toss", "brace"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "brace_then_survive",
+        "params": {"attacks_to_survive": 2},
+        "description": "Use Brace, then survive 2+ attacks in the same battle without being KO'd."
+      },
+      {
+        "type": "win_battle_front_row",
+        "params": {},
+        "description": "Win a battle while Stonepaw is in the front row."
+      }
+    ]
+  },
+  {
+    "id": "mossling",
+    "name": "Mossling",
+    "tier": 1,
+    "affinity": "ground",
+    "gp_cost": 2,
+    "base_hp": 16,
+    "base_atk": 9,
+    "base_def": 11,
+    "base_spd": 10,
+    "base_res": 12,
+    "technique_ids": ["vine_lash", "root_hold"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "use_technique_count",
+        "params": {"technique_id": "root_hold", "target": 2, "current": 0},
+        "description": "Use Root Hold to heal an ally 2 times."
+      },
+      {
+        "type": "finishing_blow_count",
+        "params": {"target": 1, "current": 0},
+        "description": "Win a battle where Mossling deals the finishing blow to at least 1 enemy."
+      }
+    ]
+  },
+  {
+    "id": "driftwisp",
+    "name": "Driftwisp",
+    "tier": 1,
+    "affinity": "water",
+    "gp_cost": 2,
+    "base_hp": 10,
+    "base_atk": 13,
+    "base_def": 8,
+    "base_spd": 14,
+    "base_res": 8,
+    "technique_ids": ["phase_dart", "entropic_touch"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "apply_status",
+        "params": {"status_id": "weaken", "technique_id": "entropic_touch"},
+        "description": "Apply Weaken to an enemy via Entropic Touch."
+      },
+      {
+        "type": "first_turn",
+        "params": {},
+        "description": "Have Driftwisp take the first turn in a battle (highest SPD)."
+      }
+    ]
+  },
+  {
+    "id": "glitchkit",
+    "name": "Glitchkit",
+    "tier": 1,
+    "affinity": "water",
+    "gp_cost": 2,
+    "base_hp": 11,
+    "base_atk": 11,
+    "base_def": 9,
+    "base_spd": 13,
+    "base_res": 10,
+    "technique_ids": ["phase_dart", "destabilize"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "apply_status_count",
+        "params": {"status_id": "burn", "target": 2, "current": 0},
+        "description": "Apply Burn to 2 different enemies (cumulative across battles)."
+      },
+      {
+        "type": "win_battle_in_turns",
+        "params": {"max_turns": 5},
+        "description": "Win a battle in 5 turns or fewer."
+      }
+    ]
+  },
+  {
+    "id": "thunderclaw",
+    "name": "Thunderclaw",
+    "tier": 2,
+    "affinity": "electric",
+    "gp_cost": 4,
+    "base_hp": 20,
+    "base_atk": 22,
+    "base_def": 15,
+    "base_spd": 24,
+    "base_res": 16,
+    "technique_ids": ["arc_fang", "chain_bolt", "static_guard"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "trigger_interrupt",
+        "params": {},
+        "description": "Successfully trigger Static Guard."
+      },
+      {
+        "type": "finishing_blow_with_technique",
+        "params": {"technique_id": "chain_bolt"},
+        "description": "Defeat an enemy with Chain Bolt (piercing kill)."
+      }
+    ]
+  },
+  {
+    "id": "ironbark",
+    "name": "Ironbark",
+    "tier": 2,
+    "affinity": "ground",
+    "gp_cost": 4,
+    "base_hp": 28,
+    "base_atk": 18,
+    "base_def": 22,
+    "base_spd": 14,
+    "base_res": 20,
+    "technique_ids": ["iron_ram", "fortress", "stone_wall"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "trigger_interrupt",
+        "params": {},
+        "description": "Successfully trigger Stone Wall."
+      },
+      {
+        "type": "tank_most_damage",
+        "params": {},
+        "description": "Win a battle where Ironbark takes the most total damage on the team and survives."
+      }
+    ]
+  },
+  {
+    "id": "vortail",
+    "name": "Vortail",
+    "tier": 2,
+    "affinity": "water",
+    "gp_cost": 4,
+    "base_hp": 22,
+    "base_atk": 20,
+    "base_def": 16,
+    "base_spd": 22,
+    "base_res": 17,
+    "technique_ids": ["warp_claw", "destabilize", "phase_shift"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "trigger_interrupt",
+        "params": {},
+        "description": "Successfully trigger Phase Shift."
+      },
+      {
+        "type": "burn_then_kill",
+        "params": {},
+        "description": "Apply Burn and then defeat the burned enemy before Burn expires."
+      }
+    ]
+  },
+  {
+    "id": "stormfang",
+    "name": "Stormfang",
+    "tier": 3,
+    "affinity": "electric",
+    "gp_cost": 6,
+    "base_hp": 32,
+    "base_atk": 36,
+    "base_def": 24,
+    "base_spd": 36,
+    "base_res": 24,
+    "technique_ids": ["storm_lance", "thunder_cascade", "spark_shower", "static_guard"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "solo_win",
+        "params": {},
+        "description": "Win a battle using only Stormfang (solo — other squad Glyphs must not take a turn)."
+      },
+      {
+        "type": "stun_then_kill",
+        "params": {},
+        "description": "Stun an enemy with Spark Shower, then defeat it on Stormfang's next turn."
+      }
+    ]
+  },
+  {
+    "id": "terradon",
+    "name": "Terradon",
+    "tier": 3,
+    "affinity": "ground",
+    "gp_cost": 6,
+    "base_hp": 42,
+    "base_atk": 28,
+    "base_def": 36,
+    "base_spd": 22,
+    "base_res": 32,
+    "technique_ids": ["spire_crush", "quake_stomp", "root_hold", "tremor_response"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "heal_low_hp_ally",
+        "params": {"hp_threshold": 0.3},
+        "description": "Use Root Hold to heal an ally from below 30% HP."
+      },
+      {
+        "type": "win_vs_3_no_ko",
+        "params": {},
+        "description": "Win a battle against 3 enemies without any ally Glyph being KO'd."
+      }
+    ]
+  },
+  {
+    "id": "riftmaw",
+    "name": "Riftmaw",
+    "tier": 3,
+    "affinity": "water",
+    "gp_cost": 6,
+    "base_hp": 30,
+    "base_atk": 38,
+    "base_def": 22,
+    "base_spd": 34,
+    "base_res": 26,
+    "technique_ids": ["null_beam", "rift_pulse", "entropic_touch", "null_counter"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "finishing_blow_higher_tier",
+        "params": {"own_tier": 3},
+        "description": "Defeat an enemy of a higher tier."
+      },
+      {
+        "type": "weaken_then_null_beam",
+        "params": {},
+        "description": "Apply Weaken, then hit the weakened enemy with Null Beam in the same battle."
+      }
+    ]
+  },
+  {
+    "id": "voltarion",
+    "name": "Voltarion",
+    "tier": 4,
+    "affinity": "electric",
+    "gp_cost": 8,
+    "base_hp": 48,
+    "base_atk": 55,
+    "base_def": 38,
+    "base_spd": 50,
+    "base_res": 36,
+    "technique_ids": ["apocalt_strike", "thunder_cascade", "storm_lance", "disrupt"],
+    "fixed_mastery_objectives": []
+  },
+  {
+    "id": "lithosurge",
+    "name": "Lithosurge",
+    "tier": 4,
+    "affinity": "ground",
+    "gp_cost": 8,
+    "base_hp": 60,
+    "base_atk": 42,
+    "base_def": 50,
+    "base_spd": 32,
+    "base_res": 45,
+    "technique_ids": ["worldbreaker", "tectonic_slam", "harmonic_pulse", "stone_wall"],
+    "fixed_mastery_objectives": []
+  },
+  {
+    "id": "nullweaver",
+    "name": "Nullweaver",
+    "tier": 4,
+    "affinity": "water",
+    "gp_cost": 8,
+    "base_hp": 45,
+    "base_atk": 52,
+    "base_def": 34,
+    "base_spd": 48,
+    "base_res": 40,
+    "technique_ids": ["void_collapse", "null_beam", "flux_veil", "phase_shift"],
+    "fixed_mastery_objectives": []
+  }
+]

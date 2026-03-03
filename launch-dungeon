@@ -1,0 +1,2 @@
+#!/bin/sh
+~/bin/godot --path "$(dirname "$0")" res://ui/dungeon/dungeon_demo.tscn

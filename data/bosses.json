@@ -1,0 +1,58 @@
+[
+  {
+    "rift_id": "tutorial_01",
+    "species_id": "thunderclaw",
+    "stat_modifier": 1.2,
+    "phase1_technique_ids": ["arc_fang", "static_snap"],
+    "phase2_technique_ids": ["chain_bolt"],
+    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+  },
+  {
+    "rift_id": "minor_01",
+    "species_id": "ironbark",
+    "stat_modifier": 1.2,
+    "phase1_technique_ids": ["iron_ram", "fortress"],
+    "phase2_technique_ids": ["quake_stomp"],
+    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+  },
+  {
+    "rift_id": "minor_02",
+    "species_id": "vortail",
+    "stat_modifier": 1.2,
+    "phase1_technique_ids": ["warp_claw", "destabilize"],
+    "phase2_technique_ids": ["rift_pulse"],
+    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+  },
+  {
+    "rift_id": "standard_01",
+    "species_id": "stormfang",
+    "stat_modifier": 1.0,
+    "phase1_technique_ids": ["storm_lance", "spark_shower", "static_guard"],
+    "phase2_technique_ids": ["thunder_cascade"],
+    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+  },
+  {
+    "rift_id": "standard_02",
+    "species_id": "terradon",
+    "stat_modifier": 1.0,
+    "phase1_technique_ids": ["spire_crush", "root_hold", "tremor_response"],
+    "phase2_technique_ids": ["tectonic_slam"],
+    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+  },
+  {
+    "rift_id": "major_01",
+    "species_id": "riftmaw",
+    "stat_modifier": 1.0,
+    "phase1_technique_ids": ["null_beam", "entropic_touch", "null_counter"],
+    "phase2_technique_ids": ["rift_pulse", "destabilize"],
+    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+  },
+  {
+    "rift_id": "apex_01",
+    "species_id": "nullweaver",
+    "stat_modifier": 1.0,
+    "phase1_technique_ids": ["void_collapse", "null_beam", "flux_veil"],
+    "phase2_technique_ids": ["phase_shift"],
+    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+  }
+]

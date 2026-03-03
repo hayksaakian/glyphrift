@@ -1,0 +1,42 @@
+[
+  {
+    "id": "repair_patch",
+    "name": "Repair Patch",
+    "effect_type": "repair_hull",
+    "effect_value": 25.0,
+    "description": "Restores 25 Crawler Hull HP. Usable during dungeon navigation.",
+    "usable_in_combat": false
+  },
+  {
+    "id": "surge_cell",
+    "name": "Surge Cell",
+    "effect_type": "restore_energy",
+    "effect_value": 10.0,
+    "description": "Restores 10 Crawler Energy.",
+    "usable_in_combat": false
+  },
+  {
+    "id": "vital_shard",
+    "name": "Vital Shard",
+    "effect_type": "heal_glyph",
+    "effect_value": 100.0,
+    "description": "Fully restores one Glyph's HP. Usable between battles.",
+    "usable_in_combat": false
+  },
+  {
+    "id": "ward_charm",
+    "name": "Ward Charm",
+    "effect_type": "status_immunity",
+    "effect_value": 1.0,
+    "description": "Grants one Glyph immunity to the next status effect applied in the next battle.",
+    "usable_in_combat": false
+  },
+  {
+    "id": "echo_lure",
+    "name": "Echo Lure",
+    "effect_type": "capture_bonus",
+    "effect_value": 25.0,
+    "description": "Increases capture probability by +25% for the next battle. Consumed whether or not a capture occurs.",
+    "usable_in_combat": false
+  }
+]

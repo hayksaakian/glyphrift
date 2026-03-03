@@ -1,0 +1,54 @@
+[
+  {
+    "id": "hull_no_damage",
+    "milestone": "Clear a rift without taking Crawler damage",
+    "type": "hull_hp",
+    "value": 10,
+    "description": "+10 Hull HP (permanent)"
+  },
+  {
+    "id": "hidden_room_1",
+    "milestone": "Discover a hidden room (1st)",
+    "type": "chassis",
+    "chassis_id": "ironclad",
+    "value": 0,
+    "description": "Unlock Ironclad chassis (+25 Hull HP, -5 Energy)"
+  },
+  {
+    "id": "hidden_room_3",
+    "milestone": "Discover a hidden room (3rd)",
+    "type": "chassis",
+    "chassis_id": "scout",
+    "value": 0,
+    "description": "Unlock Scout chassis (Scan costs 3 Energy instead of 5)"
+  },
+  {
+    "id": "hidden_room_5",
+    "milestone": "Discover a hidden room (5th)",
+    "type": "chassis",
+    "chassis_id": "hauler",
+    "value": 0,
+    "description": "Unlock Hauler chassis (+1 Cargo slot, -10 Hull HP)"
+  },
+  {
+    "id": "all_affinities",
+    "milestone": "Capture a Glyph of each affinity in one run",
+    "type": "energy",
+    "value": 5,
+    "description": "+5 Energy capacity"
+  },
+  {
+    "id": "fuse_10_unique",
+    "milestone": "Fuse 10 unique Glyph species",
+    "type": "cargo",
+    "value": 1,
+    "description": "+1 Cargo slot"
+  },
+  {
+    "id": "seal_major_rift",
+    "milestone": "Seal a Major Rift",
+    "type": "capacity",
+    "value": 2,
+    "description": "+2 Capacity (CP)"
+  }
+]

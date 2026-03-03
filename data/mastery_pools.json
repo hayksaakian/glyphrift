@@ -1,0 +1,83 @@
+{
+  "1": [
+    {
+      "type": "win_with_advantage",
+      "params": {},
+      "description": "Win a battle using affinity advantage."
+    },
+    {
+      "type": "win_battle_front_row",
+      "params": {},
+      "description": "Win a battle with this Glyph in the front row."
+    },
+    {
+      "type": "win_battle_back_row",
+      "params": {},
+      "description": "Win a battle with this Glyph in the back row."
+    },
+    {
+      "type": "win_battle_no_ko",
+      "params": {},
+      "description": "Win a battle without this Glyph being knocked out."
+    },
+    {
+      "type": "capture_participated",
+      "params": {},
+      "description": "Capture a Glyph after a battle this Glyph participated in."
+    }
+  ],
+  "2": [
+    {
+      "type": "win_at_disadvantage",
+      "params": {},
+      "description": "Win a battle where this Glyph is at affinity disadvantage."
+    },
+    {
+      "type": "win_vs_3_enemies",
+      "params": {"enemy_count": 3},
+      "description": "Win a battle against a squad of 3 enemies."
+    },
+    {
+      "type": "trigger_interrupt",
+      "params": {},
+      "description": "Successfully trigger an interrupt technique."
+    },
+    {
+      "type": "win_battle_in_turns",
+      "params": {"max_turns": 4},
+      "description": "Win a battle in 4 turns or fewer."
+    },
+    {
+      "type": "finishing_blow_count",
+      "params": {"target": 2, "current": 0},
+      "description": "Win a battle where this Glyph dealt the finishing blow to 2+ enemies."
+    }
+  ],
+  "3": [
+    {
+      "type": "solo_win",
+      "params": {},
+      "description": "Win a battle using only this Glyph (solo)."
+    },
+    {
+      "type": "squad_no_ko",
+      "params": {},
+      "description": "Complete a rift floor without any Glyph being knocked out."
+    },
+    {
+      "type": "finishing_blow_higher_tier",
+      "params": {"own_tier": 3},
+      "description": "Win a battle against an enemy Glyph of a higher tier."
+    },
+    {
+      "type": "win_battle_in_turns",
+      "params": {"max_turns": 3},
+      "description": "Win a battle in 3 turns or fewer."
+    },
+    {
+      "type": "boss_win",
+      "params": {},
+      "description": "Win a boss encounter with this Glyph in the active squad."
+    }
+  ]
+}

@@ -1,0 +1,819 @@
+[
+  {
+    "rift_id": "tutorial_01",
+    "name": "Initiation Rift",
+    "tier": "minor",
+    "hazard_damage": 10,
+    "enemy_tier_pool": [1],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit"],
+    "floors": [
+      {
+        "floor_number": 0,
+        "rooms": [
+          {"id": "f0_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f0_r1", "x": 1, "y": 0, "type": "enemy"},
+          {"id": "f0_r2", "x": 1, "y": 1, "type": "exit"}
+        ],
+        "connections": [
+          ["f0_r0", "f0_r1"],
+          ["f0_r1", "f0_r2"]
+        ]
+      },
+      {
+        "floor_number": 1,
+        "rooms": [
+          {"id": "f1_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f1_r1", "x": 1, "y": 0, "type": "enemy"},
+          {"id": "f1_r2", "x": 2, "y": 0, "type": "cache"},
+          {"id": "f1_r3", "x": 1, "y": 1, "type": "exit"}
+        ],
+        "connections": [
+          ["f1_r0", "f1_r1"],
+          ["f1_r1", "f1_r2"],
+          ["f1_r1", "f1_r3"]
+        ]
+      },
+      {
+        "floor_number": 2,
+        "rooms": [
+          {"id": "f2_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f2_r1", "x": 1, "y": 0, "type": "hazard"},
+          {"id": "f2_r2", "x": 2, "y": 0, "type": "enemy"},
+          {"id": "f2_r3", "x": 2, "y": 1, "type": "boss"}
+        ],
+        "connections": [
+          ["f2_r0", "f2_r1"],
+          ["f2_r1", "f2_r2"],
+          ["f2_r2", "f2_r3"]
+        ]
+      }
+    ],
+    "content_pools": {
+      "pool_a": {"enemy": 0.60, "empty": 0.25, "hazard": 0.15},
+      "pool_b": {"cache": 0.50, "puzzle": 0.30, "enemy": 0.20},
+      "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
+    },
+    "boss": {
+      "species_id": "thunderclaw",
+      "stat_modifier": 1.2,
+      "phase1_technique_ids": ["arc_fang", "static_snap"],
+      "phase2_technique_ids": ["chain_bolt"],
+      "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    }
+  },
+  {
+    "rift_id": "minor_01",
+    "name": "The Frayed Edge",
+    "tier": "minor",
+    "hazard_damage": 10,
+    "enemy_tier_pool": [1],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit"],
+    "floors": [
+      {
+        "floor_number": 0,
+        "rooms": [
+          {"id": "f0_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f0_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f0_r2", "x": 2, "y": 0, "pool": "pool_b"},
+          {"id": "f0_r3", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f0_r4", "x": 2, "y": 1, "pool": "pool_c"},
+          {"id": "f0_r5", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f0_r0", "f0_r1"],
+          ["f0_r1", "f0_r2"],
+          ["f0_r1", "f0_r3"],
+          ["f0_r3", "f0_r4"],
+          ["f0_r3", "f0_r5"]
+        ]
+      },
+      {
+        "floor_number": 1,
+        "rooms": [
+          {"id": "f1_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f1_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r2", "x": 2, "y": 0, "pool": "pool_b"},
+          {"id": "f1_r3", "x": 3, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r4", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r5", "x": 2, "y": 1, "pool": "pool_c"},
+          {"id": "f1_r6", "x": 3, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r7", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f1_r0", "f1_r1"],
+          ["f1_r1", "f1_r2"],
+          ["f1_r2", "f1_r3"],
+          ["f1_r1", "f1_r4"],
+          ["f1_r3", "f1_r6"],
+          ["f1_r5", "f1_r6"],
+          ["f1_r4", "f1_r5"],
+          ["f1_r4", "f1_r7"]
+        ]
+      },
+      {
+        "floor_number": 2,
+        "rooms": [
+          {"id": "f2_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f2_r1", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f2_r2", "x": 0, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r3", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f2_r4", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r5", "x": 0, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r6", "x": 1, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r7", "x": 1, "y": 3, "type": "exit"}
+        ],
+        "connections": [
+          ["f2_r0", "f2_r2"],
+          ["f2_r1", "f2_r4"],
+          ["f2_r2", "f2_r3"],
+          ["f2_r3", "f2_r4"],
+          ["f2_r2", "f2_r5"],
+          ["f2_r5", "f2_r6"],
+          ["f2_r6", "f2_r7"]
+        ]
+      },
+      {
+        "floor_number": 3,
+        "rooms": [
+          {"id": "f3_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f3_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r2", "x": 0, "y": 1, "type": "cache"},
+          {"id": "f3_r3", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f3_r4", "x": 1, "y": 2, "type": "boss"}
+        ],
+        "connections": [
+          ["f3_r0", "f3_r1"],
+          ["f3_r0", "f3_r2"],
+          ["f3_r1", "f3_r3"],
+          ["f3_r2", "f3_r3"],
+          ["f3_r3", "f3_r4"]
+        ]
+      }
+    ],
+    "content_pools": {
+      "pool_a": {"enemy": 0.60, "empty": 0.25, "hazard": 0.15},
+      "pool_b": {"cache": 0.50, "puzzle": 0.30, "enemy": 0.20},
+      "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
+    },
+    "boss": {
+      "species_id": "ironbark",
+      "stat_modifier": 1.2,
+      "phase1_technique_ids": ["iron_ram", "fortress"],
+      "phase2_technique_ids": ["quake_stomp"],
+      "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    }
+  },
+  {
+    "rift_id": "minor_02",
+    "name": "Shattered Threshold",
+    "tier": "minor",
+    "hazard_damage": 10,
+    "enemy_tier_pool": [1],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit"],
+    "floors": [
+      {
+        "floor_number": 0,
+        "rooms": [
+          {"id": "f0_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f0_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f0_r2", "x": 2, "y": 0, "pool": "pool_b"},
+          {"id": "f0_r3", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f0_r4", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f0_r5", "x": 2, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f0_r0", "f0_r1"],
+          ["f0_r1", "f0_r2"],
+          ["f0_r1", "f0_r3"],
+          ["f0_r2", "f0_r4"],
+          ["f0_r3", "f0_r4"],
+          ["f0_r4", "f0_r5"]
+        ]
+      },
+      {
+        "floor_number": 1,
+        "rooms": [
+          {"id": "f1_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f1_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r2", "x": 0, "y": 1, "pool": "pool_c"},
+          {"id": "f1_r3", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f1_r4", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r5", "x": 1, "y": 2, "pool": "pool_a"},
+          {"id": "f1_r6", "x": 1, "y": 3, "type": "exit"}
+        ],
+        "connections": [
+          ["f1_r0", "f1_r1"],
+          ["f1_r0", "f1_r2"],
+          ["f1_r1", "f1_r3"],
+          ["f1_r3", "f1_r4"],
+          ["f1_r2", "f1_r5"],
+          ["f1_r3", "f1_r5"],
+          ["f1_r5", "f1_r6"]
+        ]
+      },
+      {
+        "floor_number": 2,
+        "rooms": [
+          {"id": "f2_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f2_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f2_r2", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f2_r3", "x": 0, "y": 1, "pool": "pool_b"},
+          {"id": "f2_r4", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r6", "x": 1, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r7", "x": 1, "y": 3, "type": "exit"}
+        ],
+        "connections": [
+          ["f2_r0", "f2_r1"],
+          ["f2_r1", "f2_r2"],
+          ["f2_r0", "f2_r3"],
+          ["f2_r1", "f2_r4"],
+          ["f2_r2", "f2_r5"],
+          ["f2_r3", "f2_r6"],
+          ["f2_r4", "f2_r6"],
+          ["f2_r6", "f2_r7"]
+        ]
+      },
+      {
+        "floor_number": 3,
+        "rooms": [
+          {"id": "f3_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f3_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r2", "x": 0, "y": 1, "type": "cache"},
+          {"id": "f3_r3", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f3_r4", "x": 1, "y": 2, "type": "boss"}
+        ],
+        "connections": [
+          ["f3_r0", "f3_r1"],
+          ["f3_r0", "f3_r2"],
+          ["f3_r1", "f3_r3"],
+          ["f3_r2", "f3_r3"],
+          ["f3_r3", "f3_r4"]
+        ]
+      }
+    ],
+    "content_pools": {
+      "pool_a": {"enemy": 0.60, "empty": 0.25, "hazard": 0.15},
+      "pool_b": {"cache": 0.50, "puzzle": 0.30, "enemy": 0.20},
+      "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
+    },
+    "boss": {
+      "species_id": "vortail",
+      "stat_modifier": 1.2,
+      "phase1_technique_ids": ["warp_claw", "destabilize"],
+      "phase2_technique_ids": ["rift_pulse"],
+      "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    }
+  },
+  {
+    "rift_id": "standard_01",
+    "name": "The Crackling Abyss",
+    "tier": "standard",
+    "hazard_damage": 15,
+    "enemy_tier_pool": [1, 2],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "thunderclaw", "ironbark", "vortail"],
+    "floors": [
+      {
+        "floor_number": 0,
+        "rooms": [
+          {"id": "f0_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f0_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f0_r2", "x": 2, "y": 0, "pool": "pool_b"},
+          {"id": "f0_r3", "x": 0, "y": 1, "pool": "pool_a"},
+          {"id": "f0_r4", "x": 1, "y": 1, "pool": "pool_c"},
+          {"id": "f0_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f0_r6", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f0_r0", "f0_r1"],
+          ["f0_r1", "f0_r2"],
+          ["f0_r0", "f0_r3"],
+          ["f0_r1", "f0_r4"],
+          ["f0_r2", "f0_r5"],
+          ["f0_r3", "f0_r4"],
+          ["f0_r4", "f0_r6"]
+        ]
+      },
+      {
+        "floor_number": 1,
+        "rooms": [
+          {"id": "f1_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f1_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r2", "x": 2, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r3", "x": 3, "y": 0, "pool": "pool_b"},
+          {"id": "f1_r4", "x": 0, "y": 1, "pool": "pool_c"},
+          {"id": "f1_r5", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r6", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r7", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f1_r0", "f1_r1"],
+          ["f1_r1", "f1_r2"],
+          ["f1_r2", "f1_r3"],
+          ["f1_r0", "f1_r4"],
+          ["f1_r1", "f1_r5"],
+          ["f1_r2", "f1_r6"],
+          ["f1_r4", "f1_r5"],
+          ["f1_r5", "f1_r7"]
+        ]
+      },
+      {
+        "floor_number": 2,
+        "rooms": [
+          {"id": "f2_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f2_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f2_r2", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f2_r3", "x": 0, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r4", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f2_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r6", "x": 0, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r7", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f2_r0", "f2_r1"],
+          ["f2_r1", "f2_r2"],
+          ["f2_r0", "f2_r3"],
+          ["f2_r1", "f2_r4"],
+          ["f2_r2", "f2_r5"],
+          ["f2_r3", "f2_r6"],
+          ["f2_r4", "f2_r7"],
+          ["f2_r6", "f2_r7"]
+        ]
+      },
+      {
+        "floor_number": 3,
+        "rooms": [
+          {"id": "f3_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f3_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r2", "x": 2, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r3", "x": 0, "y": 1, "pool": "pool_b"},
+          {"id": "f3_r4", "x": 1, "y": 1, "pool": "pool_c"},
+          {"id": "f3_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f3_r6", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f3_r0", "f3_r1"],
+          ["f3_r1", "f3_r2"],
+          ["f3_r0", "f3_r3"],
+          ["f3_r1", "f3_r4"],
+          ["f3_r2", "f3_r5"],
+          ["f3_r3", "f3_r4"],
+          ["f3_r4", "f3_r6"]
+        ]
+      },
+      {
+        "floor_number": 4,
+        "rooms": [
+          {"id": "f4_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f4_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f4_r2", "x": 0, "y": 1, "type": "cache"},
+          {"id": "f4_r3", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f4_r4", "x": 1, "y": 2, "type": "boss"}
+        ],
+        "connections": [
+          ["f4_r0", "f4_r1"],
+          ["f4_r0", "f4_r2"],
+          ["f4_r1", "f4_r3"],
+          ["f4_r2", "f4_r3"],
+          ["f4_r3", "f4_r4"]
+        ]
+      }
+    ],
+    "content_pools": {
+      "pool_a": {"enemy": 0.55, "empty": 0.20, "hazard": 0.25},
+      "pool_b": {"cache": 0.40, "puzzle": 0.35, "enemy": 0.25},
+      "pool_c": {"hazard": 0.45, "enemy": 0.35, "hidden_eligible": 0.20}
+    },
+    "boss": {
+      "species_id": "stormfang",
+      "stat_modifier": 1.0,
+      "phase1_technique_ids": ["storm_lance", "spark_shower", "static_guard"],
+      "phase2_technique_ids": ["thunder_cascade"],
+      "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    }
+  },
+  {
+    "rift_id": "standard_02",
+    "name": "Petrified Depths",
+    "tier": "standard",
+    "hazard_damage": 15,
+    "enemy_tier_pool": [1, 2],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "thunderclaw", "ironbark", "vortail"],
+    "floors": [
+      {
+        "floor_number": 0,
+        "rooms": [
+          {"id": "f0_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f0_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f0_r2", "x": 2, "y": 0, "pool": "pool_a"},
+          {"id": "f0_r3", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f0_r4", "x": 2, "y": 1, "pool": "pool_c"},
+          {"id": "f0_r5", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f0_r0", "f0_r1"],
+          ["f0_r1", "f0_r2"],
+          ["f0_r1", "f0_r3"],
+          ["f0_r2", "f0_r4"],
+          ["f0_r3", "f0_r5"]
+        ]
+      },
+      {
+        "floor_number": 1,
+        "rooms": [
+          {"id": "f1_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f1_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r2", "x": 2, "y": 0, "pool": "pool_b"},
+          {"id": "f1_r3", "x": 0, "y": 1, "pool": "pool_c"},
+          {"id": "f1_r4", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r6", "x": 1, "y": 2, "pool": "pool_a"},
+          {"id": "f1_r7", "x": 1, "y": 3, "type": "exit"}
+        ],
+        "connections": [
+          ["f1_r0", "f1_r1"],
+          ["f1_r1", "f1_r2"],
+          ["f1_r0", "f1_r3"],
+          ["f1_r1", "f1_r4"],
+          ["f1_r2", "f1_r5"],
+          ["f1_r3", "f1_r6"],
+          ["f1_r4", "f1_r6"],
+          ["f1_r6", "f1_r7"]
+        ]
+      },
+      {
+        "floor_number": 2,
+        "rooms": [
+          {"id": "f2_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f2_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f2_r2", "x": 2, "y": 0, "pool": "pool_a"},
+          {"id": "f2_r3", "x": 0, "y": 1, "pool": "pool_b"},
+          {"id": "f2_r4", "x": 1, "y": 1, "pool": "pool_c"},
+          {"id": "f2_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r6", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f2_r0", "f2_r1"],
+          ["f2_r1", "f2_r2"],
+          ["f2_r0", "f2_r3"],
+          ["f2_r1", "f2_r4"],
+          ["f2_r2", "f2_r5"],
+          ["f2_r3", "f2_r4"],
+          ["f2_r4", "f2_r6"]
+        ]
+      },
+      {
+        "floor_number": 3,
+        "rooms": [
+          {"id": "f3_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f3_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r2", "x": 2, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r3", "x": 0, "y": 1, "pool": "pool_a"},
+          {"id": "f3_r4", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f3_r5", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f3_r0", "f3_r1"],
+          ["f3_r1", "f3_r2"],
+          ["f3_r0", "f3_r3"],
+          ["f3_r1", "f3_r4"],
+          ["f3_r3", "f3_r4"],
+          ["f3_r4", "f3_r5"]
+        ]
+      },
+      {
+        "floor_number": 4,
+        "rooms": [
+          {"id": "f4_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f4_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f4_r2", "x": 0, "y": 1, "type": "cache"},
+          {"id": "f4_r3", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f4_r4", "x": 1, "y": 2, "type": "boss"}
+        ],
+        "connections": [
+          ["f4_r0", "f4_r1"],
+          ["f4_r0", "f4_r2"],
+          ["f4_r1", "f4_r3"],
+          ["f4_r2", "f4_r3"],
+          ["f4_r3", "f4_r4"]
+        ]
+      }
+    ],
+    "content_pools": {
+      "pool_a": {"enemy": 0.55, "empty": 0.20, "hazard": 0.25},
+      "pool_b": {"cache": 0.40, "puzzle": 0.35, "enemy": 0.25},
+      "pool_c": {"hazard": 0.45, "enemy": 0.35, "hidden_eligible": 0.20}
+    },
+    "boss": {
+      "species_id": "terradon",
+      "stat_modifier": 1.0,
+      "phase1_technique_ids": ["spire_crush", "root_hold", "tremor_response"],
+      "phase2_technique_ids": ["tectonic_slam"],
+      "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    }
+  },
+  {
+    "rift_id": "major_01",
+    "name": "The Sundered Core",
+    "tier": "major",
+    "hazard_damage": 20,
+    "enemy_tier_pool": [2, 3],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "thunderclaw", "ironbark", "vortail", "stormfang", "terradon", "riftmaw"],
+    "floors": [
+      {
+        "floor_number": 0,
+        "rooms": [
+          {"id": "f0_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f0_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f0_r2", "x": 2, "y": 0, "pool": "pool_a"},
+          {"id": "f0_r3", "x": 0, "y": 1, "pool": "pool_b"},
+          {"id": "f0_r4", "x": 1, "y": 1, "pool": "pool_c"},
+          {"id": "f0_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f0_r6", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f0_r0", "f0_r1"],
+          ["f0_r1", "f0_r2"],
+          ["f0_r0", "f0_r3"],
+          ["f0_r1", "f0_r4"],
+          ["f0_r2", "f0_r5"],
+          ["f0_r3", "f0_r4"],
+          ["f0_r4", "f0_r6"]
+        ]
+      },
+      {
+        "floor_number": 1,
+        "rooms": [
+          {"id": "f1_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f1_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r2", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f1_r3", "x": 3, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r4", "x": 0, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r5", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f1_r6", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r7", "x": 3, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r8", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f1_r0", "f1_r1"],
+          ["f1_r1", "f1_r2"],
+          ["f1_r2", "f1_r3"],
+          ["f1_r0", "f1_r4"],
+          ["f1_r1", "f1_r5"],
+          ["f1_r2", "f1_r6"],
+          ["f1_r3", "f1_r7"],
+          ["f1_r4", "f1_r5"],
+          ["f1_r5", "f1_r8"]
+        ]
+      },
+      {
+        "floor_number": 2,
+        "rooms": [
+          {"id": "f2_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f2_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f2_r2", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f2_r3", "x": 0, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r4", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r5", "x": 2, "y": 1, "pool": "pool_b"},
+          {"id": "f2_r6", "x": 0, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r7", "x": 1, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r8", "x": 1, "y": 3, "type": "exit"}
+        ],
+        "connections": [
+          ["f2_r0", "f2_r1"],
+          ["f2_r1", "f2_r2"],
+          ["f2_r0", "f2_r3"],
+          ["f2_r1", "f2_r4"],
+          ["f2_r2", "f2_r5"],
+          ["f2_r3", "f2_r6"],
+          ["f2_r4", "f2_r7"],
+          ["f2_r6", "f2_r7"],
+          ["f2_r7", "f2_r8"]
+        ]
+      },
+      {
+        "floor_number": 3,
+        "rooms": [
+          {"id": "f3_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f3_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r2", "x": 2, "y": 0, "pool": "pool_b"},
+          {"id": "f3_r3", "x": 0, "y": 1, "pool": "pool_c"},
+          {"id": "f3_r4", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f3_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f3_r6", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f3_r0", "f3_r1"],
+          ["f3_r1", "f3_r2"],
+          ["f3_r0", "f3_r3"],
+          ["f3_r1", "f3_r4"],
+          ["f3_r2", "f3_r5"],
+          ["f3_r3", "f3_r4"],
+          ["f3_r4", "f3_r6"]
+        ]
+      },
+      {
+        "floor_number": 4,
+        "rooms": [
+          {"id": "f4_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f4_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f4_r2", "x": 2, "y": 0, "pool": "pool_a"},
+          {"id": "f4_r3", "x": 0, "y": 1, "pool": "pool_b"},
+          {"id": "f4_r4", "x": 1, "y": 1, "pool": "pool_c"},
+          {"id": "f4_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f4_r6", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f4_r0", "f4_r1"],
+          ["f4_r1", "f4_r2"],
+          ["f4_r0", "f4_r3"],
+          ["f4_r1", "f4_r4"],
+          ["f4_r2", "f4_r5"],
+          ["f4_r3", "f4_r4"],
+          ["f4_r4", "f4_r6"]
+        ]
+      },
+      {
+        "floor_number": 5,
+        "rooms": [
+          {"id": "f5_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f5_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f5_r2", "x": 0, "y": 1, "type": "cache"},
+          {"id": "f5_r3", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f5_r4", "x": 1, "y": 2, "type": "boss"}
+        ],
+        "connections": [
+          ["f5_r0", "f5_r1"],
+          ["f5_r0", "f5_r2"],
+          ["f5_r1", "f5_r3"],
+          ["f5_r2", "f5_r3"],
+          ["f5_r3", "f5_r4"]
+        ]
+      }
+    ],
+    "content_pools": {
+      "pool_a": {"enemy": 0.50, "empty": 0.15, "hazard": 0.35},
+      "pool_b": {"cache": 0.35, "puzzle": 0.40, "enemy": 0.25},
+      "pool_c": {"hazard": 0.50, "enemy": 0.30, "hidden_eligible": 0.20}
+    },
+    "boss": {
+      "species_id": "riftmaw",
+      "stat_modifier": 1.0,
+      "phase1_technique_ids": ["null_beam", "entropic_touch", "null_counter"],
+      "phase2_technique_ids": ["rift_pulse", "destabilize"],
+      "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    }
+  },
+  {
+    "rift_id": "apex_01",
+    "name": "The Null Convergence",
+    "tier": "apex",
+    "hazard_damage": 25,
+    "enemy_tier_pool": [3, 4],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "thunderclaw", "ironbark", "vortail", "stormfang", "terradon", "riftmaw"],
+    "floors": [
+      {
+        "floor_number": 0,
+        "rooms": [
+          {"id": "f0_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f0_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f0_r2", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f0_r3", "x": 0, "y": 1, "pool": "pool_a"},
+          {"id": "f0_r4", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f0_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f0_r6", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f0_r0", "f0_r1"],
+          ["f0_r1", "f0_r2"],
+          ["f0_r0", "f0_r3"],
+          ["f0_r1", "f0_r4"],
+          ["f0_r2", "f0_r5"],
+          ["f0_r3", "f0_r4"],
+          ["f0_r4", "f0_r6"]
+        ]
+      },
+      {
+        "floor_number": 1,
+        "rooms": [
+          {"id": "f1_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f1_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r2", "x": 2, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r3", "x": 3, "y": 0, "pool": "pool_c"},
+          {"id": "f1_r4", "x": 0, "y": 1, "pool": "pool_b"},
+          {"id": "f1_r5", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r6", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r7", "x": 3, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r8", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f1_r0", "f1_r1"],
+          ["f1_r1", "f1_r2"],
+          ["f1_r2", "f1_r3"],
+          ["f1_r0", "f1_r4"],
+          ["f1_r1", "f1_r5"],
+          ["f1_r2", "f1_r6"],
+          ["f1_r3", "f1_r7"],
+          ["f1_r4", "f1_r5"],
+          ["f1_r5", "f1_r8"]
+        ]
+      },
+      {
+        "floor_number": 2,
+        "rooms": [
+          {"id": "f2_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f2_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f2_r2", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f2_r3", "x": 0, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r4", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f2_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r6", "x": 0, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r7", "x": 1, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r8", "x": 1, "y": 3, "type": "exit"}
+        ],
+        "connections": [
+          ["f2_r0", "f2_r1"],
+          ["f2_r1", "f2_r2"],
+          ["f2_r0", "f2_r3"],
+          ["f2_r1", "f2_r4"],
+          ["f2_r2", "f2_r5"],
+          ["f2_r3", "f2_r6"],
+          ["f2_r4", "f2_r7"],
+          ["f2_r6", "f2_r7"],
+          ["f2_r7", "f2_r8"]
+        ]
+      },
+      {
+        "floor_number": 3,
+        "rooms": [
+          {"id": "f3_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f3_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r2", "x": 2, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r3", "x": 0, "y": 1, "pool": "pool_c"},
+          {"id": "f3_r4", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f3_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f3_r6", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f3_r0", "f3_r1"],
+          ["f3_r1", "f3_r2"],
+          ["f3_r0", "f3_r3"],
+          ["f3_r1", "f3_r4"],
+          ["f3_r2", "f3_r5"],
+          ["f3_r3", "f3_r4"],
+          ["f3_r4", "f3_r6"]
+        ]
+      },
+      {
+        "floor_number": 4,
+        "rooms": [
+          {"id": "f4_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f4_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f4_r2", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f4_r3", "x": 0, "y": 1, "pool": "pool_b"},
+          {"id": "f4_r4", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f4_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f4_r6", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f4_r0", "f4_r1"],
+          ["f4_r1", "f4_r2"],
+          ["f4_r0", "f4_r3"],
+          ["f4_r1", "f4_r4"],
+          ["f4_r2", "f4_r5"],
+          ["f4_r3", "f4_r4"],
+          ["f4_r4", "f4_r6"]
+        ]
+      },
+      {
+        "floor_number": 5,
+        "rooms": [
+          {"id": "f5_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f5_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f5_r2", "x": 0, "y": 1, "type": "cache"},
+          {"id": "f5_r3", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f5_r4", "x": 1, "y": 2, "type": "boss"}
+        ],
+        "connections": [
+          ["f5_r0", "f5_r1"],
+          ["f5_r0", "f5_r2"],
+          ["f5_r1", "f5_r3"],
+          ["f5_r2", "f5_r3"],
+          ["f5_r3", "f5_r4"]
+        ]
+      }
+    ],
+    "content_pools": {
+      "pool_a": {"enemy": 0.50, "empty": 0.10, "hazard": 0.40},
+      "pool_b": {"cache": 0.30, "puzzle": 0.40, "enemy": 0.30},
+      "pool_c": {"hazard": 0.50, "enemy": 0.30, "hidden_eligible": 0.20}
+    },
+    "boss": {
+      "species_id": "nullweaver",
+      "stat_modifier": 1.0,
+      "phase1_technique_ids": ["void_collapse", "null_beam", "flux_veil"],
+      "phase2_technique_ids": ["phase_shift"],
+      "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    }
+  }
+]

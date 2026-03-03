@@ -1,0 +1,47 @@
+{
+  "kael": {
+    "name": "Kael",
+    "title": "Veteran Warden",
+    "phases": {
+      "1": [
+        "Welcome back, Warden. You handled yourself well in there. A tip: if you Guard with a Glyph that knows an Interrupt technique, it'll fire off automatically when the conditions are right. It's the difference between a good Warden and a great one."
+      ],
+      "2": [
+        "You performed your first fusion? Good. Here's something they don't teach in the Academy: mixing affinities produces unexpected results. Don't be afraid to combine a Volt with a Terra. You might be surprised."
+      ],
+      "3": [
+        "The Major Rift is no joke. The boss in there — a Riftmaw — hits hard and fast. Phase 2 it switches to Piercing attacks, so your back row isn't safe. Bring something tanky with an Interrupt, or you'll be eating Null Beams all day."
+      ]
+    }
+  },
+  "lira": {
+    "name": "Lira",
+    "title": "Rift Researcher",
+    "phases": {
+      "1": [
+        "The Codex is your most valuable tool. Every species you discover is catalogued there — and the ones you haven't found yet leave traces. Pay attention to the silhouettes. I've added notes where I can."
+      ],
+      "2": [
+        "Fascinating — the Glyph you created doesn't match any species in my field records. I've updated the Codex. I wonder... there are several silhouettes that seem to resonate with storm energy. Perhaps try fusing two of the same affinity next?"
+      ],
+      "3": [
+        "I've been studying Glyph #009 in the Codex — the one we haven't identified yet. Its energy signature resonates with both storm and fracture wavelengths. If I had to guess... you'd need to fuse a Volt Prime with a Flux Prime to find it. But that's just a theory."
+      ]
+    }
+  },
+  "maro": {
+    "name": "Maro",
+    "title": "Crawler Mechanic",
+    "phases": {
+      "1": [
+        "Your Crawler's seen better days, but she'll hold. Bring her back without a scratch sometime and I'll see what I can do about the hull plating."
+      ],
+      "2": [
+        "Hey, you're filling up that Cargo hold. If you find yourself turning down captures, come talk to me — I might be able to squeeze in another slot once you've done some exploring."
+      ],
+      "3": [
+        "You've been through a lot of rifts. Your Crawler's got character now — battle scars and all. If you manage to clear the Major Rift, I've got something special waiting for your Capacity rating."
+      ]
+    }
+  }
+}

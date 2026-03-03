@@ -1,0 +1,62 @@
+{
+  "zapplet": {
+    "hint": "A common spark creature found in shallow rifts.",
+    "lore": "Zapplets are among the first Glyphs any Warden encounters. Their crackling energy is more playful than dangerous, but underestimate them at your peril — a Zapplet's Jolt Rush has ended more than a few overconfident expeditions."
+  },
+  "sparkfin": {
+    "hint": "Its shimmering fins channel electricity through water vapor.",
+    "lore": "Sparkfins drift through rift corridors, their luminous fins casting flickering shadows. They have an instinctive ability to discharge stunning bursts of energy, making them excellent support units for a growing squad."
+  },
+  "stonepaw": {
+    "hint": "A sturdy creature of living rock.",
+    "lore": "Stonepaws are slow but incredibly resilient. Their bodies are formed from compressed rift minerals, and they can brace themselves into an almost immovable defensive stance. Many Wardens rely on a Stonepaw to hold the front line."
+  },
+  "mossling": {
+    "hint": "A gentle healer wreathed in living vines.",
+    "lore": "Mosslings are peaceful by nature, preferring to nurture rather than fight. Their Root Hold technique channels ground energy directly into wounded allies, making them invaluable companions for deep rift runs."
+  },
+  "driftwisp": {
+    "hint": "A fleeting presence that destabilizes everything it touches.",
+    "lore": "Driftwisps exist partially between dimensions, giving them extraordinary speed. Their Entropic Touch saps the strength from enemies, leaving them vulnerable to follow-up attacks from stronger squad members."
+  },
+  "glitchkit": {
+    "hint": "A chaotic spark of unstable rift energy.",
+    "lore": "Glitchkits are born from dimensional instability itself. They flicker in and out of phase unpredictably, and their Destabilize technique sets enemies aflame with reality-warping fire. Handle with care."
+  },
+  "thunderclaw": {
+    "hint": "Born from the convergence of two sparks.",
+    "lore": "Thunderclaws are ferocious predators that combine raw electrical power with devastating melee strikes. Their Static Guard interrupt makes them dangerous to approach in melee, and Chain Bolt can pierce through any formation."
+  },
+  "ironbark": {
+    "hint": "A fortress given form by the fusion of stone and growth.",
+    "lore": "Ironbarks are living bulwarks, combining the resilience of stone with the adaptive strength of wood. Their Stone Wall interrupt can block incoming ranged attacks entirely, making them the ultimate defensive anchor."
+  },
+  "vortail": {
+    "hint": "Where opposing forces collide, instability finds form.",
+    "lore": "Vortails are born from the fusion of conflicting energies. Their unstable nature manifests as devastating water attacks and the ability to Phase Shift out of area attacks entirely. They burn with chaos energy — literally."
+  },
+  "stormfang": {
+    "hint": "The storm personified — swift, relentless, overwhelming.",
+    "lore": "Stormfangs command the full fury of electrical storms. They can unleash Thunder Cascades that engulf entire enemy formations, stun targets with Spark Showers, and counter melee attackers with Static Guard — all at terrifying speed."
+  },
+  "terradon": {
+    "hint": "An ancient guardian whose roots run deep.",
+    "lore": "Terradons are among the most resilient Glyphs ever documented. They combine crushing offensive power with healing support, and their Tremor Response slows any attacker foolish enough to engage them in close combat."
+  },
+  "riftmaw": {
+    "hint": "A predator from the deepest fractures of unstable reality.",
+    "lore": "Riftmaws are terrifying apex predators of the water dimension. Their Null Beam pierces through any defense, and their Null Counter punishes melee attackers with devastating water damage. Approach only with a solid strategy."
+  },
+  "voltarion": {
+    "hint": "The apex of electrical evolution — only those who have mastered the storm may summon it.",
+    "lore": "Voltarion is the ultimate expression of electric energy. Its Apocalt Strike is the single most powerful melee attack known to Rift Wardens, and its Disrupt interrupt can shut down enemy support entirely. Fielding one changes everything."
+  },
+  "lithosurge": {
+    "hint": "A titan of living stone, born from the fusion of two ground primes.",
+    "lore": "Lithosurge embodies the indomitable spirit of the earth itself. Its Worldbreaker and Tectonic Slam devastate enemies, while Harmonic Pulse keeps its allies standing. With Stone Wall, even ranged attacks bounce harmlessly off its surface."
+  },
+  "nullweaver": {
+    "hint": "The apex of chaos — only those who have mastered the storm and the rift may summon it.",
+    "lore": "Nullweaver exists at the boundary between dimensions. It weaves void energy into devastating area attacks and piercing beams, shields allies from status effects with Flux Veil, and phases out of AoE attacks entirely. The ultimate water predator."
+  }
+}
