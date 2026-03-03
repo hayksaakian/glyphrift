@@ -137,7 +137,7 @@ func _test_mastery_objective_types() -> void:
 	var objectives: Array[Dictionary] = MasteryTracker.build_mastery_track(sp, _data_loader.mastery_pools)
 	_assert(objectives.size() == 3, "Zapplet has 3 mastery objectives, got %d" % objectives.size())
 	_assert(objectives[0]["type"] == "use_technique_count", "First fixed objective: use_technique_count, got %s" % objectives[0]["type"])
-	_assert(objectives[1]["type"] == "win_battle_no_ko", "Second fixed objective: win_battle_no_ko, got %s" % objectives[1]["type"])
+	_assert(objectives[1]["type"] == "finishing_blow_with_technique", "Second fixed objective: finishing_blow_with_technique, got %s" % objectives[1]["type"])
 	_assert(not objectives[0].get("completed", true), "Objectives start uncompleted")
 
 	## T4 has no mastery

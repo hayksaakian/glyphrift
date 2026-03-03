@@ -130,8 +130,11 @@ func _build_ui() -> void:
 
 
 func _get_description(room_type: String, extra_info: String) -> String:
+	var scan_info: String = room_data.get("scan_info", "")
 	match room_type:
 		"enemy":
+			if scan_info != "":
+				return "Scouted: %s" % scan_info
 			return "Wild glyphs block your path!"
 		"cache":
 			return "A supply cache sits before you."
@@ -142,6 +145,8 @@ func _get_description(room_type: String, extra_info: String) -> String:
 		"puzzle":
 			return "A mysterious mechanism awaits."
 		"boss":
+			if scan_info != "":
+				return "Scouted: %s guards this floor." % scan_info
 			return "A powerful guardian defends this floor."
 		"empty":
 			return "An empty chamber. Nothing of interest."

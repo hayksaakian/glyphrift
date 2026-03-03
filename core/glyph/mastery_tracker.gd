@@ -55,10 +55,17 @@ static func build_mastery_track(sp: GlyphSpecies, mastery_pools: Dictionary) -> 
 		copy["completed"] = false
 		objectives.append(copy)
 
-	## 1 random from tier pool
+	## 1 random from tier pool (excluding types already in fixed objectives)
+	var fixed_types: Dictionary = {}
+	for obj: Dictionary in objectives:
+		fixed_types[obj.get("type", "")] = true
 	var pool: Array = mastery_pools.get(sp.tier, [])
-	if pool.size() > 0:
-		var random_obj: Dictionary = pool[randi() % pool.size()].duplicate(true)
+	var filtered_pool: Array = pool.filter(
+		func(entry: Dictionary) -> bool: return not fixed_types.has(entry.get("type", ""))
+	)
+	var pick_pool: Array = filtered_pool if filtered_pool.size() > 0 else pool
+	if pick_pool.size() > 0:
+		var random_obj: Dictionary = pick_pool[randi() % pick_pool.size()].duplicate(true)
 		random_obj["completed"] = false
 		objectives.append(random_obj)
 

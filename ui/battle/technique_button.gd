@@ -6,25 +6,11 @@ extends Button
 
 signal technique_selected(technique: TechniqueDef)
 
-const AFFINITY_TAGS: Dictionary = {
-	"electric": "[E]",
-	"ground": "[G]",
-	"water": "[W]",
-	"neutral": "[N]",
-}
-
 const RANGE_TAGS: Dictionary = {
 	"melee": "M",
 	"ranged": "R",
 	"aoe": "AoE",
 	"piercing": "P",
-}
-
-const AFFINITY_COLORS: Dictionary = {
-	"electric": Color("#FFD700"),
-	"ground": Color("#4CAF50"),
-	"water": Color("#00ACC1"),
-	"neutral": Color("#888888"),
 }
 
 var technique: TechniqueDef = null
@@ -63,7 +49,7 @@ func _update_display() -> void:
 			_se_badge.visible = false
 		return
 
-	var aff_tag: String = AFFINITY_TAGS.get(technique.affinity, "[?]")
+	var aff_tag: String = Affinity.EMOJI.get(technique.affinity, "?")
 	var range_tag: String = RANGE_TAGS.get(technique.range_type, "?")
 
 	if technique.power > 0:
@@ -76,10 +62,6 @@ func _update_display() -> void:
 	if technique.cooldown > 0:
 		text += "  CD:%d" % technique.cooldown
 
-	## Keep >>SE in text property for programmatic checks
-	if _has_advantage:
-		text += " >>SE"
-
 	## Show/hide badge
 	if _se_badge != null:
 		_se_badge.visible = _has_advantage
@@ -89,7 +71,7 @@ func _update_display() -> void:
 		modulate = Color(0.5, 0.5, 0.5, 0.8)
 	else:
 		modulate = Color.WHITE
-		var aff_color: Color = AFFINITY_COLORS.get(technique.affinity, Color.WHITE)
+		var aff_color: Color = Affinity.COLORS.get(technique.affinity, Color.WHITE)
 		add_theme_color_override("font_color", aff_color)
 
 

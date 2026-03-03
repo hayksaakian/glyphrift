@@ -2145,6 +2145,52 @@ Each session has a **goal**, **inputs** (what to feed Claude Code), **deliverabl
 
 **Goal:** Bastion hub menu. Fusion Chamber with full preview and discovery animation. Barracks with squad management and formation presets. Rift Gate with rift selection.
 
+### Session 8.5 — Mastery UX + Quality-of-Life
+
+**Inputs:** Playtesting feedback from Session 8 playthrough. GDD Sections 6, 4.2, 4.4.
+
+**Goal:** Make the mastery system visible and understandable. Fix UX issues discovered during playtesting.
+
+**Deliverables:**
+
+*New files:*
+- `ui/shared/glyph_detail_popup.gd` — Modal popup showing full glyph info + mastery checklist (stats, techniques, objectives with ✓/○ markers, progress counters, MASTERED banner). Reusable across all screens.
+- `core/affinity.gd` — Single source of truth for affinity display constants (`Affinity.COLORS`, `Affinity.EMOJI`). Replaced 7 duplicate dictionaries across UI files.
+
+*Mastery visibility:*
+- `ui/battle/result_screen.gd` — Added `_mastery_section` VBox and `show_mastery_progress(events)` method. Shows objective completions and "★ MASTERED!" on victory.
+- `ui/battle/battle_scene.gd` — Added `mastery_tracker` injectable, `_mastery_events` collection array, connects to `objective_completed`/`glyph_mastered` signals during battle.
+- `ui/battle/battle_scene.gd` — Click player GlyphPanel during action/technique/formation states → opens GlyphDetailPopup.
+- `ui/bastion/bastion_scene.gd` — Squad preview cards open GlyphDetailPopup on click. First-time mastery hint notification on initial hub visit.
+- `ui/bastion/barracks.gd` — Info button ("i") on all cards opens GlyphDetailPopup. Detail popup instance added.
+- `ui/dungeon/squad_overlay.gd` — Glyph names are clickable buttons with art icons (affinity-colored squares). Emits `glyph_clicked` signal → MainScene opens GlyphDetailPopup.
+- `ui/main_scene.gd` — Passes `mastery_tracker` to BattleScene. Owns a GlyphDetailPopup for dungeon sidebar clicks.
+
+*Data fixes:*
+- `core/glyph/mastery_tracker.gd` — `build_mastery_track()` now filters random pool to exclude types already in fixed objectives, preventing duplicate objectives.
+- `data/glyphs.json` — Replaced 8 generic overlapping fixed objectives with species-specific technique-flavored ones (e.g., Zapplet "Win without KO" → "Defeat an enemy with Jolt Rush").
+
+*Affinity visual identity:*
+- Affinity emoji: ⚡ Electric, 🪨 Ground, 💧 Water, ⚪ Neutral — shown on technique buttons, glyph panels, cards, detail popup, combat log.
+- Ground color changed from green (#4CAF50) to earthy brown (#C2855A).
+- Black text outline (2-4px) on all art placeholder initial letters for legibility.
+
+*Gameplay fixes:*
+- `ui/dungeon/dungeon_scene.gd` — Squad wipe detection: if entire squad KO'd after battle loss, force extraction instead of returning to exploration.
+- `ui/dungeon/dungeon_scene.gd` — Voluntary warp vs hull destruction: different result screen messages ("EXTRACTED" amber vs "RIFT FAILED" red).
+- `ui/dungeon/dungeon_scene.gd` — Scan now generates scouted enemy species names for revealed enemy/boss rooms, shown on map node and room popup.
+- `ui/dungeon/item_popup.gd` — Wrapped item list in ScrollContainer to prevent overflow past screen bounds.
+
+*Capacity separation:*
+- `core/progression/roster_state.gd` — Added `max_reserves = 20` (barracks storage capacity).
+- `core/dungeon/crawler_state.gd` — `cargo_slots` remains 2 (per-dungeon-run capture limit).
+- Barracks display uses `max_reserves`, capture gate uses `max_reserves`. The two limits serve different purposes.
+- Barracks squad→reserve move no longer blocked by cargo limit (roster rearrangement, not new capture).
+
+**Validation:**
+- 872+ tests pass across all non-interactive test suites.
+- All mastery UX visible and functional in live playthrough.
+
 ### Session 9 — Codex + NPCs + Puzzles
 
 **Inputs:** GDD Sections 9.4, 10, 11.2

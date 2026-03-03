@@ -6,12 +6,6 @@ extends PanelContainer
 
 signal panel_clicked(glyph: GlyphInstance)
 
-const AFFINITY_COLORS: Dictionary = {
-	"electric": Color("#FFD700"),
-	"ground": Color("#4CAF50"),
-	"water": Color("#00ACC1"),
-	"neutral": Color("#888888"),
-}
 
 const STATUS_COLORS: Dictionary = {
 	"burn": Color("#FF4444"),
@@ -30,6 +24,7 @@ const STATUS_LETTERS: Dictionary = {
 	"corrode": "C",
 	"shield": "H",
 }
+
 
 var glyph: GlyphInstance = null
 
@@ -72,9 +67,9 @@ func refresh() -> void:
 
 	## Affinity color + label + art placeholder
 	var aff: String = glyph.species.affinity if glyph.species else "neutral"
-	var aff_color: Color = AFFINITY_COLORS.get(aff, AFFINITY_COLORS["neutral"])
+	var aff_color: Color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
 	_affinity_rect.color = aff_color
-	_affinity_label.text = aff.to_upper()
+	_affinity_label.text = "%s %s" % [Affinity.EMOJI.get(aff, ""), aff.to_upper()]
 	_art_initial_label.text = glyph.species.name[0].to_upper() if glyph.species else "?"
 
 	## HP bar
@@ -157,16 +152,18 @@ func _build_ui() -> void:
 
 	_affinity_rect = ColorRect.new()
 	_affinity_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_affinity_rect.color = AFFINITY_COLORS["neutral"]
+	_affinity_rect.color = Affinity.COLORS["neutral"]
 	_affinity_rect.mouse_filter = Control.MOUSE_FILTER_PASS
 	art_container.add_child(_affinity_rect)
 
 	_art_initial_label = Label.new()
-	_art_initial_label.set_anchors_preset(Control.PRESET_CENTER)
+	_art_initial_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_art_initial_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_art_initial_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_art_initial_label.add_theme_font_size_override("font_size", 22)
 	_art_initial_label.add_theme_color_override("font_color", Color.WHITE)
+	_art_initial_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_art_initial_label.add_theme_constant_override("outline_size", 3)
 	_art_initial_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	art_container.add_child(_art_initial_label)
 

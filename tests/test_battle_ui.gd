@@ -235,7 +235,7 @@ func _test_glyph_panel() -> void:
 	_assert(int(panel._hp_bar.value) == g.current_hp, "GlyphPanel HP bar value matches glyph")
 
 	## Affinity color
-	_assert(panel._affinity_rect.color == GlyphPanel.AFFINITY_COLORS["electric"],
+	_assert(panel._affinity_rect.color == Affinity.COLORS["electric"],
 		"GlyphPanel shows electric affinity color for Zapplet")
 
 	## Test KO modulate
@@ -278,7 +278,7 @@ func _test_glyph_portrait() -> void:
 
 	portrait.refresh()
 	_assert(portrait._initial_label.text == "S", "GlyphPortrait shows species initial 'S' for Stonepaw")
-	_assert(portrait._color_rect.color == GlyphPortrait.AFFINITY_COLORS["ground"],
+	_assert(portrait._color_rect.color == Affinity.COLORS["ground"],
 		"GlyphPortrait shows ground color for Stonepaw")
 
 	## Test side border color
@@ -380,17 +380,17 @@ func _test_technique_button_hint() -> void:
 
 	## With advantage
 	btn.setup_with_hint(tech, true, true)
-	_assert(">>SE" in btn.text, "TechniqueButton shows >>SE when has_advantage")
+	_assert(btn._se_badge.visible, "TechniqueButton shows S.EFF badge when has_advantage")
 	_assert("Arc Fang" in btn.text, "TechniqueButton still shows technique name with hint")
 
 	## Without advantage
 	btn.setup_with_hint(tech, true, false)
-	_assert(">>SE" not in btn.text, "TechniqueButton hides >>SE when no advantage")
+	_assert(not btn._se_badge.visible, "TechniqueButton hides badge when no advantage")
 
 	## setup() resets advantage
 	btn.setup_with_hint(tech, true, true)
 	btn.setup(tech, true)
-	_assert(">>SE" not in btn.text, "TechniqueButton setup() clears advantage hint")
+	_assert(not btn._se_badge.visible, "TechniqueButton setup() clears advantage badge")
 
 	btn.queue_free()
 	print("")

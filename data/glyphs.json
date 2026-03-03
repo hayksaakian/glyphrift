@@ -18,9 +18,9 @@
         "description": "Use Jolt Rush 3 times."
       },
       {
-        "type": "win_battle_no_ko",
-        "params": {},
-        "description": "Win a battle without Zapplet being knocked out."
+        "type": "finishing_blow_with_technique",
+        "params": {"technique_id": "jolt_rush"},
+        "description": "Defeat an enemy with Jolt Rush."
       }
     ]
   },
@@ -43,9 +43,9 @@
         "description": "Successfully apply Stun to an enemy via Spark Shower."
       },
       {
-        "type": "win_battle_back_row",
-        "params": {},
-        "description": "Win a battle where Sparkfin is in the back row."
+        "type": "use_technique_count",
+        "params": {"technique_id": "spark_shower", "target": 2, "current": 0},
+        "description": "Use Spark Shower 2 times."
       }
     ]
   },
@@ -68,9 +68,9 @@
         "description": "Use Brace, then survive 2+ attacks in the same battle without being KO'd."
       },
       {
-        "type": "win_battle_front_row",
-        "params": {},
-        "description": "Win a battle while Stonepaw is in the front row."
+        "type": "use_technique_count",
+        "params": {"technique_id": "rock_toss", "target": 3, "current": 0},
+        "description": "Use Rock Toss 3 times."
       }
     ]
   },
@@ -163,9 +163,9 @@
     "technique_ids": ["arc_fang", "chain_bolt", "static_guard"],
     "fixed_mastery_objectives": [
       {
-        "type": "trigger_interrupt",
-        "params": {},
-        "description": "Successfully trigger Static Guard."
+        "type": "use_technique_count",
+        "params": {"technique_id": "arc_fang", "target": 3, "current": 0},
+        "description": "Use Arc Fang 3 times."
       },
       {
         "type": "finishing_blow_with_technique",
@@ -188,9 +188,9 @@
     "technique_ids": ["iron_ram", "fortress", "stone_wall"],
     "fixed_mastery_objectives": [
       {
-        "type": "trigger_interrupt",
-        "params": {},
-        "description": "Successfully trigger Stone Wall."
+        "type": "use_technique_count",
+        "params": {"technique_id": "fortress", "target": 2, "current": 0},
+        "description": "Use Fortress 2 times."
       },
       {
         "type": "tank_most_damage",
@@ -213,9 +213,9 @@
     "technique_ids": ["warp_claw", "destabilize", "phase_shift"],
     "fixed_mastery_objectives": [
       {
-        "type": "trigger_interrupt",
-        "params": {},
-        "description": "Successfully trigger Phase Shift."
+        "type": "apply_status_count",
+        "params": {"status_id": "burn", "target": 2, "current": 0},
+        "description": "Apply Burn to 2 enemies via Destabilize."
       },
       {
         "type": "burn_then_kill",
@@ -238,9 +238,9 @@
     "technique_ids": ["storm_lance", "thunder_cascade", "spark_shower", "static_guard"],
     "fixed_mastery_objectives": [
       {
-        "type": "solo_win",
-        "params": {},
-        "description": "Win a battle using only Stormfang (solo — other squad Glyphs must not take a turn)."
+        "type": "use_technique_count",
+        "params": {"technique_id": "thunder_cascade", "target": 2, "current": 0},
+        "description": "Use Thunder Cascade 2 times."
       },
       {
         "type": "stun_then_kill",
@@ -288,9 +288,9 @@
     "technique_ids": ["null_beam", "rift_pulse", "entropic_touch", "null_counter"],
     "fixed_mastery_objectives": [
       {
-        "type": "finishing_blow_higher_tier",
-        "params": {"own_tier": 3},
-        "description": "Defeat an enemy of a higher tier."
+        "type": "finishing_blow_with_technique",
+        "params": {"technique_id": "null_beam"},
+        "description": "Defeat an enemy with Null Beam."
       },
       {
         "type": "weaken_then_null_beam",

@@ -17,15 +17,13 @@ enum UIState {
 	RESULT,
 }
 
-const AFFINITY_COLORS: Dictionary = {
-	"electric": Color("#FFD700"),
-	"ground": Color("#4CAF50"),
-	"water": Color("#00ACC1"),
-	"neutral": Color("#888888"),
-}
 
-## Injectable dependency
+## Injectable dependencies
 var combat_engine: Node = null
+var mastery_tracker: MasteryTracker = null
+
+## Mastery events collected during this battle
+var _mastery_events: Array[Dictionary] = []
 
 ## UI state
 var _state: int = UIState.WAITING
@@ -49,6 +47,7 @@ var _phase_overlay: PhaseOverlay = null
 var _result_screen: ResultScreen = null
 var _animation_queue: AnimationQueue = null
 var _interrupt_label: Label = null
+var _detail_popup: GlyphDetailPopup = null
 
 ## Glyph panel tracking
 var _panels: Dictionary = {}  ## instance_id → GlyphPanel
@@ -80,6 +79,7 @@ func start_battle(p_squad: Array[GlyphInstance], e_squad: Array[GlyphInstance], 
 		return
 
 	_connect_engine_signals()
+	_connect_mastery_signals()
 	combat_engine.start_battle(p_squad, e_squad, boss_def)
 
 
@@ -89,6 +89,8 @@ func reset() -> void:
 	_current_actor = null
 	_panels.clear()
 	_turn_portraits.clear()
+	_mastery_events.clear()
+	_disconnect_mastery_signals()
 
 	## Clear battlefield panels
 	_remove_all_children(_enemy_front_row)
@@ -208,6 +210,10 @@ func _build_scene_tree() -> void:
 	## Result screen
 	_result_screen = ResultScreen.new()
 	add_child(_result_screen)
+
+	## Detail popup (above result screen)
+	_detail_popup = GlyphDetailPopup.new()
+	add_child(_detail_popup)
 
 	## Animation queue (non-visual Node)
 	_animation_queue = AnimationQueue.new()
@@ -412,6 +418,47 @@ func _connect_internal_signals() -> void:
 	_animation_queue.event_started.connect(_process_queued_event)
 
 
+var _mastery_connections: Array[Dictionary] = []
+
+func _connect_mastery_signals() -> void:
+	_disconnect_mastery_signals()
+	if mastery_tracker == null:
+		return
+	var obj_handler: Callable = _on_mastery_objective_completed
+	var master_handler: Callable = _on_glyph_mastered
+	mastery_tracker.objective_completed.connect(obj_handler)
+	mastery_tracker.glyph_mastered.connect(master_handler)
+	_mastery_connections.append({"signal": "objective_completed", "handler": obj_handler})
+	_mastery_connections.append({"signal": "glyph_mastered", "handler": master_handler})
+
+
+func _disconnect_mastery_signals() -> void:
+	if mastery_tracker == null:
+		_mastery_connections.clear()
+		return
+	for conn: Dictionary in _mastery_connections:
+		var sig_name: String = conn["signal"]
+		var handler: Callable = conn["handler"]
+		if mastery_tracker.is_connected(sig_name, handler):
+			mastery_tracker.disconnect(sig_name, handler)
+	_mastery_connections.clear()
+
+
+func _on_mastery_objective_completed(glyph: GlyphInstance, objective_index: int) -> void:
+	_mastery_events.append({
+		"type": "objective_completed",
+		"glyph": glyph,
+		"objective_index": objective_index,
+	})
+
+
+func _on_glyph_mastered(glyph: GlyphInstance) -> void:
+	_mastery_events.append({
+		"type": "glyph_mastered",
+		"glyph": glyph,
+	})
+
+
 # ==========================================================================
 # CombatEngine Signal Handlers → enqueue to AnimationQueue
 # ==========================================================================
@@ -484,8 +531,12 @@ func _on_status_immune(target: GlyphInstance, status_id: String) -> void:
 
 func _on_affinity_advantage(attacker: GlyphInstance, target: GlyphInstance) -> void:
 	_animation_queue.enqueue_callback(func() -> void:
-		_combat_log.add_entry("Affinity advantage! %s vs %s" % [
-			attacker.species.affinity.to_upper(), target.species.affinity.to_upper()
+		var atk_aff: String = attacker.species.affinity
+		var tgt_aff: String = target.species.affinity
+		var atk_emoji: String = Affinity.EMOJI.get(atk_aff, "")
+		var tgt_emoji: String = Affinity.EMOJI.get(tgt_aff, "")
+		_combat_log.add_entry("Affinity advantage! %s %s vs %s %s" % [
+			atk_emoji, atk_aff.to_upper(), tgt_emoji, tgt_aff.to_upper()
 		], Color("#FFD700"))
 	)
 
@@ -674,6 +725,8 @@ func _handle_battle_won_visual(turns: int, kos: Array) -> void:
 		if g.is_knocked_out:
 			player_kos += 1
 	_result_screen.show_victory(turns, player_kos)
+	if not _mastery_events.is_empty():
+		_result_screen.show_mastery_progress(_mastery_events)
 
 
 func _handle_battle_lost_visual() -> void:
@@ -704,6 +757,7 @@ func _populate_battlefield() -> void:
 	for g: GlyphInstance in _player_squad:
 		var panel: GlyphPanel = GlyphPanel.new()
 		panel.glyph = g
+		panel.panel_clicked.connect(_on_panel_clicked)
 		_panels[g.instance_id] = panel
 		if g.row_position == "front":
 			_player_front_row.add_child(panel)
@@ -1029,6 +1083,14 @@ func _remove_all_children(parent: Node) -> void:
 	for child: Node in parent.get_children():
 		parent.remove_child(child)
 		child.queue_free()
+
+
+func _on_panel_clicked(g: GlyphInstance) -> void:
+	if g == null or _detail_popup == null:
+		return
+	## Only allow inspection during player decision states
+	if _state in [UIState.ACTION_MENU, UIState.TECHNIQUE_LIST, UIState.FORMATION]:
+		_detail_popup.show_glyph(g)
 
 
 func _on_continue_pressed() -> void:

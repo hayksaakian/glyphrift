@@ -6,7 +6,7 @@ var max_hull_hp: int = 100
 var max_energy: int = 50
 var capacity: int = 12                     ## Maximum combined Glyph Power in active squad
 var slots: int = 3                         ## Number of Glyphs in active battle squad
-var cargo_slots: int = 2                   ## Extra Glyphs beyond active squad
+var cargo_slots: int = 2                   ## Extra Glyphs capturable per dungeon run
 var active_chassis: String = "standard"
 var unlocked_chassis: Array[String] = ["standard"]
 

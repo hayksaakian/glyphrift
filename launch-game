@@ -1,0 +1,3 @@
+#!/bin/bash
+# Launch Glyphrift full game from GameDemo scene
+~/bin/godot --path "$(dirname "$0")" res://ui/game_demo.tscn

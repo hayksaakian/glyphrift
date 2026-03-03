@@ -76,7 +76,7 @@ The player navigates rifts inside a **Crawler** — a modular armored vehicle th
 
 | Ability | Energy Cost | Effect |
 |---|---|---|
-| **Scan** | 5 | Reveals the contents of all rooms adjacent to the Crawler's current position |
+| **Scan** | 5 | Reveals the contents of all rooms adjacent to the Crawler's current position. For enemy rooms, also reveals the scouted enemy lineup (species names). For boss rooms, reveals the boss name. |
 | **Reinforce** | 8 | Prevents the next instance of trap damage to the Crawler |
 | **Field Repair** | 10 | Restores 50% HP to one Glyph between battles |
 | **Purge** | 15 | Clears an environmental hazard blocking a path |
@@ -99,6 +99,10 @@ When **Hull HP reaches 0**, the Crawler is critically damaged and triggers an au
 - The rift **reshuffles** on re-entry (new template selection, new room content distribution), but the boss encounter remains the same.
 
 This means forced extraction is a setback but not a devastating loss. The player keeps their progress and can re-attempt with a better strategy.
+
+**Voluntary warp vs. hull destruction:** The UI distinguishes between these two cases. A voluntary Emergency Warp (hull > 0) shows "EXTRACTED — Emergency warp, returned to bastion safely" in amber. Hull destruction (hull = 0) shows "RIFT FAILED — Crawler destroyed, forced extraction" in red. Both have the same mechanical outcome (mastery/captures retained, rift not cleared).
+
+**Squad wipe:** If the entire active squad is KO'd during a battle (all squad members at 0 HP), the rift ends immediately with forced extraction. The player cannot continue exploring with no combat-capable Glyphs.
 
 ### 4.5 — Crawler Upgrades
 
@@ -194,7 +198,7 @@ Fused Glyphs will exceed these base ranges due to inherited stat bonuses (see Se
 
 Each Glyph has **3 mastery objectives.** Objectives are assigned at creation/capture and persist until completed.
 
-**Objective assignment:** Each species has **2 fixed objectives** unique to that species (tied to its techniques and identity) and **1 objective drawn randomly** from a shared pool for its tier. This ensures every copy of the same species feels mostly consistent while adding a small element of variety.
+**Objective assignment:** Each species has **2 fixed objectives** unique to that species (tied to its techniques and identity) and **1 objective drawn randomly** from a shared pool for its tier. The random draw **excludes any objective type already present in the species' fixed objectives**, preventing duplicate objectives on the same Glyph. This ensures every copy of the same species feels mostly consistent while adding a small element of variety.
 
 ### 6.2 — Objective Scoping Rules
 
@@ -242,6 +246,15 @@ When all 3 objectives are complete:
 - The Glyph gains a **permanent +2 to all stats** as a mastery bonus.
 - The Glyph becomes eligible for **fusion**.
 - The player is **not forced to fuse.** A mastered Glyph can continue to be used in combat indefinitely.
+
+### 6.5 — Mastery Visibility
+
+Mastery status is surfaced throughout the UI:
+
+- **Glyph Detail Popup** — Click any Glyph card (bastion, barracks) or panel (battle, dungeon sidebar) to see full stats, techniques, and a mastery checklist showing each objective with ✓/○ markers and progress counters (e.g., `[2/3]` for progressive objectives). Mastered Glyphs show a gold "MASTERED" banner.
+- **Battle Result Screen** — On victory, objectives that completed or progressed during that battle are listed between the stats and Continue button. Newly mastered Glyphs show "★ [Name] MASTERED!" in gold.
+- **Glyph Cards** — Show a compact mastery bar (`M: 1/3`) with a checkmark when mastered.
+- **First-Time Hint** — On the first visit to the Bastion, a notification explains: "Each glyph has 3 mastery objectives. Complete them in battle to unlock fusion!"
 
 ---
 
@@ -850,7 +863,7 @@ A persistent database that records the player's discoveries.
 
 - **Fusion Chamber** — Perform Glyph fusions with full preview UI (see Section 7.7).
 - **Crawler Bay** — View Crawler stats, swap chassis, view available upgrades and milestone progress.
-- **Barracks** — Manage Glyph roster. View mastery progress per Glyph. Assign active squad (up to Slots limit) and formation (front/back row pre-assignment, which carries into the next rift as the default formation). Reserve Glyphs are stored here.
+- **Barracks** — Manage Glyph roster. View mastery progress per Glyph. Assign active squad (up to Slots limit) and formation (front/back row pre-assignment, which carries into the next rift as the default formation). Reserve Glyphs are stored here (up to 20 reserves — separate from Crawler Cargo, which only limits captures during a rift run). Each card has an info button to view the full Glyph Detail Popup.
 - **Codex Terminal** — Browse the full Codex.
 - **Rift Gate** — Select and enter available rifts. Shows rift tier, recommended CP, enemy affinity distribution (e.g., "primarily Electric"), and number of floors. Cleared rifts show a completion marker and can be re-entered.
 - **Supply Cache** — View current consumable items. Items reset between runs so this is purely for reviewing what you have before entering a rift.

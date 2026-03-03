@@ -108,10 +108,11 @@ func reset_combat_state() -> void:
 	active_statuses.clear()
 	status_immunities.clear()
 	is_guarding = false
-	is_knocked_out = false
 	took_turn_this_round = false
 	took_turn_this_battle = false
 	boss_phase = 1
+	## Re-derive KO from HP — a glyph at 0 HP stays knocked out between battles
+	is_knocked_out = current_hp <= 0
 
 
 func tick_cooldowns() -> void:

@@ -946,9 +946,11 @@ func _test_dungeon_scene_forced_extraction() -> void:
 	## Move to hazard room — triggers damage (10 default) → hull ≤ 0 → forced_extraction
 	scene._on_room_clicked("r1")
 
+	_assert(scene.get_ui_state() == DungeonScene.UIState.RESULT, "UI state is RESULT")
+	## Click Continue on result overlay to emit rift_completed
+	scene._result_continue.pressed.emit()
 	_assert(rift_signal["completed"], "rift_completed emitted after forced extraction")
 	_assert(not rift_signal["won"], "rift_completed reports loss (won=false)")
-	_assert(scene.get_ui_state() == DungeonScene.UIState.RESULT, "UI state is RESULT")
 
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)

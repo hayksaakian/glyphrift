@@ -6,12 +6,6 @@ extends VBoxContainer
 
 signal clicked(glyph: GlyphInstance)
 
-const AFFINITY_COLORS: Dictionary = {
-	"electric": Color("#FFD700"),
-	"ground": Color("#4CAF50"),
-	"water": Color("#00ACC1"),
-	"neutral": Color("#888888"),
-}
 
 var glyph: GlyphInstance = null
 var _highlighted: bool = false
@@ -44,7 +38,7 @@ func refresh() -> void:
 		return
 
 	var aff: String = glyph.species.affinity if glyph.species else "neutral"
-	_color_rect.color = AFFINITY_COLORS.get(aff, AFFINITY_COLORS["neutral"])
+	_color_rect.color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
 	_initial_label.text = glyph.species.name[0].to_upper() if glyph.species else "?"
 	_name_label.text = glyph.species.name if glyph.species else "?"
 
@@ -89,17 +83,19 @@ func _build_ui() -> void:
 	_color_rect = ColorRect.new()
 	_color_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_color_rect.mouse_filter = Control.MOUSE_FILTER_PASS
-	_color_rect.color = AFFINITY_COLORS["neutral"]
+	_color_rect.color = Affinity.COLORS["neutral"]
 	_square.add_child(_color_rect)
 
 	## Initial letter centered in square
 	_initial_label = Label.new()
-	_initial_label.set_anchors_preset(Control.PRESET_CENTER)
+	_initial_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_initial_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_initial_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_initial_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	_initial_label.add_theme_font_size_override("font_size", 26)
 	_initial_label.add_theme_color_override("font_color", Color.WHITE)
+	_initial_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_initial_label.add_theme_constant_override("outline_size", 3)
 	_square.add_child(_initial_label)
 
 	## Side border overlay on square

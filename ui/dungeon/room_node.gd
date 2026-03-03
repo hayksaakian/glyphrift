@@ -97,7 +97,10 @@ func refresh() -> void:
 	if _icon_label == null:
 		return
 
+	var is_cleared: bool = room_data.get("cleared", false)
 	var room_type: String = room_data.get("type", "empty")
+	if is_cleared:
+		room_type = room_data.get("original_type", room_type)
 	var display_name: String = label_override if label_override != "" else TYPE_NAMES.get(room_type, "")
 
 	match state:
@@ -113,7 +116,11 @@ func refresh() -> void:
 		RoomState.REVEALED:
 			_icon_label.text = TYPE_ICONS.get(room_type, "?")
 			_icon_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
-			_type_label.text = display_name
+			var scan_info: String = room_data.get("scan_info", "")
+			if scan_info != "":
+				_type_label.text = scan_info
+			else:
+				_type_label.text = display_name
 			_type_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
 			_background.color = Color("#222222")
 			_icon_label.modulate.a = REVEALED_OPACITY
@@ -121,20 +128,32 @@ func refresh() -> void:
 			_border_panel.visible = false
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if is_adjacent else Control.CURSOR_ARROW
 		RoomState.VISITED:
-			_icon_label.text = TYPE_ICONS.get(room_type, "?")
-			_icon_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
-			_type_label.text = display_name
-			_type_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
+			if is_cleared:
+				_icon_label.text = "\u2713"
+				_icon_label.add_theme_color_override("font_color", Color("#4CAF50"))
+				_type_label.text = "Cleared"
+				_type_label.add_theme_color_override("font_color", Color("#4CAF50"))
+			else:
+				_icon_label.text = TYPE_ICONS.get(room_type, "?")
+				_icon_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
+				_type_label.text = display_name
+				_type_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
 			_background.color = Color("#2A2A2A")
 			_icon_label.modulate.a = 1.0
 			_type_label.modulate.a = 1.0
 			_border_panel.visible = false
 			mouse_default_cursor_shape = Control.CURSOR_ARROW
 		RoomState.CURRENT:
-			_icon_label.text = TYPE_ICONS.get(room_type, "?")
-			_icon_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
-			_type_label.text = display_name
-			_type_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
+			if is_cleared:
+				_icon_label.text = "\u2713"
+				_icon_label.add_theme_color_override("font_color", Color("#4CAF50"))
+				_type_label.text = "Cleared"
+				_type_label.add_theme_color_override("font_color", Color("#4CAF50"))
+			else:
+				_icon_label.text = TYPE_ICONS.get(room_type, "?")
+				_icon_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
+				_type_label.text = display_name
+				_type_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
 			_background.color = Color("#333333")
 			_icon_label.modulate.a = 1.0
 			_type_label.modulate.a = 1.0

@@ -11,6 +11,7 @@ signal squad_changed(squad: Array[GlyphInstance])
 var all_glyphs: Array[GlyphInstance] = []
 var active_squad: Array[GlyphInstance] = []
 var max_squad_size: int = 3
+var max_reserves: int = 20                  ## Barracks storage capacity (separate from crawler cargo)
 
 
 func add_glyph(glyph: GlyphInstance) -> void:
@@ -56,6 +57,29 @@ func initialize_starting_glyphs(data_loader: Node) -> void:
 		add_glyph(g)
 		squad.append(g)
 	set_active_squad(squad)
+
+	## Debug: extra mastered glyphs in reserves for fusion testing
+	if _seed_debug_glyphs:
+		_add_debug_glyphs(data_loader)
+
+
+## Set to true before calling initialize_starting_glyphs to seed fusion-ready reserves.
+var _seed_debug_glyphs: bool = false
+
+
+func _add_debug_glyphs(data_loader: Node) -> void:
+	var debug_ids: Array[String] = ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp"]
+	for sid: String in debug_ids:
+		var sp: GlyphSpecies = data_loader.get_species(sid)
+		var g: GlyphInstance = GlyphInstance.create_from_species(sp, data_loader)
+		g.mastery_objectives = MasteryTracker.build_mastery_track(sp, data_loader.mastery_pools)
+		## Mark mastered
+		for obj: Dictionary in g.mastery_objectives:
+			obj["completed"] = true
+		g.is_mastered = true
+		g.mastery_bonus_applied = true
+		g.calculate_stats()
+		add_glyph(g)
 
 
 func reset() -> void:

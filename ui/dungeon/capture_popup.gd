@@ -10,11 +10,6 @@ signal dismissed()
 
 const POPUP_SIZE: Vector2 = Vector2(340, 280)
 
-const AFFINITY_COLORS: Dictionary = {
-	"electric": Color("#FFD700"),
-	"ground": Color("#4CAF50"),
-	"water": Color("#00ACC1"),
-}
 
 var wild_glyph: GlyphInstance = null
 var capture_chance: float = 0.0
@@ -44,11 +39,12 @@ func show_capture(glyph: GlyphInstance, chance: float) -> void:
 
 	_title_label.text = "WILD GLYPH DEFEATED!"
 
-	var aff_color: Color = AFFINITY_COLORS.get(glyph.species.affinity, Color.WHITE)
+	var aff_color: Color = Affinity.COLORS.get(glyph.species.affinity, Color.WHITE)
 	_art_placeholder.color = aff_color
 	_art_initial.text = glyph.species.name[0].to_upper()
 	_name_label.text = glyph.species.name
-	_info_label.text = "%s T%d" % [glyph.species.affinity.capitalize(), glyph.species.tier]
+	var emoji: String = Affinity.EMOJI.get(glyph.species.affinity, "")
+	_info_label.text = "%s %s T%d" % [emoji, glyph.species.affinity.capitalize(), glyph.species.tier]
 	_chance_label.text = "Capture Chance: %d%%" % int(chance * 100.0)
 
 	_capture_button.visible = true
@@ -117,9 +113,13 @@ func _build_ui() -> void:
 	art_container.add_child(_art_placeholder)
 
 	_art_initial = Label.new()
-	_art_initial.set_anchors_preset(Control.PRESET_CENTER)
+	_art_initial.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_art_initial.add_theme_font_size_override("font_size", 20)
 	_art_initial.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_art_initial.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_art_initial.add_theme_color_override("font_color", Color.WHITE)
+	_art_initial.add_theme_color_override("font_outline_color", Color.BLACK)
+	_art_initial.add_theme_constant_override("outline_size", 3)
 	art_container.add_child(_art_initial)
 
 	## Name + info column
