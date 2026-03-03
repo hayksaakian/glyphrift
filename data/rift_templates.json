@@ -10,13 +10,19 @@
       {
         "floor_number": 0,
         "rooms": [
-          {"id": "f0_r0", "x": 0, "y": 0, "type": "start"},
-          {"id": "f0_r1", "x": 1, "y": 0, "type": "enemy"},
-          {"id": "f0_r2", "x": 1, "y": 1, "type": "exit"}
+          {"id": "f0_r0", "x": 1, "y": 1, "type": "start"},
+          {"id": "f0_r1", "x": 0, "y": 0, "type": "puzzle"},
+          {"id": "f0_r2", "x": 2, "y": 0, "type": "puzzle"},
+          {"id": "f0_r3", "x": 0, "y": 2, "type": "puzzle"},
+          {"id": "f0_r4", "x": 2, "y": 1, "type": "enemy"},
+          {"id": "f0_r5", "x": 2, "y": 2, "type": "exit"}
         ],
         "connections": [
           ["f0_r0", "f0_r1"],
-          ["f0_r1", "f0_r2"]
+          ["f0_r0", "f0_r2"],
+          ["f0_r0", "f0_r3"],
+          ["f0_r0", "f0_r4"],
+          ["f0_r4", "f0_r5"]
         ]
       },
       {

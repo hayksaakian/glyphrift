@@ -140,7 +140,7 @@ func _refresh_species_mastery(sp: GlyphSpecies, data_loader: Node) -> void:
 	for obj: Dictionary in sp.fixed_mastery_objectives:
 		var label: Label = Label.new()
 		label.add_theme_font_size_override("font_size", 13)
-		label.text = "\u2022 %s (fixed)" % obj.get("description", "Unknown")
+		label.text = "\u2022 %s" % obj.get("description", "Unknown")
 		label.add_theme_color_override("font_color", Color("#CCCCCC"))
 		_mastery_vbox.add_child(label)
 

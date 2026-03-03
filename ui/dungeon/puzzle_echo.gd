@@ -122,6 +122,14 @@ func _build_ui() -> void:
 	_walk_past_btn.pressed.connect(_on_walk_past)
 	_button_row.add_child(_walk_past_btn)
 
+	## Capture hint
+	var hint: Label = Label.new()
+	hint.text = "Guaranteed capture on victory!"
+	hint.add_theme_font_size_override("font_size", 12)
+	hint.add_theme_color_override("font_color", Color("#44CC44"))
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hint)
+
 
 func _on_challenge() -> void:
 	if not _started or _echo_glyph == null:
