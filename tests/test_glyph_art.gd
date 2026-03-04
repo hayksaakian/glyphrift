@@ -114,7 +114,7 @@ func _test_apply_texture_fallback() -> void:
 	container.add_child(label)
 
 	## Apply with no PNG file — should fallback
-	GlyphArt.apply_texture(container, rect, label, "zapplet", 60)
+	GlyphArt.apply_texture(container, rect, label, "nonexistent_species_xyz", 60)
 
 	_assert(rect.visible, "ColorRect stays visible on fallback")
 	_assert(label.visible, "Label stays visible on fallback")
@@ -166,9 +166,9 @@ func _test_apply_texture_idempotent() -> void:
 	container.add_child(label)
 
 	## Call apply_texture multiple times — should not create duplicate children
-	GlyphArt.apply_texture(container, rect, label, "zapplet", 60)
-	GlyphArt.apply_texture(container, rect, label, "zapplet", 60)
-	GlyphArt.apply_texture(container, rect, label, "zapplet", 60)
+	GlyphArt.apply_texture(container, rect, label, "nonexistent_species_xyz", 60)
+	GlyphArt.apply_texture(container, rect, label, "nonexistent_species_xyz", 60)
+	GlyphArt.apply_texture(container, rect, label, "nonexistent_species_xyz", 60)
 
 	var tex_count: int = 0
 	for child: Node in container.get_children():

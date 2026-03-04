@@ -17,7 +17,9 @@ static var _MISS: StringName = &"_miss"
 static func get_portrait(species_id: String) -> Texture2D:
 	if _portrait_cache.has(species_id):
 		var cached: Variant = _portrait_cache[species_id]
-		return null if cached == _MISS else cached as Texture2D
+		if cached is Texture2D:
+			return cached as Texture2D
+		return null  ## Sentinel (_MISS) or unexpected type
 	var path: String = PORTRAIT_PATH % species_id
 	var tex: Texture2D = _try_load(path)
 	_portrait_cache[species_id] = tex if tex != null else _MISS
@@ -27,7 +29,9 @@ static func get_portrait(species_id: String) -> Texture2D:
 static func get_silhouette(species_id: String) -> Texture2D:
 	if _silhouette_cache.has(species_id):
 		var cached: Variant = _silhouette_cache[species_id]
-		return null if cached == _MISS else cached as Texture2D
+		if cached is Texture2D:
+			return cached as Texture2D
+		return null  ## Sentinel (_MISS) or unexpected type
 	var path: String = SILHOUETTE_PATH % species_id
 	var tex: Texture2D = _try_load(path)
 	_silhouette_cache[species_id] = tex if tex != null else _MISS
@@ -81,6 +85,7 @@ static func apply_texture(
 		existing = TextureRect.new()
 		existing.name = "GlyphTexture"
 		existing.set_anchors_preset(Control.PRESET_FULL_RECT)
+		existing.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		existing.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		existing.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		art_container.add_child(existing)
