@@ -9,9 +9,12 @@ const AUTOSAVE_SLOT: String = "autosave"
 const SAVE_VERSION: int = 1
 const _LEGACY_PATH: String = "user://save.json"
 
+## Test isolation: set non-empty so tests use separate files (e.g. "test_save_*.json").
+static var _test_prefix: String = ""
+
 
 static func _slot_path(slot: String) -> String:
-	return "user://save_%s.json" % slot
+	return "user://%ssave_%s.json" % [_test_prefix, slot]
 
 
 # --- Slot-based API ---
@@ -125,11 +128,12 @@ static func list_slots() -> Array[String]:
 	var dir: DirAccess = DirAccess.open("user://")
 	if dir == null:
 		return result
+	var prefix: String = _test_prefix + "save_"
 	dir.list_dir_begin()
 	var file_name: String = dir.get_next()
 	while file_name != "":
-		if file_name.begins_with("save_") and file_name.ends_with(".json"):
-			var slot_name: String = file_name.trim_prefix("save_").trim_suffix(".json")
+		if file_name.begins_with(prefix) and file_name.ends_with(".json"):
+			var slot_name: String = file_name.trim_prefix(prefix).trim_suffix(".json")
 			result.append(slot_name)
 		file_name = dir.get_next()
 	dir.list_dir_end()
@@ -142,6 +146,9 @@ static func list_slots() -> Array[String]:
 
 static func _migrate_legacy_save() -> void:
 	## One-time migration: rename user://save.json → user://save_autosave.json
+	## Skip migration in test mode (don't touch real saves).
+	if _test_prefix != "":
+		return
 	if FileAccess.file_exists(_LEGACY_PATH) and not FileAccess.file_exists(_slot_path(AUTOSAVE_SLOT)):
 		var dir: DirAccess = DirAccess.open("user://")
 		if dir != null:

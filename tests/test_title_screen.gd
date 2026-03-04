@@ -6,6 +6,7 @@ var fail_count: int = 0
 
 
 func _init() -> void:
+	SaveManager._test_prefix = "test_"
 	var dl_script: GDScript = load("res://core/data_loader.gd") as GDScript
 	_data_loader = dl_script.new() as Node
 	_data_loader.name = "DataLoader"
@@ -13,6 +14,7 @@ func _init() -> void:
 
 	await process_frame
 	_run_tests()
+	SaveManager._test_prefix = ""
 	quit()
 
 
