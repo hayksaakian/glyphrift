@@ -67,7 +67,7 @@ func _ready() -> void:
 	)
 
 	roster_state._seed_debug_glyphs = true
-	_main_scene.start_game()
+	_main_scene.show_title()
 
 
 func _notification(what: int) -> void:

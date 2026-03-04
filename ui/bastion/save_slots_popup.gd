@@ -44,6 +44,9 @@ func setup(
 	data_loader = p_data_loader
 
 
+var load_only: bool = false
+
+
 func show_popup() -> void:
 	_refresh_all_rows()
 	visible = true
@@ -201,6 +204,7 @@ func _build_slot_row(slot_key: String, slot_label: String) -> Dictionary:
 		"info_label": info_lbl,
 		"load_btn": load_btn,
 		"delete_btn": del_btn,
+		"save_btn": save_btn,
 	}
 
 
@@ -215,6 +219,11 @@ func _refresh_row(row: Dictionary) -> void:
 	var info_lbl: Label = row["info_label"] as Label
 	var load_btn: Button = row["load_btn"] as Button
 	var del_btn: Button = row["delete_btn"] as Button
+	var save_btn: Button = row.get("save_btn") as Button
+
+	## Hide save buttons in load-only mode
+	if save_btn != null:
+		save_btn.visible = not load_only
 
 	var info: Dictionary = SaveManager.get_slot_info(slot_key)
 	if info.is_empty():

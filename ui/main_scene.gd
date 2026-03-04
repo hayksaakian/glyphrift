@@ -13,6 +13,8 @@ var fusion_engine: FusionEngine = null
 var mastery_tracker: MasteryTracker = null
 var data_loader: Node = null
 
+var _title_screen: TitleScreen = null
+var _title_save_slots: SaveSlotsPopup = null
 var _bastion_scene: BastionScene = null
 var _dungeon_scene: DungeonScene = null
 var _battle_scene: BattleScene = null
@@ -56,12 +58,19 @@ func setup(
 	data_loader = p_data_loader
 
 	## Setup sub-scenes
+	_title_save_slots.setup(game_state, roster_state, codex_state, crawler_state, data_loader)
 	_bastion_scene.setup(game_state, roster_state, codex_state, crawler_state, fusion_engine, data_loader)
 	_dungeon_scene.data_loader = data_loader
 	_dungeon_scene.roster_state = roster_state
 	_dungeon_scene.codex_state = codex_state
 	_battle_scene.combat_engine = combat_engine
 	_battle_scene.mastery_tracker = mastery_tracker
+
+
+func show_title() -> void:
+	if game_state == null:
+		return
+	_show_title()
 
 
 func start_game() -> void:
@@ -80,6 +89,18 @@ func start_game() -> void:
 
 
 func _build_scene_tree() -> void:
+	## TitleScreen
+	_title_screen = TitleScreen.new()
+	_title_screen.name = "TitleScreen"
+	_title_screen.visible = false
+	add_child(_title_screen)
+
+	## Save slots popup for title screen (load-only mode)
+	_title_save_slots = SaveSlotsPopup.new()
+	_title_save_slots.name = "TitleSaveSlots"
+	_title_save_slots.load_only = true
+	add_child(_title_save_slots)
+
 	## BastionScene
 	_bastion_scene = BastionScene.new()
 	_bastion_scene.name = "BastionScene"
@@ -124,6 +145,10 @@ func _build_scene_tree() -> void:
 
 
 func _connect_signals() -> void:
+	_title_screen.new_game_pressed.connect(_on_new_game)
+	_title_screen.continue_pressed.connect(_on_continue)
+	_title_screen.load_game_pressed.connect(_on_load_game)
+	_title_save_slots.slot_loaded.connect(_on_title_slot_loaded)
 	_bastion_scene.rift_selected.connect(_on_rift_selected)
 	_bastion_scene.hub_entered.connect(_auto_save)
 	_bastion_scene.save_and_quit_pressed.connect(_on_save_and_quit)
@@ -138,7 +163,17 @@ func _connect_signals() -> void:
 
 ## --- State transitions ---
 
+func _show_title() -> void:
+	_title_screen.visible = true
+	_title_screen.refresh()
+	_bastion_scene.visible = false
+	_dungeon_scene.visible = false
+	_battle_scene.visible = false
+	_squad_overlay.visible = false
+
+
 func _show_bastion() -> void:
+	_title_screen.visible = false
 	_bastion_scene.visible = true
 	_bastion_scene.show_hub()
 	_dungeon_scene.visible = false
@@ -160,6 +195,41 @@ func _show_battle() -> void:
 	_dungeon_scene.visible = false
 	_battle_scene.visible = true
 	_squad_overlay.visible = false
+
+
+## --- Title screen handlers ---
+
+func _on_new_game() -> void:
+	game_state.start_new_game()
+	_fade_to(func() -> void:
+		_show_bastion()
+	)
+
+
+func _on_continue() -> void:
+	var slot: String = _title_screen.get_most_recent_slot()
+	if slot == "":
+		return
+	var loaded: bool = SaveManager.load_from_slot(
+		slot, game_state, roster_state, codex_state, crawler_state, data_loader
+	)
+	if not loaded:
+		return
+	_fade_to(func() -> void:
+		_bastion_scene.setup(game_state, roster_state, codex_state, crawler_state, fusion_engine, data_loader)
+		_show_bastion()
+	)
+
+
+func _on_load_game() -> void:
+	_title_save_slots.show_popup()
+
+
+func _on_title_slot_loaded() -> void:
+	_fade_to(func() -> void:
+		_bastion_scene.setup(game_state, roster_state, codex_state, crawler_state, fusion_engine, data_loader)
+		_show_bastion()
+	)
 
 
 ## --- Signal handlers ---
@@ -318,7 +388,9 @@ func _on_save_slot_loaded() -> void:
 
 func _on_save_and_quit() -> void:
 	_auto_save()
-	get_tree().quit()
+	_fade_to(func() -> void:
+		_show_title()
+	)
 
 
 func _auto_save() -> void:
