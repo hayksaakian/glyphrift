@@ -39,6 +39,8 @@ var _squad_cards: Array[GlyphCard] = []
 var _notification_label: Label = null
 var _detail_popup: GlyphDetailPopup = null
 var _npc_panel: NpcPanel = null
+var _back_bar: PanelContainer = null
+var _back_bar_title: Label = null
 var _mastery_hint_shown: bool = false
 
 ## NPC buttons
@@ -93,6 +95,7 @@ func show_hub() -> void:
 	_fusion_chamber.visible = false
 	_rift_gate.visible = false
 	_codex_browser.visible = false
+	_back_bar.visible = false
 	refresh()
 	_update_npc_indicators()
 	if was_in_sub:
@@ -257,6 +260,45 @@ func _build_ui() -> void:
 	_codex_browser.visible = false
 	add_child(_codex_browser)
 
+	## Persistent back bar (visible when in a sub-screen)
+	_back_bar = PanelContainer.new()
+	_back_bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_back_bar.offset_bottom = 36.0
+	var bar_style: StyleBoxFlat = StyleBoxFlat.new()
+	bar_style.bg_color = Color(0.08, 0.08, 0.12)
+	bar_style.border_color = Color(0.2, 0.2, 0.3)
+	bar_style.border_width_bottom = 1
+	bar_style.content_margin_left = 16
+	bar_style.content_margin_right = 16
+	bar_style.content_margin_top = 4
+	bar_style.content_margin_bottom = 4
+	_back_bar.add_theme_stylebox_override("panel", bar_style)
+	_back_bar.visible = false
+	add_child(_back_bar)
+
+	var bar_content: HBoxContainer = HBoxContainer.new()
+	bar_content.add_theme_constant_override("separation", 12)
+	bar_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_back_bar.add_child(bar_content)
+
+	var back_btn: Button = Button.new()
+	back_btn.text = "\u2190 Bastion"
+	back_btn.custom_minimum_size = Vector2(100, 24)
+	back_btn.pressed.connect(show_hub)
+	bar_content.add_child(back_btn)
+
+	_back_bar_title = Label.new()
+	_back_bar_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_back_bar_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_back_bar_title.add_theme_font_size_override("font_size", 20)
+	_back_bar_title.add_theme_color_override("font_color", Color("#FFD700"))
+	bar_content.add_child(_back_bar_title)
+
+	## Spacer to keep title centered
+	var spacer: Control = Control.new()
+	spacer.custom_minimum_size = Vector2(100, 0)
+	bar_content.add_child(spacer)
+
 	## NPC panel (modal, above sub-screens)
 	_npc_panel = NpcPanel.new()
 	_npc_panel.name = "NpcPanel"
@@ -301,6 +343,8 @@ func _show_rift_gate() -> void:
 	_fusion_chamber.visible = false
 	_codex_browser.visible = false
 	_rift_gate.visible = true
+	_back_bar.visible = true
+	_back_bar_title.text = "RIFT GATE"
 	_rift_gate.refresh()
 
 
@@ -311,6 +355,8 @@ func _show_barracks() -> void:
 	_fusion_chamber.visible = false
 	_codex_browser.visible = false
 	_barracks.visible = true
+	_back_bar.visible = true
+	_back_bar_title.text = "BARRACKS"
 	_barracks.refresh()
 
 
@@ -321,6 +367,8 @@ func _show_fusion() -> void:
 	_barracks.visible = false
 	_codex_browser.visible = false
 	_fusion_chamber.visible = true
+	_back_bar.visible = true
+	_back_bar_title.text = "FUSION CHAMBER"
 	_fusion_chamber.refresh()
 
 
@@ -331,6 +379,8 @@ func _show_codex() -> void:
 	_barracks.visible = false
 	_fusion_chamber.visible = false
 	_codex_browser.visible = true
+	_back_bar.visible = true
+	_back_bar_title.text = "CODEX"
 	_codex_browser.refresh()
 
 

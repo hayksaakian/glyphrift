@@ -63,7 +63,6 @@ func _run_tests() -> void:
 	_test_rift_gate_list()
 	_test_rift_gate_cleared_marker()
 	_test_rift_gate_enter_signal()
-	_test_rift_gate_back_signal()
 	_test_rift_gate_boss_name()
 
 	## BastionScene
@@ -348,10 +347,8 @@ func _test_barracks_construction() -> void:
 	var barracks: Barracks = Barracks.new()
 	root.add_child(barracks)
 
-	_assert(barracks._title_label.text == "BARRACKS", "barracks title")
 	_assert(barracks._front_row_container != null, "has front row container")
 	_assert(barracks._reserve_container != null, "has reserve container")
-	_assert(barracks._done_button != null, "has done button")
 
 	_cleanup_node(barracks)
 
@@ -542,7 +539,7 @@ func _test_barracks_gp_counter() -> void:
 
 
 func _test_barracks_done_signal() -> void:
-	print("--- Barracks: Done Signal ---")
+	print("--- Barracks: Squad Protection ---")
 	var rs: RosterState = _make_roster_state()
 	var cs: CrawlerState = _make_crawler_state()
 	rs.initialize_starting_glyphs(_data_loader)
@@ -552,13 +549,7 @@ func _test_barracks_done_signal() -> void:
 	barracks.setup(rs, cs)
 	barracks.refresh()
 
-	var done: Dictionary = {"value": false}
-	barracks.done_pressed.connect(func() -> void: done["value"] = true)
-	barracks._done_button.pressed.emit()
-	_assert(done["value"] == true, "done_pressed signal fires")
-
 	## Verify blocked when squad is empty
-	var blocked: Dictionary = {"value": false}
 	for g: GlyphInstance in rs.active_squad.duplicate():
 		barracks._remove_from_squad(g)
 	_assert(rs.active_squad.size() == 1, "can't remove last squad member")
@@ -578,7 +569,6 @@ func _test_fusion_construction() -> void:
 	var fc: FusionChamber = FusionChamber.new()
 	root.add_child(fc)
 
-	_assert(fc._title_label.text == "FUSION CHAMBER", "fusion title")
 	_assert(fc._parent_a_slot != null, "has parent A slot")
 	_assert(fc._parent_b_slot != null, "has parent B slot")
 	_assert(fc._picker_container != null, "has picker container")
@@ -915,9 +905,7 @@ func _test_rift_gate_construction() -> void:
 	var rg: RiftGate = RiftGate.new()
 	root.add_child(rg)
 
-	_assert(rg._title_label.text == "RIFT GATE", "rift gate title")
 	_assert(rg._rift_container != null, "has rift container")
-	_assert(rg._back_button != null, "has back button")
 
 	_cleanup_node(rg)
 
@@ -1015,19 +1003,6 @@ func _test_rift_gate_enter_signal() -> void:
 	_cleanup_node(cx)
 	_cleanup_node(rs)
 	_cleanup_node(cs)
-
-
-func _test_rift_gate_back_signal() -> void:
-	print("--- RiftGate: Back Signal ---")
-	var rg: RiftGate = RiftGate.new()
-	root.add_child(rg)
-
-	var back: Dictionary = {"value": false}
-	rg.back_pressed.connect(func() -> void: back["value"] = true)
-	rg._back_button.pressed.emit()
-	_assert(back["value"] == true, "back_pressed signal fires")
-
-	_cleanup_node(rg)
 
 
 func _test_rift_gate_boss_name() -> void:

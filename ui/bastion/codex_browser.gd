@@ -76,19 +76,11 @@ func _build_ui() -> void:
 	var main_vbox: VBoxContainer = VBoxContainer.new()
 	main_vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	main_vbox.offset_left = 20.0
-	main_vbox.offset_top = 20.0
+	main_vbox.offset_top = 48.0
 	main_vbox.offset_right = -20.0
 	main_vbox.offset_bottom = -20.0
 	main_vbox.add_theme_constant_override("separation", 12)
 	add_child(main_vbox)
-
-	## Title
-	_title_label = Label.new()
-	_title_label.text = "CODEX"
-	_title_label.add_theme_font_size_override("font_size", 28)
-	_title_label.add_theme_color_override("font_color", Color("#FFD700"))
-	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main_vbox.add_child(_title_label)
 
 	## Tab row
 	_tab_row = HBoxContainer.new()
@@ -178,13 +170,6 @@ func _build_ui() -> void:
 	_rift_vbox.add_theme_constant_override("separation", 6)
 	rift_scroll.add_child(_rift_vbox)
 
-	## Back button
-	_back_btn = Button.new()
-	_back_btn.text = "Back"
-	_back_btn.custom_minimum_size = Vector2(100, 36)
-	_back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	main_vbox.add_child(_back_btn)
-
 	## Detail popup (above everything)
 	_detail_popup = GlyphDetailPopup.new()
 	_detail_popup.name = "CodexDetailPopup"
@@ -195,7 +180,6 @@ func _connect_signals() -> void:
 	_glyph_tab_btn.pressed.connect(func() -> void: _show_tab(Tab.GLYPH_REGISTRY))
 	_fusion_tab_btn.pressed.connect(func() -> void: _show_tab(Tab.FUSION_LOG))
 	_rift_tab_btn.pressed.connect(func() -> void: _show_tab(Tab.RIFT_ATLAS))
-	_back_btn.pressed.connect(func() -> void: back_pressed.emit())
 
 
 func _show_tab(tab: int) -> void:

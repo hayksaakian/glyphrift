@@ -139,14 +139,15 @@ func _run_step() -> void:
 			_main_scene._bastion_scene._fusion_btn.pressed.emit()
 
 		"05_bastion_fusion_parents_selected":
-			## Master 2 glyphs so we can select them in fusion
+			## Master first 2 glyphs, leave rest unmastered for split picker demo
 			var fc: FusionChamber = _main_scene._bastion_scene._fusion_chamber
-			## Need mastered glyphs for this to work; the starters aren't mastered
-			## so let's master them temporarily for the screenshot
+			var idx: int = 0
 			for g: GlyphInstance in _roster_state.all_glyphs:
-				g.is_mastered = true
-				for i: int in range(g.mastery_objectives.size()):
-					g.mastery_objectives[i]["completed"] = true
+				if idx < 2:
+					g.is_mastered = true
+					for i: int in range(g.mastery_objectives.size()):
+						g.mastery_objectives[i]["completed"] = true
+				idx += 1
 			fc.refresh()
 			await get_tree().process_frame
 			## Pick first two mastered glyphs as parents
@@ -155,9 +156,12 @@ func _run_step() -> void:
 				fc._on_picker_clicked(fc._picker_cards[1].glyph)
 
 		"06_bastion_rift_gate":
-			## Un-master glyphs (reset)
+			## Un-master glyphs (reset to original state)
 			for g: GlyphInstance in _roster_state.all_glyphs:
-				g.is_mastered = false
+				if g.is_mastered:
+					g.is_mastered = false
+					for i: int in range(g.mastery_objectives.size()):
+						g.mastery_objectives[i]["completed"] = false
 			_main_scene._bastion_scene.show_hub()
 			await get_tree().process_frame
 			_main_scene._bastion_scene._rift_gate_btn.pressed.emit()

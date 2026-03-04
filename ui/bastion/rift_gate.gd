@@ -53,19 +53,11 @@ func _build_ui() -> void:
 	var main_vbox: VBoxContainer = VBoxContainer.new()
 	main_vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	main_vbox.offset_left = 20.0
-	main_vbox.offset_top = 20.0
+	main_vbox.offset_top = 48.0
 	main_vbox.offset_right = -20.0
 	main_vbox.offset_bottom = -20.0
 	main_vbox.add_theme_constant_override("separation", 16)
 	add_child(main_vbox)
-
-	## Title
-	_title_label = Label.new()
-	_title_label.text = "RIFT GATE"
-	_title_label.add_theme_font_size_override("font_size", 24)
-	_title_label.add_theme_color_override("font_color", Color("#FFD700"))
-	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main_vbox.add_child(_title_label)
 
 	## Rift list
 	_rift_container = HBoxContainer.new()
@@ -73,18 +65,6 @@ func _build_ui() -> void:
 	_rift_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	main_vbox.add_child(_rift_container)
 
-	## Spacer to push back button to bottom
-	var spacer: Control = Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_vbox.add_child(spacer)
-
-	## Back button
-	_back_button = Button.new()
-	_back_button.text = "Back"
-	_back_button.custom_minimum_size = Vector2(100, 36)
-	_back_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_back_button.pressed.connect(func() -> void: back_pressed.emit())
-	main_vbox.add_child(_back_button)
 
 
 func _make_rift_panel(template: RiftTemplate) -> PanelContainer:

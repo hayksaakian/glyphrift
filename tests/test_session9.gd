@@ -261,7 +261,6 @@ func _test_codex_construction() -> void:
 	_assert(cb._fusion_vbox != null, "fusion vbox exists")
 	_assert(cb._rift_vbox != null, "rift vbox exists")
 	_assert(cb._detail_popup != null, "detail popup exists")
-	_assert(cb._back_btn != null, "back button exists")
 	_cleanup_node(cb)
 
 

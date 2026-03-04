@@ -101,7 +101,7 @@ func _build_ui() -> void:
 	_scroll = ScrollContainer.new()
 	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_scroll.offset_left = 20.0
-	_scroll.offset_top = 20.0
+	_scroll.offset_top = 48.0
 	_scroll.offset_right = -20.0
 	_scroll.offset_bottom = -20.0
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -111,14 +111,6 @@ func _build_ui() -> void:
 	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	main_vbox.add_theme_constant_override("separation", 10)
 	_scroll.add_child(main_vbox)
-
-	## Title
-	_title_label = Label.new()
-	_title_label.text = "BARRACKS"
-	_title_label.add_theme_font_size_override("font_size", 24)
-	_title_label.add_theme_color_override("font_color", Color("#FFD700"))
-	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main_vbox.add_child(_title_label)
 
 	## Front row section
 	var front_header: Label = Label.new()
@@ -190,14 +182,6 @@ func _build_ui() -> void:
 	_info_label.add_theme_color_override("font_color", Color("#888888"))
 	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_vbox.add_child(_info_label)
-
-	## Done button (inside scroll)
-	_done_button = Button.new()
-	_done_button.text = "Done"
-	_done_button.custom_minimum_size = Vector2(120, 36)
-	_done_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_done_button.pressed.connect(_on_done_pressed)
-	main_vbox.add_child(_done_button)
 
 	## Feedback label — fixed at bottom, outside scroll so always visible
 	_feedback_label = Label.new()
