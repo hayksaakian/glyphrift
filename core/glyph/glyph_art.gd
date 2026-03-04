@@ -86,7 +86,7 @@ static func apply_texture(
 		existing.name = "GlyphTexture"
 		existing.set_anchors_preset(Control.PRESET_FULL_RECT)
 		existing.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		existing.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		existing.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		existing.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		art_container.add_child(existing)
 		## Insert after affinity_rect so it's above background but below overlays
