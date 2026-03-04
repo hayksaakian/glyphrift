@@ -33,11 +33,13 @@ const ACTION_LABELS: Dictionary = {
 }
 
 var room_data: Dictionary = {}
+var data_loader: DataLoader = null
 
 var _title_label: Label = null
 var _description_label: Label = null
 var _action_button: Button = null
 var _vbox: VBoxContainer = null
+var _enemy_preview: HBoxContainer = null
 
 
 func _ready() -> void:
@@ -56,8 +58,16 @@ func show_room(p_room_data: Dictionary, extra_info: String = "") -> void:
 
 	_title_label.text = title
 
-	var desc: String = _get_description(room_type, extra_info)
-	_description_label.text = desc
+	## Show enemy preview if scan data has species IDs
+	var scan_species_ids: Array = room_data.get("scan_species_ids", [])
+	_clear_enemy_preview()
+	if not scan_species_ids.is_empty() and (room_type == "enemy" or room_type == "boss"):
+		_show_enemy_preview(scan_species_ids, room_type == "boss")
+		_description_label.text = ""
+		_description_label.visible = false
+	else:
+		_description_label.visible = true
+		_description_label.text = _get_description(room_type, extra_info)
 
 	_action_button.text = ACTION_LABELS.get(room_type, "Continue")
 	visible = true
@@ -66,6 +76,8 @@ func show_room(p_room_data: Dictionary, extra_info: String = "") -> void:
 func show_result(title: String, description: String) -> void:
 	_title_label.text = title
 	_description_label.text = description
+	_description_label.visible = true
+	_clear_enemy_preview()
 	_action_button.text = "Continue"
 	visible = true
 
@@ -116,12 +128,19 @@ func _build_ui() -> void:
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_vbox.add_child(_title_label)
 
-	## Description
+	## Description (hidden when enemy preview is shown)
 	_description_label = Label.new()
 	_description_label.add_theme_font_size_override("font_size", 14)
 	_description_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_vbox.add_child(_description_label)
+
+	## Enemy preview row (populated dynamically)
+	_enemy_preview = HBoxContainer.new()
+	_enemy_preview.add_theme_constant_override("separation", 12)
+	_enemy_preview.alignment = BoxContainer.ALIGNMENT_CENTER
+	_enemy_preview.visible = false
+	_vbox.add_child(_enemy_preview)
 
 	## Spacer
 	var spacer: Control = Control.new()
@@ -134,6 +153,86 @@ func _build_ui() -> void:
 	_action_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_action_button.pressed.connect(_on_action_pressed)
 	_vbox.add_child(_action_button)
+
+
+func _show_enemy_preview(species_ids: Array, is_boss: bool) -> void:
+	for sid: Variant in species_ids:
+		var species_id: String = str(sid)
+		var species: GlyphSpecies = data_loader.get_species(species_id) if data_loader != null else null
+		if species == null:
+			continue
+
+		var card: VBoxContainer = VBoxContainer.new()
+		card.add_theme_constant_override("separation", 2)
+		card.mouse_filter = Control.MOUSE_FILTER_PASS
+		_enemy_preview.add_child(card)
+
+		## Art container (48x48)
+		var art_size: int = 64 if is_boss else 48
+		var art_container: PanelContainer = PanelContainer.new()
+		art_container.custom_minimum_size = Vector2(art_size, art_size)
+		art_container.mouse_filter = Control.MOUSE_FILTER_PASS
+		card.add_child(art_container)
+
+		var aff: String = species.affinity
+		var aff_color: Color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
+
+		var rect: ColorRect = ColorRect.new()
+		rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		rect.color = aff_color
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		art_container.add_child(rect)
+
+		var letter: Label = Label.new()
+		letter.text = species.name[0].to_upper()
+		letter.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		letter.add_theme_font_size_override("font_size", int(art_size * 0.5))
+		letter.add_theme_color_override("font_color", Color.WHITE)
+		letter.add_theme_color_override("font_outline_color", Color.BLACK)
+		letter.add_theme_constant_override("outline_size", 2)
+		letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		art_container.add_child(letter)
+
+		GlyphArt.apply_texture(art_container, rect, letter, species_id, art_size)
+
+		## Name
+		var name_label: Label = Label.new()
+		name_label.text = species.name
+		name_label.add_theme_font_size_override("font_size", 11)
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(name_label)
+
+		## Affinity + Tier
+		var info_label: Label = Label.new()
+		info_label.text = "%s %s T%d" % [Affinity.EMOJI.get(aff, ""), aff.capitalize(), species.tier]
+		info_label.add_theme_font_size_override("font_size", 9)
+		info_label.add_theme_color_override("font_color", aff_color)
+		info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		info_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(info_label)
+
+		## HP + ATK
+		var stats_label: Label = Label.new()
+		stats_label.text = "HP:%d ATK:%d" % [species.base_hp, species.base_atk]
+		stats_label.add_theme_font_size_override("font_size", 9)
+		stats_label.add_theme_color_override("font_color", Color("#AAAAAA"))
+		stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		stats_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(stats_label)
+
+	_enemy_preview.visible = _enemy_preview.get_child_count() > 0
+
+
+func _clear_enemy_preview() -> void:
+	if _enemy_preview == null:
+		return
+	for child: Node in _enemy_preview.get_children():
+		_enemy_preview.remove_child(child)
+		child.queue_free()
+	_enemy_preview.visible = false
 
 
 func _get_description(room_type: String, extra_info: String) -> String:

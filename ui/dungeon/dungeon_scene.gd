@@ -184,6 +184,7 @@ func _build_scene_tree() -> void:
 	## Room popup (centered, hidden)
 	_room_popup = RoomPopup.new()
 	_room_popup.name = "RoomPopup"
+	_room_popup.data_loader = data_loader
 	_room_popup.set_anchors_preset(Control.PRESET_CENTER)
 	_room_popup.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_room_popup.grow_vertical = Control.GROW_DIRECTION_BOTH
@@ -625,7 +626,7 @@ func _is_squad_wiped() -> bool:
 
 
 func _generate_scan_info(room_id: String) -> void:
-	## Pre-generate species names for a scanned enemy room
+	## Pre-generate species names and IDs for a scanned enemy room
 	if data_loader == null or dungeon_state == null:
 		return
 	var template: RiftTemplate = dungeon_state.rift_template
@@ -634,20 +635,23 @@ func _generate_scan_info(room_id: String) -> void:
 
 	var count: int = randi_range(1, 3)
 	var names: Array[String] = []
+	var species_ids: Array[String] = []
 	for i: int in range(count):
 		var species_id: String = template.wild_glyph_pool[randi() % template.wild_glyph_pool.size()]
 		var species: GlyphSpecies = data_loader.get_species(species_id)
 		if species != null:
 			names.append(species.name)
+			species_ids.append(species_id)
 
 	if not names.is_empty():
 		var room: Dictionary = dungeon_state._get_room(dungeon_state.current_floor, room_id)
 		if not room.is_empty():
 			room["scan_info"] = ", ".join(names)
+			room["scan_species_ids"] = species_ids
 
 
 func _generate_boss_scan_info(room_id: String) -> void:
-	## Add boss name to scanned boss room
+	## Add boss name and species ID to scanned boss room
 	if data_loader == null or dungeon_state == null:
 		return
 	var template: RiftTemplate = dungeon_state.rift_template
@@ -656,6 +660,7 @@ func _generate_boss_scan_info(room_id: String) -> void:
 		var room: Dictionary = dungeon_state._get_room(dungeon_state.current_floor, room_id)
 		if not room.is_empty():
 			room["scan_info"] = boss_def.name
+			room["scan_species_ids"] = [boss_def.species_id] as Array[String]
 
 
 func _generate_wild_enemies() -> Array[GlyphInstance]:
