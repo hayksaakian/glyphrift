@@ -230,15 +230,15 @@ assets/sprites/glyphs/
 │   ├── driftwisp.png
 │   ├── sparkfin.png
 │   ├── mossling.png
-│   ├── pebblix.png
-│   ├── voltrake.png
-│   ├── ironbark.png
-│   ├── tidecaller.png
+│   ├── glitchkit.png
 │   ├── thunderclaw.png
-│   ├── quartzmaw.png
-│   ├── coralynth.png
-│   ├── stormhowl.png
-│   ├── tectonix.png
+│   ├── ironbark.png
+│   ├── vortail.png
+│   ├── stormfang.png
+│   ├── terradon.png
+│   ├── riftmaw.png
+│   ├── voltarion.png
+│   ├── lithosurge.png
 │   └── nullweaver.png
 ├── silhouettes/                  # Auto-generated from portraits (black fill + alpha)
 │   ├── zapplet_silhouette.png
@@ -250,7 +250,7 @@ assets/sprites/glyphs/
 
 ### Naming rules
 
-- **Lowercase**, underscore-separated: `thunder_claw.png` — wait, species IDs in `data/species.json` use no underscores (e.g. `thunderclaw`). **Match the species ID exactly.**
+- **Lowercase**, underscore-separated: `thunder_claw.png` — wait, species IDs in `data/glyphs.json` use no underscores (e.g. `thunderclaw`). **Match the species ID exactly.**
 - Portrait: `{species_id}.png` (e.g. `zapplet.png`)
 - Silhouette: `{species_id}_silhouette.png`
 - Sheet: `{species_id}_sheet.png`
@@ -352,17 +352,17 @@ All 15 species with their affinity, for art direction:
 | ID | Name | Affinity | Tier | Visual Direction |
 |----|------|----------|------|-----------------|
 | zapplet | Zapplet | Electric | 1 | Small, sparky critter |
-| stonepaw | Stonepaw | Ground | 1 | Sturdy, rocky quadruped |
-| driftwisp | Driftwisp | Water | 1 | Floating, fluid form |
 | sparkfin | Sparkfin | Electric | 1 | Finned, electric aquatic |
+| stonepaw | Stonepaw | Ground | 1 | Sturdy, rocky quadruped |
 | mossling | Mossling | Ground | 1 | Mossy, plant-like creature |
-| pebblix | Pebblix | Water | 1 | Small, pebble-shelled water creature |
-| voltrake | Voltrake | Electric | 2 | Larger, draconic electric beast |
+| driftwisp | Driftwisp | Water | 1 | Floating, fluid form |
+| glitchkit | Glitchkit | Water | 1 | Glitchy, erratic water sprite |
+| thunderclaw | Thunderclaw | Electric | 2 | Powerful, clawed storm predator |
 | ironbark | Ironbark | Ground | 2 | Armored, tree-like guardian |
-| tidecaller | Tidecaller | Water | 2 | Mystical water shaman |
-| thunderclaw | Thunderclaw | Electric | 3 | Powerful, clawed storm predator |
-| quartzmaw | Quartzmaw | Ground | 3 | Massive, crystal-jawed earth beast |
-| coralynth | Coralynth | Water | 3 | Coral-encrusted deep sea titan |
-| stormhowl | Stormhowl | Electric | 4 | Apex storm entity |
-| tectonix | Tectonix | Ground | 4 | Apex tectonic colossus |
+| vortail | Vortail | Water | 2 | Whirlpool-tailed water beast |
+| stormfang | Stormfang | Electric | 3 | Fanged lightning hunter |
+| terradon | Terradon | Ground | 3 | Massive armored earth beast |
+| riftmaw | Riftmaw | Water | 3 | Rift-dwelling deep sea predator |
+| voltarion | Voltarion | Electric | 4 | Apex storm entity |
+| lithosurge | Lithosurge | Ground | 4 | Apex tectonic colossus |
 | nullweaver | Nullweaver | Water | 4 | Apex void-water weaver |
