@@ -307,7 +307,7 @@ func _build_action_buttons() -> void:
 	_guard_button.pressed.connect(_on_guard_pressed)
 
 	_swap_button = Button.new()
-	_swap_button.text = "Swap"
+	_swap_button.text = "Move Row"
 	_swap_button.custom_minimum_size = Vector2(200, 34)
 	_swap_button.pressed.connect(_on_swap_pressed)
 
@@ -540,8 +540,8 @@ func _on_guard_activated(glyph: GlyphInstance) -> void:
 	, 0.2)
 
 
-func _on_swap_performed(glyph_a: GlyphInstance, glyph_b: GlyphInstance) -> void:
-	_animation_queue.enqueue("swap", {"glyph_a": glyph_a, "glyph_b": glyph_b}, 0.3)
+func _on_swap_performed(glyph: GlyphInstance) -> void:
+	_animation_queue.enqueue("swap", {"glyph": glyph}, 0.3)
 
 
 func _on_battle_won(p_squad: Array[GlyphInstance], turns_taken: int, ko_list: Array[GlyphInstance]) -> void:
@@ -607,7 +607,7 @@ func _process_queued_event(event: Dictionary) -> void:
 		"interrupt":
 			_handle_interrupt_visual(data["defender"], data["technique"])
 		"swap":
-			_handle_swap_visual(data["glyph_a"], data["glyph_b"])
+			_handle_swap_visual(data["glyph"])
 		"phase_transition":
 			_handle_phase_transition_visual(data["boss"])
 		"battle_won":
@@ -684,10 +684,10 @@ func _handle_interrupt_visual(defender: GlyphInstance, technique: TechniqueDef) 
 	tween.tween_callback(func() -> void: _interrupt_label.visible = false)
 
 
-func _handle_swap_visual(glyph_a: GlyphInstance, glyph_b: GlyphInstance) -> void:
-	var a_name: String = glyph_a.species.name if glyph_a.species else "???"
-	var b_name: String = glyph_b.species.name if glyph_b.species else "???"
-	_combat_log.add_entry("%s swaps with %s." % [a_name, b_name], Color("#AAAAFF"))
+func _handle_swap_visual(glyph: GlyphInstance) -> void:
+	var g_name: String = glyph.species.name if glyph.species else "???"
+	var row_name: String = glyph.row_position.to_upper()
+	_combat_log.add_entry("%s moves to %s row." % [g_name, row_name], Color("#AAAAFF"))
 	## Rebuild row assignments
 	_rebuild_row_panels()
 
@@ -813,12 +813,7 @@ func _rebuild_action_panel() -> void:
 		_guard_button.text = "Guard"
 	_action_menu.add_child(_guard_button)
 
-	## Swap
-	var alive_allies: Array[GlyphInstance] = []
-	for g: GlyphInstance in _player_squad:
-		if not g.is_knocked_out and g != _current_actor:
-			alive_allies.append(g)
-	_swap_button.disabled = alive_allies.is_empty()
+	## Swap (move to other row)
 	_action_menu.add_child(_swap_button)
 
 
@@ -833,15 +828,9 @@ func _on_guard_pressed() -> void:
 func _on_swap_pressed() -> void:
 	if _state != UIState.ACTION_MENU:
 		return
-	_state = UIState.TARGET_SELECT
-	_selected_technique = null
 	_action_menu.visible = false
-
-	var targets: Array[GlyphInstance] = []
-	for g: GlyphInstance in _player_squad:
-		if not g.is_knocked_out and g != _current_actor:
-			targets.append(g)
-	_target_selector.show_targets(targets, _panels)
+	_state = UIState.ANIMATING
+	combat_engine.submit_action({"action": "swap"})
 
 
 func _on_technique_chosen(technique: TechniqueDef) -> void:
@@ -878,15 +867,11 @@ func _on_technique_chosen(technique: TechniqueDef) -> void:
 func _on_target_selected(target: GlyphInstance) -> void:
 	_state = UIState.ANIMATING
 
-	if _selected_technique == null:
-		## Swap action
-		combat_engine.submit_action({"action": "swap", "target": target})
-	else:
-		combat_engine.submit_action({
-			"action": "attack",
-			"technique": _selected_technique,
-			"target": target,
-		})
+	combat_engine.submit_action({
+		"action": "attack",
+		"technique": _selected_technique,
+		"target": target,
+	})
 
 	_selected_technique = null
 

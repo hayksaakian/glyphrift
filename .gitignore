@@ -12,3 +12,7 @@ Thumbs.db
 # Editor backups
 *~
 *.swp
+
+# Raw assets and screenshots
+raw/
+screenshots/

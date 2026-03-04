@@ -13,7 +13,7 @@ signal status_resisted(target: GlyphInstance, status_id: String)
 signal status_immune(target: GlyphInstance, status_id: String)
 signal affinity_advantage_hit(attacker: GlyphInstance, target: GlyphInstance)
 signal guard_activated(glyph: GlyphInstance)
-signal swap_performed(glyph_a: GlyphInstance, glyph_b: GlyphInstance)
+signal swap_performed(glyph: GlyphInstance)
 signal battle_won(player_squad: Array[GlyphInstance], turns_taken: int, ko_list: Array[GlyphInstance])
 signal battle_lost(player_squad: Array[GlyphInstance])
 signal turn_queue_updated(queue: Array[GlyphInstance])
@@ -201,7 +201,7 @@ func _execute_action(actor: GlyphInstance, action: Dictionary) -> void:
 		"guard":
 			_execute_guard(actor)
 		"swap":
-			_execute_swap(actor, action["target"])
+			_execute_swap(actor)
 		_:
 			_execute_attack(actor, action["technique"], action["target"])
 
@@ -222,11 +222,9 @@ func _execute_guard(actor: GlyphInstance) -> void:
 	guard_activated.emit(actor)
 
 
-func _execute_swap(actor: GlyphInstance, target: GlyphInstance) -> void:
-	var temp: String = actor.row_position
-	actor.row_position = target.row_position
-	target.row_position = temp
-	swap_performed.emit(actor, target)
+func _execute_swap(actor: GlyphInstance) -> void:
+	actor.row_position = "back" if actor.row_position == "front" else "front"
+	swap_performed.emit(actor)
 
 
 func _execute_attack(actor: GlyphInstance, technique: TechniqueDef, target: GlyphInstance) -> void:

@@ -1,5 +1,5 @@
 class_name RoomPopup
-extends PanelContainer
+extends Control
 
 ## Modal popup shown when entering a room.
 ## Content varies by room type; action button triggers interaction.
@@ -105,21 +105,34 @@ func get_action_text() -> String:
 
 
 func _build_ui() -> void:
-	## Popup styling
+	clip_contents = true
+
+	## Background panel (fills this Control)
+	var bg: PanelContainer = PanelContainer.new()
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.12, 0.12, 0.15, 0.95)
 	panel_style.border_color = Color(0.4, 0.4, 0.5)
 	panel_style.set_border_width_all(2)
 	panel_style.set_corner_radius_all(8)
-	panel_style.content_margin_left = 16.0
-	panel_style.content_margin_right = 16.0
-	panel_style.content_margin_top = 12.0
-	panel_style.content_margin_bottom = 12.0
-	add_theme_stylebox_override("panel", panel_style)
+	bg.add_theme_stylebox_override("panel", panel_style)
+	add_child(bg)
+
+	## ScrollContainer to prevent overflow
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_left = 16.0
+	scroll.offset_right = -16.0
+	scroll.offset_top = 12.0
+	scroll.offset_bottom = -12.0
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(scroll)
 
 	_vbox = VBoxContainer.new()
 	_vbox.add_theme_constant_override("separation", 12)
-	add_child(_vbox)
+	_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_vbox)
 
 	## Title
 	_title_label = Label.new()

@@ -211,8 +211,10 @@ func _build_scene_tree() -> void:
 	_room_popup.name = "RoomPopup"
 	_room_popup.data_loader = data_loader
 	_room_popup.set_anchors_preset(Control.PRESET_CENTER)
-	_room_popup.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_room_popup.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_room_popup.offset_left = -160.0
+	_room_popup.offset_right = 160.0
+	_room_popup.offset_top = -150.0
+	_room_popup.offset_bottom = 150.0
 	add_child(_room_popup)
 
 	## Capture popup (centered, hidden)
@@ -326,10 +328,12 @@ func _build_scene_tree() -> void:
 	add_child(_floor_overlay)
 
 	_floor_overlay_label = Label.new()
-	_floor_overlay_label.set_anchors_preset(Control.PRESET_CENTER)
+	_floor_overlay_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_floor_overlay_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_floor_overlay_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_floor_overlay_label.add_theme_font_size_override("font_size", 28)
 	_floor_overlay_label.add_theme_color_override("font_color", Color.WHITE)
+	_floor_overlay_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_floor_overlay.add_child(_floor_overlay_label)
 
 	## Result overlay (rift complete / failed)
