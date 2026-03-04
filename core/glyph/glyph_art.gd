@@ -6,7 +6,7 @@ extends RefCounted
 
 const PORTRAIT_PATH: String = "res://assets/sprites/glyphs/portraits/%s.png"
 const SILHOUETTE_PATH: String = "res://assets/sprites/glyphs/silhouettes/%s_silhouette.png"
-const MIN_TEXTURE_SIZE: int = 32  ## Below this, always use placeholder
+const MIN_TEXTURE_SIZE: int = 8  ## Below this, always use placeholder
 
 ## Cache: species_id -> Texture2D or &"_miss" sentinel
 static var _portrait_cache: Dictionary = {}

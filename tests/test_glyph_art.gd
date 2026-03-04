@@ -129,7 +129,7 @@ func _test_apply_texture_below_min_size() -> void:
 	GlyphArt.clear_cache()
 
 	var container: Control = Control.new()
-	container.custom_minimum_size = Vector2(20, 20)
+	container.custom_minimum_size = Vector2(4, 4)
 	root.add_child(container)
 
 	var rect: ColorRect = ColorRect.new()
@@ -140,8 +140,8 @@ func _test_apply_texture_below_min_size() -> void:
 	label.text = "Z"
 	container.add_child(label)
 
-	## Apply with size below MIN_TEXTURE_SIZE (32) — always uses placeholder
-	GlyphArt.apply_texture(container, rect, label, "zapplet", 20)
+	## Apply with size below MIN_TEXTURE_SIZE (8) — always uses placeholder
+	GlyphArt.apply_texture(container, rect, label, "zapplet", 4)
 
 	_assert(rect.visible, "ColorRect visible for small icon")
 	_assert(label.visible, "Label visible for small icon")
