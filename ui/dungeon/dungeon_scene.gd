@@ -455,7 +455,8 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 	match room_type:
 		"enemy":
 			_state = UIState.COMBAT
-			var enemies: Array[GlyphInstance] = _generate_wild_enemies()
+			var scan_ids: Array = room_data_local.get("scan_species_ids", [])
+			var enemies: Array[GlyphInstance] = _generate_wild_enemies(scan_ids)
 			combat_requested.emit(enemies, null)
 		"boss":
 			_state = UIState.COMBAT
@@ -663,18 +664,25 @@ func _generate_boss_scan_info(room_id: String) -> void:
 			room["scan_species_ids"] = [boss_def.species_id] as Array[String]
 
 
-func _generate_wild_enemies() -> Array[GlyphInstance]:
+func _generate_wild_enemies(scan_species_ids: Array = []) -> Array[GlyphInstance]:
 	var enemies: Array[GlyphInstance] = []
 	if data_loader == null or dungeon_state == null:
 		return enemies
 
-	var template: RiftTemplate = dungeon_state.rift_template
-	if template.wild_glyph_pool.is_empty():
-		return enemies
+	## Use scanned species if available (so fight matches the preview)
+	var ids: Array[String] = []
+	if not scan_species_ids.is_empty():
+		for sid: Variant in scan_species_ids:
+			ids.append(str(sid))
+	else:
+		var template: RiftTemplate = dungeon_state.rift_template
+		if template.wild_glyph_pool.is_empty():
+			return enemies
+		var count: int = randi_range(1, 3)
+		for i: int in range(count):
+			ids.append(template.wild_glyph_pool[randi() % template.wild_glyph_pool.size()])
 
-	var count: int = randi_range(1, 3)
-	for i: int in range(count):
-		var species_id: String = template.wild_glyph_pool[randi() % template.wild_glyph_pool.size()]
+	for species_id: String in ids:
 		var species: GlyphSpecies = data_loader.get_species(species_id)
 		if species == null:
 			continue
