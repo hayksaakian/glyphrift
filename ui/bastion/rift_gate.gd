@@ -131,13 +131,16 @@ func _make_rift_panel(template: RiftTemplate) -> PanelContainer:
 				boss_label.add_theme_color_override("font_color", Color("#FF8800"))
 				vbox.add_child(boss_label)
 
-	## Cleared marker
+	## Cleared marker (always present for consistent sizing)
+	var cleared_label: Label = Label.new()
+	cleared_label.add_theme_font_size_override("font_size", 14)
 	if codex_state != null and codex_state.is_rift_cleared(template.rift_id):
-		var cleared_label: Label = Label.new()
 		cleared_label.text = "\u2713 CLEARED"
-		cleared_label.add_theme_font_size_override("font_size", 14)
 		cleared_label.add_theme_color_override("font_color", Color("#4CAF50"))
-		vbox.add_child(cleared_label)
+	else:
+		cleared_label.text = " "
+		cleared_label.modulate.a = 0.0
+	vbox.add_child(cleared_label)
 
 	## Enter button
 	var enter_btn: Button = Button.new()

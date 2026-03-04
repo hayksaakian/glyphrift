@@ -66,6 +66,9 @@ func _update_display() -> void:
 	if _se_badge != null:
 		_se_badge.visible = _has_advantage
 
+	## Tooltip with description and effect details
+	tooltip_text = _build_tooltip()
+
 	disabled = not is_usable
 	if not is_usable:
 		modulate = Color(0.5, 0.5, 0.5, 0.8)
@@ -73,6 +76,22 @@ func _update_display() -> void:
 		modulate = Color.WHITE
 		var aff_color: Color = Affinity.COLORS.get(technique.affinity, Color.WHITE)
 		add_theme_color_override("font_color", aff_color)
+
+
+func _build_tooltip() -> String:
+	if technique == null:
+		return ""
+	var lines: Array[String] = []
+	if technique.description != "":
+		lines.append(technique.description)
+	if technique.status_effect != "":
+		lines.append("Status: %s (%d%%)" % [technique.status_effect.capitalize(), technique.status_accuracy])
+	if technique.support_effect != "":
+		var pct: int = int(technique.support_value * 100)
+		lines.append("Effect: %s %d%%" % [technique.support_effect.capitalize(), pct])
+	if technique.interrupt_trigger != "":
+		lines.append("Interrupt: %s" % technique.interrupt_trigger.capitalize())
+	return "\n".join(lines)
 
 
 func _build_se_badge() -> void:

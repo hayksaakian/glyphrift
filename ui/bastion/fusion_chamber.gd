@@ -24,7 +24,7 @@ var _parent_a_card: GlyphCard = null
 var _parent_b_card: GlyphCard = null
 var _parent_a_slot: PanelContainer = null
 var _parent_b_slot: PanelContainer = null
-var _picker_container: HBoxContainer = null
+var _picker_container: GridContainer = null
 var _picker_label: Label = null
 var _preview_panel: VBoxContainer = null
 var _preview_name: Label = null
@@ -148,10 +148,15 @@ func _build_ui() -> void:
 	_picker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_vbox.add_child(_picker_label)
 
-	_picker_container = HBoxContainer.new()
-	_picker_container.add_theme_constant_override("separation", 8)
-	_picker_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	main_vbox.add_child(_picker_container)
+	var picker_center: CenterContainer = CenterContainer.new()
+	picker_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_vbox.add_child(picker_center)
+
+	_picker_container = GridContainer.new()
+	_picker_container.columns = 5
+	_picker_container.add_theme_constant_override("h_separation", 8)
+	_picker_container.add_theme_constant_override("v_separation", 8)
+	picker_center.add_child(_picker_container)
 
 	## Preview panel — horizontal: stats left, techniques right
 	_preview_panel = VBoxContainer.new()

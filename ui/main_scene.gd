@@ -67,6 +67,14 @@ func setup(
 func start_game() -> void:
 	if game_state == null:
 		return
+	## Try loading existing save; fall back to new game
+	if SaveManager.has_save():
+		var loaded: bool = SaveManager.load_game(
+			game_state, roster_state, codex_state, crawler_state, data_loader
+		)
+		if loaded:
+			_show_bastion()
+			return
 	game_state.start_new_game()
 	_show_bastion()
 
@@ -117,6 +125,9 @@ func _build_scene_tree() -> void:
 
 func _connect_signals() -> void:
 	_bastion_scene.rift_selected.connect(_on_rift_selected)
+	_bastion_scene.hub_entered.connect(_auto_save)
+	_bastion_scene.save_and_quit_pressed.connect(_on_save_and_quit)
+	_bastion_scene.save_slot_loaded.connect(_on_save_slot_loaded)
 	_dungeon_scene.combat_requested.connect(_on_combat_requested)
 	_dungeon_scene.capture_requested.connect(_on_capture_requested)
 	_dungeon_scene.rift_completed.connect(_on_rift_completed)
@@ -154,6 +165,7 @@ func _show_battle() -> void:
 ## --- Signal handlers ---
 
 func _on_rift_selected(template: RiftTemplate) -> void:
+	_auto_save()
 	_current_rift_template = template
 	_rift_cargo.clear()
 	crawler_state.begin_run()
@@ -245,6 +257,8 @@ func _on_rift_completed(won: bool) -> void:
 	## Heal all glyphs when returning to bastion
 	_heal_all_glyphs()
 
+	_auto_save()
+
 	var msg: String = ""
 	if won:
 		msg = "Rift conquered! All glyphs healed."
@@ -290,6 +304,27 @@ func _append_room_history(text: String) -> void:
 			else:
 				room["history"] = text
 			break
+
+
+## --- Save slot loaded ---
+
+func _on_save_slot_loaded() -> void:
+	## State objects already updated by load — re-show bastion with fresh data
+	_bastion_scene.setup(game_state, roster_state, codex_state, crawler_state, fusion_engine, data_loader)
+	_show_bastion()
+
+
+## --- Auto-save ---
+
+func _on_save_and_quit() -> void:
+	_auto_save()
+	get_tree().quit()
+
+
+func _auto_save() -> void:
+	if game_state == null:
+		return
+	SaveManager.save_game(game_state, roster_state, codex_state, crawler_state)
 
 
 ## --- Fade transition ---

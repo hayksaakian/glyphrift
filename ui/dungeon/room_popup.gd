@@ -142,11 +142,6 @@ func _build_ui() -> void:
 	_enemy_preview.visible = false
 	_vbox.add_child(_enemy_preview)
 
-	## Spacer
-	var spacer: Control = Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_vbox.add_child(spacer)
-
 	## Action button
 	_action_button = Button.new()
 	_action_button.custom_minimum_size = Vector2(120, 36)

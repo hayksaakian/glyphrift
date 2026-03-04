@@ -14,6 +14,7 @@ var current_state: int = State.TITLE
 var current_dungeon: DungeonState = null
 var mastery_tracker: MasteryTracker = null
 var game_phase: int = 1
+var npc_read_phase: Dictionary = {"kael": 0, "lira": 0, "maro": 0}
 
 ## Injectable dependencies
 var data_loader: Node = null
@@ -62,6 +63,7 @@ func start_new_game() -> void:
 	crawler_state.cargo_slots = 2
 	crawler_state.active_chassis = "standard"
 	crawler_state.unlocked_chassis = ["standard"]
+	npc_read_phase = {"kael": 0, "lira": 0, "maro": 0}
 	transition_to(State.BASTION)
 
 

@@ -39,12 +39,19 @@ var _echo_glyph: GlyphInstance = null
 var _repair_overlay: ColorRect = null
 var _repair_vbox: VBoxContainer = null
 
+## Item swap picker (shown when inventory full)
+var _swap_overlay: ColorRect = null
+var _swap_vbox: VBoxContainer = null
+var _swap_pending_item: ItemDef = null
+var _swap_source: String = ""  ## "cache" or "puzzle"
+
 var _background: ColorRect = null
 var _floor_map: FloorMap = null
 var _crawler_hud: CrawlerHUD = null
 var _room_popup: RoomPopup = null
 var _capture_popup: CapturePopup = null
 var _item_popup: ItemPopup = null
+var _rift_name_label: Label = null
 var _floor_label: Label = null
 var _floor_overlay: ColorRect = null
 var _floor_overlay_label: Label = null
@@ -67,6 +74,12 @@ func _ready() -> void:
 func start_rift(p_dungeon_state: DungeonState) -> void:
 	dungeon_state = p_dungeon_state
 	_connect_dungeon_signals()
+
+	## Show rift name
+	if dungeon_state.rift_template != null:
+		_rift_name_label.text = dungeon_state.rift_template.name
+	else:
+		_rift_name_label.text = ""
 
 	## Setup CrawlerHUD
 	_crawler_hud.setup(dungeon_state.crawler)
@@ -169,6 +182,18 @@ func _build_scene_tree() -> void:
 	_crawler_hud.custom_minimum_size.y = 44.0
 	add_child(_crawler_hud)
 
+	## Rift name label (top center, below HUD)
+	_rift_name_label = Label.new()
+	_rift_name_label.name = "RiftNameLabel"
+	_rift_name_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_rift_name_label.offset_top = 48.0
+	_rift_name_label.offset_bottom = 70.0
+	_rift_name_label.add_theme_font_size_override("font_size", 16)
+	_rift_name_label.add_theme_color_override("font_color", Color("#FFD700"))
+	_rift_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_rift_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_rift_name_label)
+
 	## Floor label (bottom left)
 	_floor_label = Label.new()
 	_floor_label.name = "FloorLabel"
@@ -245,6 +270,38 @@ func _build_scene_tree() -> void:
 	_repair_vbox = VBoxContainer.new()
 	_repair_vbox.add_theme_constant_override("separation", 6)
 	repair_panel.add_child(_repair_vbox)
+
+	## Item swap picker overlay (modal, hidden)
+	_swap_overlay = ColorRect.new()
+	_swap_overlay.name = "SwapOverlay"
+	_swap_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_swap_overlay.color = Color(0, 0, 0, 0.7)
+	_swap_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_swap_overlay.visible = false
+	add_child(_swap_overlay)
+
+	var swap_panel: PanelContainer = PanelContainer.new()
+	swap_panel.set_anchors_preset(Control.PRESET_CENTER)
+	swap_panel.custom_minimum_size = Vector2(320, 240)
+	swap_panel.offset_left = -160.0
+	swap_panel.offset_right = 160.0
+	swap_panel.offset_top = -120.0
+	swap_panel.offset_bottom = 120.0
+	var swap_style: StyleBoxFlat = StyleBoxFlat.new()
+	swap_style.bg_color = Color("#1A1A2E")
+	swap_style.set_corner_radius_all(8)
+	swap_style.border_color = Color("#FFD700")
+	swap_style.set_border_width_all(2)
+	swap_style.content_margin_left = 12
+	swap_style.content_margin_right = 12
+	swap_style.content_margin_top = 10
+	swap_style.content_margin_bottom = 10
+	swap_panel.add_theme_stylebox_override("panel", swap_style)
+	_swap_overlay.add_child(swap_panel)
+
+	_swap_vbox = VBoxContainer.new()
+	_swap_vbox.add_theme_constant_override("separation", 6)
+	swap_panel.add_child(_swap_vbox)
 
 	## Puzzle overlays (full screen, hidden)
 	_puzzle_sequence = PuzzleSequence.new()
@@ -470,9 +527,13 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 				## Second click (Continue on result) — just dismiss
 				_state = UIState.EXPLORING
 			else:
-				var found_item: ItemDef = _pick_item()
+				var result: Dictionary = _pick_item()
 				_clear_current_room("Looted supplies.")
-				if found_item != null:
+				if result.get("full", false):
+					_show_swap_picker(result["item"], "cache")
+					return
+				elif result.get("item") != null:
+					var found_item: ItemDef = result["item"]
 					_room_popup.show_result("Found: %s" % found_item.name, found_item.description)
 				else:
 					_room_popup.show_result("Cache Empty", "Nothing useful remains.")
@@ -744,18 +805,19 @@ func _clear_current_room(history: String = "") -> void:
 	_floor_map.refresh_all()
 
 
-func _pick_item() -> ItemDef:
+func _pick_item() -> Dictionary:
 	if data_loader == null or dungeon_state == null:
-		return null
+		return {}
 	var all_items: Dictionary = data_loader.items
 	if all_items.is_empty():
-		return null
+		return {}
 	var keys: Array = all_items.keys()
 	var item_id: String = keys[randi() % keys.size()]
 	var item: ItemDef = data_loader.get_item(item_id)
-	if item != null:
-		dungeon_state.crawler.add_item(item)
-	return item
+	if item == null:
+		return {}
+	var added: bool = dungeon_state.crawler.add_item(item)
+	return {"item": item, "full": not added}
 
 
 ## --- Repair picker ---
@@ -835,6 +897,93 @@ func _hide_repair_picker() -> void:
 	_state = UIState.EXPLORING
 
 
+## --- Item swap picker ---
+
+func _show_swap_picker(new_item: ItemDef, source: String) -> void:
+	_swap_pending_item = new_item
+	_swap_source = source
+
+	for child: Node in _swap_vbox.get_children():
+		_swap_vbox.remove_child(child)
+		child.queue_free()
+
+	var header: Label = Label.new()
+	header.text = "Inventory Full!"
+	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_color_override("font_color", Color("#FFD700"))
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_swap_vbox.add_child(header)
+
+	var found_label: Label = Label.new()
+	found_label.text = "Found: %s" % new_item.name
+	found_label.add_theme_font_size_override("font_size", 13)
+	found_label.add_theme_color_override("font_color", Color("#AAAAAA"))
+	found_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	found_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_swap_vbox.add_child(found_label)
+
+	var desc_label: Label = Label.new()
+	desc_label.text = new_item.description
+	desc_label.add_theme_font_size_override("font_size", 11)
+	desc_label.add_theme_color_override("font_color", Color("#888888"))
+	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_swap_vbox.add_child(desc_label)
+
+	var sep: HSeparator = HSeparator.new()
+	_swap_vbox.add_child(sep)
+
+	var drop_label: Label = Label.new()
+	drop_label.text = "Drop an item to make room:"
+	drop_label.add_theme_font_size_override("font_size", 12)
+	drop_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_swap_vbox.add_child(drop_label)
+
+	for item: ItemDef in dungeon_state.crawler.items:
+		var btn: Button = Button.new()
+		btn.text = "Drop: %s" % item.name
+		btn.custom_minimum_size = Vector2(0, 30)
+		var item_ref: ItemDef = item
+		btn.pressed.connect(func() -> void: _on_swap_drop_selected(item_ref))
+		_swap_vbox.add_child(btn)
+
+	var leave_btn: Button = Button.new()
+	leave_btn.text = "Leave It"
+	leave_btn.custom_minimum_size = Vector2(100, 30)
+	leave_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	leave_btn.pressed.connect(_on_swap_leave)
+	_swap_vbox.add_child(leave_btn)
+
+	_state = UIState.POPUP
+	_swap_overlay.visible = true
+
+
+func _on_swap_drop_selected(drop_item: ItemDef) -> void:
+	dungeon_state.crawler.use_item(drop_item)
+	dungeon_state.crawler.add_item(_swap_pending_item)
+	var item_name: String = _swap_pending_item.name
+	_swap_pending_item = null
+	_swap_overlay.visible = false
+	_crawler_hud.refresh()
+
+	if _swap_source == "puzzle":
+		_state = UIState.EXPLORING
+	else:
+		_room_popup.show_result("Found: %s" % item_name, "Swapped items.")
+		_state = UIState.POPUP
+
+
+func _on_swap_leave() -> void:
+	_swap_pending_item = null
+	_swap_overlay.visible = false
+
+	if _swap_source == "puzzle":
+		_state = UIState.EXPLORING
+	else:
+		_room_popup.show_result("Left Behind", "Inventory full — item left behind.")
+		_state = UIState.POPUP
+
+
 ## --- Puzzle helpers ---
 
 const PUZZLE_TYPES: Array[String] = ["sequence", "conduit", "echo"]
@@ -869,8 +1018,13 @@ func _on_puzzle_completed(success: bool, reward_type: String, _reward_data: Vari
 	if success:
 		match reward_type:
 			"item":
-				_pick_item()
-				_clear_current_room("Puzzle solved — found supplies!")
+				var result: Dictionary = _pick_item()
+				if result.get("full", false):
+					_clear_current_room("Puzzle solved — found supplies!")
+					_show_swap_picker(result["item"], "puzzle")
+					return
+				else:
+					_clear_current_room("Puzzle solved — found supplies!")
 			"codex_reveal":
 				## Reveal already done in _on_conduit_success
 				_clear_current_room("Puzzle solved — codex updated!")

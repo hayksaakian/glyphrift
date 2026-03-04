@@ -4,6 +4,9 @@ extends Control
 ## Hub screen with navigation to facilities.
 
 signal rift_selected(template: RiftTemplate)
+signal hub_entered
+signal save_and_quit_pressed
+signal save_slot_loaded
 
 enum SubScreen { HUB, BARRACKS, FUSION, RIFT_GATE, CODEX }
 
@@ -28,6 +31,9 @@ var _rift_gate_btn: Button = null
 var _barracks_btn: Button = null
 var _fusion_btn: Button = null
 var _codex_btn: Button = null
+var _save_quit_btn: Button = null
+var _save_slots_btn: Button = null
+var _save_slots_popup: SaveSlotsPopup = null
 var _squad_preview: HBoxContainer = null
 var _squad_cards: Array[GlyphCard] = []
 var _notification_label: Label = null
@@ -40,8 +46,6 @@ var _npc_kael_btn: Button = null
 var _npc_lira_btn: Button = null
 var _npc_maro_btn: Button = null
 
-## Tracks the last game_phase each NPC's dialogue was read at (0 = never read)
-var _npc_read_phase: Dictionary = {"kael": 0, "lira": 0, "maro": 0}
 ## Indicator labels on NPC portrait art (keyed by npc_id)
 var _npc_indicators: Dictionary = {}
 
@@ -73,6 +77,7 @@ func setup(
 	_rift_gate.setup(game_state, codex_state, data_loader)
 	_codex_browser.setup(data_loader, codex_state, game_state, roster_state)
 	_npc_panel.setup(data_loader, game_state)
+	_save_slots_popup.setup(game_state, roster_state, codex_state, crawler_state, data_loader)
 
 
 func refresh() -> void:
@@ -81,6 +86,7 @@ func refresh() -> void:
 
 
 func show_hub() -> void:
+	var was_in_sub: bool = _current_screen != SubScreen.HUB
 	_current_screen = SubScreen.HUB
 	_hub.visible = true
 	_barracks.visible = false
@@ -89,6 +95,8 @@ func show_hub() -> void:
 	_codex_browser.visible = false
 	refresh()
 	_update_npc_indicators()
+	if was_in_sub:
+		hub_entered.emit()
 
 	if not _mastery_hint_shown:
 		_mastery_hint_shown = true
@@ -172,6 +180,16 @@ func _build_ui() -> void:
 	_codex_btn.custom_minimum_size = Vector2(140, 44)
 	nav_row.add_child(_codex_btn)
 
+	_save_quit_btn = Button.new()
+	_save_quit_btn.text = "Save & Quit"
+	_save_quit_btn.custom_minimum_size = Vector2(140, 44)
+	nav_row.add_child(_save_quit_btn)
+
+	_save_slots_btn = Button.new()
+	_save_slots_btn.text = "Save Slots"
+	_save_slots_btn.custom_minimum_size = Vector2(140, 44)
+	nav_row.add_child(_save_slots_btn)
+
 	## Status bar
 	_status_label = Label.new()
 	_status_label.add_theme_font_size_override("font_size", 14)
@@ -244,6 +262,11 @@ func _build_ui() -> void:
 	_npc_panel.name = "NpcPanel"
 	add_child(_npc_panel)
 
+	## Save slots popup (modal, above sub-screens)
+	_save_slots_popup = SaveSlotsPopup.new()
+	_save_slots_popup.name = "SaveSlotsPopup"
+	add_child(_save_slots_popup)
+
 	## Detail popup (above everything)
 	_detail_popup = GlyphDetailPopup.new()
 	_detail_popup.name = "DetailPopup"
@@ -255,6 +278,9 @@ func _connect_signals() -> void:
 	_barracks_btn.pressed.connect(_show_barracks)
 	_fusion_btn.pressed.connect(_show_fusion)
 	_codex_btn.pressed.connect(_show_codex)
+	_save_quit_btn.pressed.connect(func() -> void: save_and_quit_pressed.emit())
+	_save_slots_btn.pressed.connect(func() -> void: _save_slots_popup.show_popup())
+	_save_slots_popup.slot_loaded.connect(func() -> void: save_slot_loaded.emit())
 
 	_barracks.done_pressed.connect(show_hub)
 	_fusion_chamber.back_pressed.connect(show_hub)
@@ -308,6 +334,8 @@ func _show_codex() -> void:
 	_codex_browser.refresh()
 
 
+
+
 func _update_status() -> void:
 	if game_state == null or codex_state == null or roster_state == null:
 		return
@@ -345,7 +373,7 @@ func _on_squad_card_clicked(g: GlyphInstance) -> void:
 
 func _open_npc(npc_id: String) -> void:
 	if game_state != null:
-		_npc_read_phase[npc_id] = mini(game_state.game_phase, 3)
+		game_state.npc_read_phase[npc_id] = mini(game_state.game_phase, 3)
 	_npc_panel.show_npc(npc_id)
 	_update_npc_indicators()
 
@@ -358,7 +386,7 @@ func _update_npc_indicators() -> void:
 		var indicator: Label = _npc_indicators[npc_id] as Label
 		if indicator == null:
 			continue
-		var read_phase: int = _npc_read_phase.get(npc_id, 0)
+		var read_phase: int = game_state.npc_read_phase.get(npc_id, 0)
 		indicator.visible = phase > read_phase
 
 

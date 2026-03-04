@@ -68,3 +68,8 @@ func _ready() -> void:
 
 	roster_state._seed_debug_glyphs = true
 	_main_scene.start_game()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE:
+		GlyphArt.clear_cache()

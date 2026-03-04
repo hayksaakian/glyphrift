@@ -11,7 +11,7 @@ enum UIState {
 	WAITING,
 	FORMATION,
 	ACTION_MENU,
-	TECHNIQUE_LIST,
+	TECHNIQUE_LIST,  ## Kept for backward compat — unused, same as ACTION_MENU
 	TARGET_SELECT,
 	ANIMATING,
 	RESULT,
@@ -40,7 +40,7 @@ var _player_front_row: HBoxContainer = null
 var _player_back_row: HBoxContainer = null
 var _turn_order_bar: HBoxContainer = null
 var _action_menu: VBoxContainer = null
-var _technique_list: VBoxContainer = null
+var _technique_list: VBoxContainer = null  ## Points to _action_menu for backward compat
 var _target_selector: TargetSelector = null
 var _combat_log: BattleLog = null
 var _phase_overlay: PhaseOverlay = null
@@ -67,6 +67,13 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_scene_tree()
 	_connect_internal_signals()
+
+
+func _exit_tree() -> void:
+	## Free buttons that may be orphaned (removed from tree but not freed)
+	for btn: Button in [_guard_button, _swap_button, _attack_button]:
+		if btn != null and btn.get_parent() == null:
+			btn.free()
 
 
 func start_battle(p_squad: Array[GlyphInstance], e_squad: Array[GlyphInstance], boss_def: BossDef = null) -> void:
@@ -104,12 +111,8 @@ func reset() -> void:
 		_turn_order_bar.remove_child(child)
 		child.queue_free()
 
-	## Clear technique list
-	_clear_technique_list()
-
 	## Hide overlays
 	_action_menu.visible = false
-	_technique_list.visible = false
 	_formation_setup.hide_formation()
 	_target_selector.hide_targets()
 	_phase_overlay.visible = false
@@ -153,29 +156,18 @@ func _build_scene_tree() -> void:
 	turn_label.add_theme_color_override("font_color", Color("#AAAAAA"))
 	_turn_order_bar.add_child(turn_label)
 
-	## Action menu (right side, anchored)
+	## Action menu — techniques + guard/swap in one panel (right side)
 	_action_menu = VBoxContainer.new()
 	_action_menu.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	_action_menu.offset_left = -180.0
-	_action_menu.offset_top = -80.0
+	_action_menu.offset_left = -340.0
+	_action_menu.offset_top = -120.0
 	_action_menu.offset_right = -20.0
-	_action_menu.offset_bottom = 80.0
-	_action_menu.add_theme_constant_override("separation", 10)
+	_action_menu.offset_bottom = 120.0
+	_action_menu.add_theme_constant_override("separation", 6)
 	_action_menu.visible = false
 	add_child(_action_menu)
-
-	_build_action_menu()
-
-	## Technique list (right side, same area as action menu)
-	_technique_list = VBoxContainer.new()
-	_technique_list.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	_technique_list.offset_left = -340.0
-	_technique_list.offset_top = -120.0
-	_technique_list.offset_right = -20.0
-	_technique_list.offset_bottom = 120.0
-	_technique_list.add_theme_constant_override("separation", 6)
-	_technique_list.visible = false
-	add_child(_technique_list)
+	_technique_list = _action_menu  ## Alias for backward compat
+	_build_action_buttons()
 
 	## Target selector overlay
 	_target_selector = TargetSelector.new()
@@ -307,30 +299,22 @@ func _build_battlefield() -> void:
 	player_back_inner.add_child(_player_back_row)
 
 
-func _build_action_menu() -> void:
-	var menu_label: Label = Label.new()
-	menu_label.text = "Actions"
-	menu_label.add_theme_font_size_override("font_size", 20)
-	menu_label.add_theme_color_override("font_color", Color("#FFD700"))
-	_action_menu.add_child(menu_label)
-
-	_attack_button = Button.new()
-	_attack_button.text = "Attack"
-	_attack_button.custom_minimum_size = Vector2(160, 40)
-	_attack_button.pressed.connect(_on_attack_pressed)
-	_action_menu.add_child(_attack_button)
-
+func _build_action_buttons() -> void:
+	## Guard and Swap are created once, re-added dynamically in _show_action_menu
 	_guard_button = Button.new()
 	_guard_button.text = "Guard"
-	_guard_button.custom_minimum_size = Vector2(160, 40)
+	_guard_button.custom_minimum_size = Vector2(200, 34)
 	_guard_button.pressed.connect(_on_guard_pressed)
-	_action_menu.add_child(_guard_button)
 
 	_swap_button = Button.new()
 	_swap_button.text = "Swap"
-	_swap_button.custom_minimum_size = Vector2(160, 40)
+	_swap_button.custom_minimum_size = Vector2(200, 34)
 	_swap_button.pressed.connect(_on_swap_pressed)
-	_action_menu.add_child(_swap_button)
+
+	## Keep _attack_button non-null for backward compat (tests)
+	_attack_button = Button.new()
+	_attack_button.text = "Attack"
+	_attack_button.visible = false
 
 
 func _make_row_lane(bg_color: Color) -> PanelContainer:
@@ -718,7 +702,6 @@ func _handle_phase_transition_visual(boss: GlyphInstance) -> void:
 func _handle_battle_won_visual(turns: int, kos: Array) -> void:
 	_state = UIState.RESULT
 	_action_menu.visible = false
-	_technique_list.visible = false
 	_combat_log.add_entry("VICTORY!", Color("#FFD700"))
 	var player_kos: int = 0
 	for g: GlyphInstance in _player_squad:
@@ -732,7 +715,6 @@ func _handle_battle_won_visual(turns: int, kos: Array) -> void:
 func _handle_battle_lost_visual() -> void:
 	_state = UIState.RESULT
 	_action_menu.visible = false
-	_technique_list.visible = false
 	_combat_log.add_entry("DEFEAT...", Color("#FF4444"))
 	_result_screen.show_defeat()
 
@@ -781,12 +763,47 @@ func _populate_battlefield() -> void:
 func _show_action_menu(actor: GlyphInstance) -> void:
 	_state = UIState.ACTION_MENU
 	_current_actor = actor
+	_rebuild_action_panel()
 	_action_menu.visible = true
-	_technique_list.visible = false
 
-	## Dynamic guard button text — mention interrupts if actor has any
+
+func _rebuild_action_panel() -> void:
+	_clear_action_menu()
+
+	if _current_actor == null:
+		return
+
+	## Techniques
+	for tech: TechniqueDef in _current_actor.techniques:
+		if tech.category == "interrupt":
+			continue
+
+		var usable: bool = true
+		if not _current_actor.is_technique_ready(tech):
+			usable = false
+		if tech.range_type == "melee" and _current_actor.row_position == "back":
+			usable = false
+
+		var reachable: Array[GlyphInstance] = _get_valid_targets(tech)
+		var has_advantage: bool = false
+		for e: GlyphInstance in reachable:
+			if e.species != null and DamageCalculator.has_affinity_advantage(tech.affinity, e.species.affinity):
+				has_advantage = true
+				break
+
+		var btn: TechniqueButton = TechniqueButton.new()
+		btn.setup_with_hint(tech, usable, has_advantage)
+		btn.technique_selected.connect(_on_technique_chosen)
+		_action_menu.add_child(btn)
+
+	## Separator
+	var sep: HSeparator = HSeparator.new()
+	sep.add_theme_constant_override("separation", 2)
+	_action_menu.add_child(sep)
+
+	## Guard
 	var has_interrupt: bool = false
-	for tech: TechniqueDef in actor.techniques:
+	for tech: TechniqueDef in _current_actor.techniques:
 		if tech.category == "interrupt":
 			has_interrupt = true
 			break
@@ -794,21 +811,15 @@ func _show_action_menu(actor: GlyphInstance) -> void:
 		_guard_button.text = "Guard [Static Guard]"
 	else:
 		_guard_button.text = "Guard"
+	_action_menu.add_child(_guard_button)
 
-	## Enable/disable swap based on squad size
+	## Swap
 	var alive_allies: Array[GlyphInstance] = []
 	for g: GlyphInstance in _player_squad:
-		if not g.is_knocked_out and g != actor:
+		if not g.is_knocked_out and g != _current_actor:
 			alive_allies.append(g)
 	_swap_button.disabled = alive_allies.is_empty()
-
-
-func _on_attack_pressed() -> void:
-	if _state != UIState.ACTION_MENU:
-		return
-	_state = UIState.TECHNIQUE_LIST
-	_action_menu.visible = false
-	_show_technique_list()
+	_action_menu.add_child(_swap_button)
 
 
 func _on_guard_pressed() -> void:
@@ -826,7 +837,6 @@ func _on_swap_pressed() -> void:
 	_selected_technique = null
 	_action_menu.visible = false
 
-	## Show alive allies as swap targets
 	var targets: Array[GlyphInstance] = []
 	for g: GlyphInstance in _player_squad:
 		if not g.is_knocked_out and g != _current_actor:
@@ -834,57 +844,12 @@ func _on_swap_pressed() -> void:
 	_target_selector.show_targets(targets, _panels)
 
 
-func _show_technique_list() -> void:
-	_clear_technique_list()
-	_technique_list.visible = true
-
-	if _current_actor == null:
-		return
-
-	for tech: TechniqueDef in _current_actor.techniques:
-		## Skip interrupts (passive only)
-		if tech.category == "interrupt":
-			continue
-
-		## Determine usability
-		var usable: bool = true
-		if not _current_actor.is_technique_ready(tech):
-			usable = false
-		if tech.range_type == "melee" and _current_actor.row_position == "back":
-			usable = false
-
-		## Check affinity advantage against reachable targets only
-		var reachable: Array[GlyphInstance] = _get_valid_targets(tech)
-		var has_advantage: bool = false
-		for e: GlyphInstance in reachable:
-			if e.species != null and DamageCalculator.has_affinity_advantage(tech.affinity, e.species.affinity):
-				has_advantage = true
-				break
-
-		var btn: TechniqueButton = TechniqueButton.new()
-		btn.setup_with_hint(tech, usable, has_advantage)
-		btn.technique_selected.connect(_on_technique_chosen)
-		_technique_list.add_child(btn)
-
-	## Back button
-	var back_btn: Button = Button.new()
-	back_btn.text = "Back"
-	back_btn.custom_minimum_size = Vector2(200, 30)
-	back_btn.pressed.connect(func() -> void:
-		_technique_list.visible = false
-		_action_menu.visible = true
-		_state = UIState.ACTION_MENU
-	)
-	_technique_list.add_child(back_btn)
-
-
 func _on_technique_chosen(technique: TechniqueDef) -> void:
 	_selected_technique = technique
-	_technique_list.visible = false
+	_action_menu.visible = false
 
 	## AoE: auto-submit (engine handles all-target logic)
 	if technique.range_type == "aoe":
-		_action_menu.visible = false
 		_state = UIState.ANIMATING
 		var first_enemy: GlyphInstance = _get_first_alive_enemy()
 		combat_engine.submit_action({
@@ -897,7 +862,6 @@ func _on_technique_chosen(technique: TechniqueDef) -> void:
 	## Support: target allies
 	if technique.category == "support":
 		_state = UIState.TARGET_SELECT
-		_action_menu.visible = false
 		var allies: Array[GlyphInstance] = []
 		for g: GlyphInstance in _player_squad:
 			if not g.is_knocked_out:
@@ -907,7 +871,6 @@ func _on_technique_chosen(technique: TechniqueDef) -> void:
 
 	## Offensive: show valid enemy targets with affinity hints
 	_state = UIState.TARGET_SELECT
-	_action_menu.visible = false
 	var targets: Array[GlyphInstance] = _get_valid_targets(technique)
 	_target_selector.show_targets(targets, _panels, technique.affinity)
 
@@ -930,9 +893,7 @@ func _on_target_selected(target: GlyphInstance) -> void:
 
 func _on_target_cancelled() -> void:
 	## Return to action menu
-	_state = UIState.ACTION_MENU
-	_action_menu.visible = true
-	_technique_list.visible = false
+	_show_action_menu(_current_actor)
 
 
 # ==========================================================================
@@ -1075,8 +1036,16 @@ func _spawn_damage_number(glyph: GlyphInstance, value: int, type: String) -> voi
 	dmg_num.show_damage(value, type)
 
 
+func _clear_action_menu() -> void:
+	## Remove dynamic children (technique buttons, separators) but keep guard/swap alive
+	for child: Node in _action_menu.get_children():
+		_action_menu.remove_child(child)
+		if child != _guard_button and child != _swap_button:
+			child.queue_free()
+
+
 func _clear_technique_list() -> void:
-	_remove_all_children(_technique_list)
+	_clear_action_menu()
 
 
 func _remove_all_children(parent: Node) -> void:
@@ -1089,7 +1058,7 @@ func _on_panel_clicked(g: GlyphInstance) -> void:
 	if g == null or _detail_popup == null:
 		return
 	## Only allow inspection during player decision states
-	if _state in [UIState.ACTION_MENU, UIState.TECHNIQUE_LIST, UIState.FORMATION]:
+	if _state in [UIState.ACTION_MENU, UIState.FORMATION]:
 		_detail_popup.show_glyph(g)
 
 

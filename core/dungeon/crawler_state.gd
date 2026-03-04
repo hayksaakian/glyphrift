@@ -35,7 +35,6 @@ signal item_used(item: ItemDef)
 func begin_run(_hazard_damage: int = 0) -> void:
 	hull_hp = max_hull_hp
 	energy = max_energy
-	items.clear()
 	is_reinforced = false
 	## Chassis bonuses
 	match active_chassis:

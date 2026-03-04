@@ -97,7 +97,7 @@ func _test_crawler_begin_run() -> void:
 
 	_assert(_crawler.hull_hp == 100, "begin_run resets hull_hp to max (got %d)" % _crawler.hull_hp)
 	_assert(_crawler.energy == 50, "begin_run resets energy to max (got %d)" % _crawler.energy)
-	_assert(_crawler.items.is_empty(), "begin_run clears items")
+	_assert(_crawler.items.size() == 1, "begin_run preserves items")
 	_assert(not _crawler.is_reinforced, "begin_run clears reinforced flag")
 
 
@@ -193,6 +193,7 @@ func _test_crawler_item_management() -> void:
 	print("--- CrawlerState: item management ---")
 
 	_crawler.active_chassis = "standard"
+	_crawler.items.clear()
 	_crawler.begin_run()
 
 	var patch: ItemDef = _data_loader.get_item("repair_patch")
@@ -333,9 +334,9 @@ func _test_rift_generator_tutorial() -> void:
 	var gen_floors: Array[Dictionary] = RiftGenerator.generate(template)
 	_assert(gen_floors.size() == 3, "tutorial_01 has 3 floors (got %d)" % gen_floors.size())
 
-	## Floor 0: start, enemy, exit — all explicit
+	## Floor 0: start, 3 puzzles, enemy, exit — all explicit
 	var f0_rooms: Array = gen_floors[0]["rooms"]
-	_assert(f0_rooms.size() == 3, "Floor 0 has 3 rooms (got %d)" % f0_rooms.size())
+	_assert(f0_rooms.size() == 6, "Floor 0 has 6 rooms (got %d)" % f0_rooms.size())
 
 	var f0_types: Array[String] = []
 	for r: Dictionary in f0_rooms:

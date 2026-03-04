@@ -15,7 +15,7 @@ var _gp_label: Label = null
 var _squad_counter: Label = null
 var _front_row_container: HBoxContainer = null
 var _back_row_container: HBoxContainer = null
-var _reserve_container: HBoxContainer = null
+var _reserve_container: GridContainer = null
 var _done_button: Button = null
 var _info_label: Label = null
 var _feedback_label: Label = null
@@ -64,7 +64,7 @@ func refresh() -> void:
 
 		## Small remove button
 		var remove_btn: Button = Button.new()
-		remove_btn.text = "Remove"
+		remove_btn.text = "Move to Reserves"
 		remove_btn.custom_minimum_size = Vector2(80, 24)
 		remove_btn.add_theme_font_size_override("font_size", 11)
 		remove_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -161,10 +161,15 @@ func _build_ui() -> void:
 	reserve_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_vbox.add_child(reserve_header)
 
-	_reserve_container = HBoxContainer.new()
-	_reserve_container.add_theme_constant_override("separation", 12)
-	_reserve_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	main_vbox.add_child(_reserve_container)
+	var reserve_center: CenterContainer = CenterContainer.new()
+	reserve_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_vbox.add_child(reserve_center)
+
+	_reserve_container = GridContainer.new()
+	_reserve_container.columns = 5
+	_reserve_container.add_theme_constant_override("h_separation", 8)
+	_reserve_container.add_theme_constant_override("v_separation", 8)
+	reserve_center.add_child(_reserve_container)
 
 	## Info / counters
 	_gp_label = Label.new()
