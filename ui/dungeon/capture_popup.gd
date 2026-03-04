@@ -18,6 +18,7 @@ var capture_chance: float = 0.0
 var _title_label: Label = null
 var _art_placeholder: ColorRect = null
 var _art_initial: Label = null
+var _art_container: Control = null
 var _name_label: Label = null
 var _info_label: Label = null
 var _chance_label: Label = null
@@ -46,6 +47,7 @@ func show_capture(glyph: GlyphInstance, chance: float) -> void:
 	var aff_color: Color = Affinity.COLORS.get(glyph.species.affinity, Color.WHITE)
 	_art_placeholder.color = aff_color
 	_art_initial.text = glyph.species.name[0].to_upper()
+	GlyphArt.apply_texture(_art_container, _art_placeholder, _art_initial, glyph.species.id, 48)
 	_name_label.text = glyph.species.name
 	var emoji: String = Affinity.EMOJI.get(glyph.species.affinity, "")
 	_info_label.text = "%s %s T%d" % [emoji, glyph.species.affinity.capitalize(), glyph.species.tier]
@@ -77,6 +79,7 @@ func show_cargo_swap(new_glyph: GlyphInstance, cargo: Array[GlyphInstance]) -> v
 	var aff_color: Color = Affinity.COLORS.get(new_glyph.species.affinity, Color.WHITE)
 	_art_placeholder.color = aff_color
 	_art_initial.text = new_glyph.species.name[0].to_upper()
+	GlyphArt.apply_texture(_art_container, _art_placeholder, _art_initial, new_glyph.species.id, 48)
 	_name_label.text = new_glyph.species.name
 	var emoji: String = Affinity.EMOJI.get(new_glyph.species.affinity, "")
 	_info_label.text = "%s %s T%d" % [emoji, new_glyph.species.affinity.capitalize(), new_glyph.species.tier]
@@ -160,7 +163,8 @@ func _build_ui() -> void:
 	vbox.add_child(info_row)
 
 	## Art placeholder (affinity colored square with initial)
-	var art_container: Control = Control.new()
+	_art_container = Control.new()
+	var art_container: Control = _art_container
 	art_container.custom_minimum_size = Vector2(48, 48)
 	info_row.add_child(art_container)
 

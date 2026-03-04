@@ -39,6 +39,7 @@ var _guard_label: Label = null
 var _affinity_rect: ColorRect = null
 var _affinity_label: Label = null
 var _art_initial_label: Label = null
+var _art_container: PanelContainer = null
 var _active_border: Panel = null
 
 
@@ -71,6 +72,7 @@ func refresh() -> void:
 	_affinity_rect.color = aff_color
 	_affinity_label.text = "%s %s" % [Affinity.EMOJI.get(aff, ""), aff.to_upper()]
 	_art_initial_label.text = glyph.species.name[0].to_upper() if glyph.species else "?"
+	GlyphArt.apply_texture(_art_container, _affinity_rect, _art_initial_label, glyph.species.id if glyph.species else "", 60)
 
 	## HP bar
 	_hp_bar.max_value = glyph.max_hp
@@ -142,7 +144,8 @@ func _build_ui() -> void:
 	add_child(_hbox)
 
 	## --- Left: Art placeholder (60x60 colored square with initial letter) ---
-	var art_container: PanelContainer = PanelContainer.new()
+	_art_container = PanelContainer.new()
+	var art_container: PanelContainer = _art_container
 	art_container.custom_minimum_size = Vector2(60, 60)
 	art_container.mouse_filter = Control.MOUSE_FILTER_PASS
 	var art_style: StyleBoxFlat = StyleBoxFlat.new()

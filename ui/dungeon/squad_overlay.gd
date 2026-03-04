@@ -228,5 +228,6 @@ func _make_art_icon(g: GlyphInstance, icon_size: int, clickable: bool = true) ->
 	letter.add_theme_constant_override("outline_size", 2)
 	letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	container.add_child(letter)
+	GlyphArt.apply_texture(container, rect, letter, g.species.id if g.species else "", icon_size)
 
 	return container

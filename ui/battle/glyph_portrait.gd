@@ -41,6 +41,7 @@ func refresh() -> void:
 	_color_rect.color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
 	_initial_label.text = glyph.species.name[0].to_upper() if glyph.species else "?"
 	_name_label.text = glyph.species.name if glyph.species else "?"
+	GlyphArt.apply_texture(_square, _color_rect, _initial_label, glyph.species.id if glyph.species else "", 64)
 
 	## Side border color
 	var border_style: StyleBoxFlat = _border.get_theme_stylebox("panel") as StyleBoxFlat

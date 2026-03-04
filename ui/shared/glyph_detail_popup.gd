@@ -24,6 +24,7 @@ var _mastery_bonus_label: Label = null
 var _mastered_banner: Label = null
 var _location_label: Label = null
 var _close_button: Button = null
+var _art_panel: PanelContainer = null
 
 
 
@@ -72,6 +73,7 @@ func _refresh() -> void:
 	## Art placeholder
 	_art_rect.color = aff_color
 	_initial_label.text = sp.name[0].to_upper()
+	GlyphArt.apply_texture(_art_panel, _art_rect, _initial_label, sp.id, 64)
 
 	## Stats
 	_stats_label.text = "HP: %d  ATK: %d  DEF: %d  SPD: %d  RES: %d" % [
@@ -100,6 +102,7 @@ func _refresh_species(sp: GlyphSpecies, data_loader: Node, is_captured: bool) ->
 	## Art placeholder
 	_art_rect.color = aff_color
 	_initial_label.text = sp.name[0].to_upper()
+	GlyphArt.apply_texture(_art_panel, _art_rect, _initial_label, sp.id, 64)
 
 	## Base stats (species-level, not instance)
 	_stats_label.text = "HP: %d  ATK: %d  DEF: %d  SPD: %d  RES: %d" % [
@@ -288,7 +291,8 @@ func _build_ui() -> void:
 	_vbox.add_child(top_row)
 
 	## Art placeholder (64x64)
-	var art_panel: PanelContainer = PanelContainer.new()
+	_art_panel = PanelContainer.new()
+	var art_panel: PanelContainer = _art_panel
 	art_panel.custom_minimum_size = Vector2(64, 64)
 	top_row.add_child(art_panel)
 

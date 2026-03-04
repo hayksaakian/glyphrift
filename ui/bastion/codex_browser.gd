@@ -322,10 +322,12 @@ func _build_species_panel(sp: GlyphSpecies) -> Control:
 		art_rect.color = aff_color
 		initial_label.text = sp.name[0].to_upper()
 		initial_label.add_theme_color_override("font_color", Color.WHITE)
+		GlyphArt.apply_texture(art_rect, art_rect, initial_label, sp.id, 60)
 	else:
 		art_rect.color = Color("#333333")
 		initial_label.text = "?"
 		initial_label.add_theme_color_override("font_color", Color("#666666"))
+		GlyphArt.apply_texture(art_rect, art_rect, initial_label, sp.id, 60, true)
 
 	## Name
 	var name_label: Label = Label.new()

@@ -24,6 +24,7 @@ var _bg: PanelContainer = null
 var _vbox: VBoxContainer = null
 var _affinity_rect: ColorRect = null
 var _initial_label: Label = null
+var _art_panel: PanelContainer = null
 var _name_label: Label = null
 var _info_label: Label = null
 var _gp_label: Label = null
@@ -71,6 +72,7 @@ func refresh() -> void:
 	## Art placeholder
 	_affinity_rect.color = aff_color
 	_initial_label.text = sp.name[0].to_upper()
+	GlyphArt.apply_texture(_art_panel, _affinity_rect, _initial_label, sp.id, 60)
 
 	## Text labels
 	_name_label.text = sp.name
@@ -143,7 +145,8 @@ func _build_ui() -> void:
 	art_container.mouse_filter = Control.MOUSE_FILTER_PASS
 	_vbox.add_child(art_container)
 
-	var art_panel: PanelContainer = PanelContainer.new()
+	_art_panel = PanelContainer.new()
+	var art_panel: PanelContainer = _art_panel
 	art_panel.custom_minimum_size = Vector2(60, 60)
 	art_panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	art_container.add_child(art_panel)
