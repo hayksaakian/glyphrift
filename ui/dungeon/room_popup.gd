@@ -63,6 +63,13 @@ func show_room(p_room_data: Dictionary, extra_info: String = "") -> void:
 	visible = true
 
 
+func show_result(title: String, description: String) -> void:
+	_title_label.text = title
+	_description_label.text = description
+	_action_button.text = "Continue"
+	visible = true
+
+
 func hide_popup() -> void:
 	visible = false
 

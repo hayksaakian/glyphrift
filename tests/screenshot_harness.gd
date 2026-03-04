@@ -126,10 +126,11 @@ func _run_step() -> void:
 			_main_scene._bastion_scene._barracks_btn.pressed.emit()
 
 		"03_bastion_barracks_row_toggle":
-			## Toggle first glyph's row to "back"
+			## Toggle first glyph's row to "back" via card click
 			var barracks: Barracks = _main_scene._bastion_scene._barracks
-			if barracks._row_buttons.size() > 0:
-				barracks._row_buttons[0].pressed.emit()
+			if barracks._squad_cards.size() > 0:
+				var g: GlyphInstance = barracks._squad_cards[0].glyph
+				barracks._on_squad_card_clicked(g)
 
 		"04_bastion_fusion_chamber":
 			## Go back to hub first, then fusion

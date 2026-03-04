@@ -40,6 +40,11 @@ var _npc_kael_btn: Button = null
 var _npc_lira_btn: Button = null
 var _npc_maro_btn: Button = null
 
+## Tracks the last game_phase each NPC's dialogue was read at (0 = never read)
+var _npc_read_phase: Dictionary = {"kael": 0, "lira": 0, "maro": 0}
+## Indicator labels on NPC portrait art (keyed by npc_id)
+var _npc_indicators: Dictionary = {}
+
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -83,6 +88,7 @@ func show_hub() -> void:
 	_rift_gate.visible = false
 	_codex_browser.visible = false
 	refresh()
+	_update_npc_indicators()
 
 	if not _mastery_hint_shown:
 		_mastery_hint_shown = true
@@ -257,9 +263,9 @@ func _connect_signals() -> void:
 	_rift_gate.rift_selected.connect(func(t: RiftTemplate) -> void: rift_selected.emit(t))
 
 	## NPC buttons
-	_npc_kael_btn.pressed.connect(func() -> void: _npc_panel.show_npc("kael"))
-	_npc_lira_btn.pressed.connect(func() -> void: _npc_panel.show_npc("lira"))
-	_npc_maro_btn.pressed.connect(func() -> void: _npc_panel.show_npc("maro"))
+	_npc_kael_btn.pressed.connect(func() -> void: _open_npc("kael"))
+	_npc_lira_btn.pressed.connect(func() -> void: _open_npc("lira"))
+	_npc_maro_btn.pressed.connect(func() -> void: _open_npc("maro"))
 
 
 func _show_rift_gate() -> void:
@@ -337,6 +343,25 @@ func _on_squad_card_clicked(g: GlyphInstance) -> void:
 		_detail_popup.show_glyph(g)
 
 
+func _open_npc(npc_id: String) -> void:
+	if game_state != null:
+		_npc_read_phase[npc_id] = mini(game_state.game_phase, 3)
+	_npc_panel.show_npc(npc_id)
+	_update_npc_indicators()
+
+
+func _update_npc_indicators() -> void:
+	if game_state == null:
+		return
+	var phase: int = mini(game_state.game_phase, 3)
+	for npc_id: String in _npc_indicators:
+		var indicator: Label = _npc_indicators[npc_id] as Label
+		if indicator == null:
+			continue
+		var read_phase: int = _npc_read_phase.get(npc_id, 0)
+		indicator.visible = phase > read_phase
+
+
 func _build_npc_card(parent: Control, npc_name: String, npc_title: String, npc_color: Color) -> Button:
 	## Build a portrait card: art square + name + title, all inside a clickable Button
 	var card: Button = Button.new()
@@ -383,6 +408,19 @@ func _build_npc_card(parent: Control, npc_name: String, npc_title: String, npc_c
 	initial.text = npc_name[0].to_upper()
 	initial.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art.add_child(initial)
+
+	## Unread indicator (top-right of portrait)
+	var indicator: Label = Label.new()
+	indicator.text = "\ud83d\udcac"
+	indicator.add_theme_font_size_override("font_size", 14)
+	indicator.add_theme_color_override("font_color", Color("#FFFF00"))
+	indicator.add_theme_color_override("font_outline_color", Color.BLACK)
+	indicator.add_theme_constant_override("outline_size", 3)
+	indicator.position = Vector2(30, -2)
+	indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	indicator.visible = false
+	art.add_child(indicator)
+	_npc_indicators[npc_name.to_lower()] = indicator
 
 	## Name
 	var name_label: Label = Label.new()

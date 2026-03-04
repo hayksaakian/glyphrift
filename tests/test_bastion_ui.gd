@@ -349,7 +349,7 @@ func _test_barracks_construction() -> void:
 	root.add_child(barracks)
 
 	_assert(barracks._title_label.text == "BARRACKS", "barracks title")
-	_assert(barracks._squad_container != null, "has squad container")
+	_assert(barracks._front_row_container != null, "has front row container")
 	_assert(barracks._reserve_container != null, "has reserve container")
 	_assert(barracks._done_button != null, "has done button")
 
@@ -387,7 +387,7 @@ func _test_barracks_squad_to_reserve() -> void:
 	barracks.refresh()
 
 	var first_glyph: GlyphInstance = rs.active_squad[0]
-	barracks._on_squad_card_clicked(first_glyph)
+	barracks._remove_from_squad(first_glyph)
 
 	_assert(rs.active_squad.size() == 2, "squad now has 2")
 	_assert(barracks._reserve_cards.size() == 1, "1 reserve card after move")
@@ -489,11 +489,11 @@ func _test_barracks_row_assignment() -> void:
 	var g: GlyphInstance = rs.active_squad[0]
 	_assert(g.row_position == "front", "default row is front")
 
-	if barracks._row_buttons.size() > 0:
-		barracks._row_buttons[0].pressed.emit()
-		_assert(g.row_position == "back", "row toggled to back")
-		barracks._row_buttons[0].pressed.emit()
-		_assert(g.row_position == "front", "row toggled back to front")
+	## Click card toggles row (same as FormationSetup)
+	barracks._on_squad_card_clicked(g)
+	_assert(g.row_position == "back", "row toggled to back")
+	barracks._on_squad_card_clicked(g)
+	_assert(g.row_position == "front", "row toggled back to front")
 
 	_cleanup_node(barracks)
 	_cleanup_node(rs)
@@ -514,7 +514,7 @@ func _test_barracks_reserve_full() -> void:
 
 	## Squad→reserve always allowed (rearranging existing roster, not adding new glyphs)
 	var g: GlyphInstance = rs.active_squad[0]
-	barracks._on_squad_card_clicked(g)
+	barracks._remove_from_squad(g)
 	_assert(rs.active_squad.size() == 2, "squad to reserve allowed even at cargo 0 (roster unchanged)")
 
 	_cleanup_node(barracks)
@@ -543,15 +543,30 @@ func _test_barracks_gp_counter() -> void:
 
 func _test_barracks_done_signal() -> void:
 	print("--- Barracks: Done Signal ---")
+	var rs: RosterState = _make_roster_state()
+	var cs: CrawlerState = _make_crawler_state()
+	rs.initialize_starting_glyphs(_data_loader)
+
 	var barracks: Barracks = Barracks.new()
 	root.add_child(barracks)
+	barracks.setup(rs, cs)
+	barracks.refresh()
 
 	var done: Dictionary = {"value": false}
 	barracks.done_pressed.connect(func() -> void: done["value"] = true)
 	barracks._done_button.pressed.emit()
 	_assert(done["value"] == true, "done_pressed signal fires")
 
+	## Verify blocked when squad is empty
+	var blocked: Dictionary = {"value": false}
+	for g: GlyphInstance in rs.active_squad.duplicate():
+		barracks._remove_from_squad(g)
+	_assert(rs.active_squad.size() == 1, "can't remove last squad member")
+	_assert(barracks._feedback_label.visible == true, "feedback shown for last member")
+
 	_cleanup_node(barracks)
+	_cleanup_node(rs)
+	_cleanup_node(cs)
 
 
 # ==========================================================================

@@ -30,14 +30,9 @@ func show_formation(squad: Array[GlyphInstance]) -> void:
 	_portraits.clear()
 	visible = true
 
-	## Default positions: first 2 front, rest back
-	var front_count: int = 0
+	## Preserve existing row_position from Barracks / previous battle
 	for g: GlyphInstance in _squad:
-		if front_count < 2:
-			_positions[g.instance_id] = "front"
-			front_count += 1
-		else:
-			_positions[g.instance_id] = "back"
+		_positions[g.instance_id] = g.row_position
 
 	_rebuild_slots()
 

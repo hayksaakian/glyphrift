@@ -26,6 +26,9 @@ var instant_mode: bool = false
 ## Track current rift template for completion
 var _current_rift_template: RiftTemplate = null
 
+## Glyphs captured during the current rift run (shown as "cargo" in squad overlay)
+var _rift_cargo: Array[GlyphInstance] = []
+
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -137,7 +140,7 @@ func _show_dungeon() -> void:
 	_dungeon_scene.visible = true
 	_battle_scene.visible = false
 	_squad_overlay.visible = true
-	_squad_overlay.setup(roster_state.active_squad, roster_state)
+	_squad_overlay.setup(roster_state.active_squad, null, _rift_cargo, crawler_state.cargo_slots)
 	_squad_overlay.refresh()
 
 
@@ -152,6 +155,7 @@ func _show_battle() -> void:
 
 func _on_rift_selected(template: RiftTemplate) -> void:
 	_current_rift_template = template
+	_rift_cargo.clear()
 	crawler_state.begin_run()
 	game_state.start_rift(template)
 	_dungeon_scene.instant_mode = instant_mode
@@ -189,32 +193,48 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 	if wild_glyph == null:
 		return
 
-	## Check barracks capacity — reserves = all_glyphs minus active_squad
-	var reserve_count: int = roster_state.all_glyphs.size() - roster_state.active_squad.size()
-	if reserve_count >= roster_state.max_reserves:
-		## Cargo full — update popup to tell the player
-		_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nBut cargo is full — released."
-		_dungeon_scene._capture_popup._result_label.add_theme_color_override(
-			"font_color", Color("#FFC107")
-		)
-		return
-
+	## Prepare the glyph for the player roster
 	wild_glyph.side = "player"
 	wild_glyph.reset_combat_state()
 	wild_glyph.current_hp = wild_glyph.max_hp
 	wild_glyph.mastery_objectives = MasteryTracker.build_mastery_track(
 		wild_glyph.species, data_loader.mastery_pools
 	)
+
+	## Check cargo capacity
+	if _rift_cargo.size() >= crawler_state.cargo_slots:
+		## Cargo full — show swap UI
+		var popup: CapturePopup = _dungeon_scene._capture_popup
+		popup.show_cargo_swap(wild_glyph, _rift_cargo)
+		if not popup.cargo_swap_chosen.is_connected(_on_cargo_swap):
+			popup.cargo_swap_chosen.connect(_on_cargo_swap)
+		return
+
 	roster_state.add_glyph(wild_glyph)
+	_rift_cargo.append(wild_glyph)
 	codex_state.discover_species(wild_glyph.species.id)
 
 	## Update popup to confirm where the glyph went
-	_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to reserves."
+	_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to cargo."
 
 	## Append capture info to room history
 	_append_room_history("Captured %s." % wild_glyph.species.name)
 
 	## Refresh squad overlay to show new reserve
+	_squad_overlay.refresh()
+
+
+func _on_cargo_swap(keep_glyph: GlyphInstance, release_glyph: GlyphInstance) -> void:
+	## Remove released glyph from cargo and roster
+	_rift_cargo.erase(release_glyph)
+	roster_state.remove_glyph(release_glyph)
+
+	## Add new glyph
+	roster_state.add_glyph(keep_glyph)
+	_rift_cargo.append(keep_glyph)
+	codex_state.discover_species(keep_glyph.species.id)
+
+	_append_room_history("Captured %s (released %s)." % [keep_glyph.species.name, release_glyph.species.name])
 	_squad_overlay.refresh()
 
 

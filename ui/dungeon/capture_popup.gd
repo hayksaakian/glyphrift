@@ -6,6 +6,7 @@ extends PanelContainer
 
 signal capture_attempted(glyph: GlyphInstance, success: bool)
 signal capture_released(glyph: GlyphInstance)
+signal cargo_swap_chosen(keep_glyph: GlyphInstance, release_glyph: GlyphInstance)
 signal dismissed()
 
 const POPUP_SIZE: Vector2 = Vector2(340, 280)
@@ -25,6 +26,9 @@ var _release_button: Button = null
 var _result_label: Label = null
 var _button_container: HBoxContainer = null
 var _continue_button: Button = null
+var _swap_container: VBoxContainer = null
+var _abandon_btn: Button = null
+var _swap_new_glyph: GlyphInstance = null
 
 
 func _ready() -> void:
@@ -46,18 +50,71 @@ func show_capture(glyph: GlyphInstance, chance: float) -> void:
 	var emoji: String = Affinity.EMOJI.get(glyph.species.affinity, "")
 	_info_label.text = "%s %s T%d" % [emoji, glyph.species.affinity.capitalize(), glyph.species.tier]
 	_chance_label.text = "Capture Chance: %d%%" % int(chance * 100.0)
+	_capture_button.text = "Capture" if chance >= 1.0 else "Attempt Capture"
 
 	_capture_button.visible = true
 	_capture_button.disabled = false
 	_release_button.visible = true
+	_button_container.visible = true
 	_result_label.text = ""
 	_result_label.visible = false
 	_continue_button.visible = false
+	_swap_container.visible = false
+	_abandon_btn.visible = false
 	visible = true
 
 
 func hide_popup() -> void:
 	visible = false
+
+
+func show_cargo_swap(new_glyph: GlyphInstance, cargo: Array[GlyphInstance]) -> void:
+	_swap_new_glyph = new_glyph
+
+	_title_label.text = "Cargo Full!"
+	_title_label.add_theme_color_override("font_color", Color("#FFC107"))
+
+	var aff_color: Color = Affinity.COLORS.get(new_glyph.species.affinity, Color.WHITE)
+	_art_placeholder.color = aff_color
+	_art_initial.text = new_glyph.species.name[0].to_upper()
+	_name_label.text = new_glyph.species.name
+	var emoji: String = Affinity.EMOJI.get(new_glyph.species.affinity, "")
+	_info_label.text = "%s %s T%d" % [emoji, new_glyph.species.affinity.capitalize(), new_glyph.species.tier]
+
+	_chance_label.text = "Release a cargo glyph to make room:"
+	_capture_button.visible = false
+	_release_button.visible = false
+	_result_label.visible = false
+	_continue_button.visible = false
+	_button_container.visible = false
+
+	## Clear previous swap buttons
+	for child: Node in _swap_container.get_children():
+		_swap_container.remove_child(child)
+		child.queue_free()
+
+	## Add a release button for each cargo glyph
+	for cargo_glyph: GlyphInstance in cargo:
+		var btn: Button = Button.new()
+		btn.text = "Release %s" % cargo_glyph.species.name
+		btn.custom_minimum_size = Vector2(200, 32)
+		btn.pressed.connect(_on_swap_release.bind(cargo_glyph))
+		_swap_container.add_child(btn)
+
+	## Abandon button
+	_abandon_btn.visible = true
+	_swap_container.visible = true
+	visible = true
+
+
+func _on_swap_release(released: GlyphInstance) -> void:
+	cargo_swap_chosen.emit(_swap_new_glyph, released)
+	dismissed.emit()
+
+
+func _on_abandon_pressed() -> void:
+	_swap_new_glyph = null
+	dismissed.emit()
 
 
 func get_chance_text() -> String:
@@ -176,9 +233,29 @@ func _build_ui() -> void:
 	_continue_button.pressed.connect(func() -> void: dismissed.emit())
 	vbox.add_child(_continue_button)
 
+	## Cargo swap container (hidden by default)
+	_swap_container = VBoxContainer.new()
+	_swap_container.add_theme_constant_override("separation", 6)
+	_swap_container.visible = false
+	vbox.add_child(_swap_container)
+
+	## Abandon button (hidden by default)
+	_abandon_btn = Button.new()
+	_abandon_btn.text = "Abandon new capture"
+	_abandon_btn.custom_minimum_size = Vector2(200, 32)
+	_abandon_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_abandon_btn.visible = false
+	_abandon_btn.pressed.connect(_on_abandon_pressed)
+	vbox.add_child(_abandon_btn)
+
 
 func _on_capture_pressed() -> void:
 	if wild_glyph == null:
+		return
+	## 100% chance — skip the roll confirmation, just capture and dismiss
+	if capture_chance >= 1.0:
+		capture_attempted.emit(wild_glyph, true)
+		dismissed.emit()
 		return
 	var roll: float = randf()
 	var success: bool = roll <= capture_chance

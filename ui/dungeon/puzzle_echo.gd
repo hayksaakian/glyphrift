@@ -71,7 +71,7 @@ func get_echo_glyph() -> GlyphInstance:
 func _build_ui() -> void:
 	_bg = ColorRect.new()
 	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_bg.color = Color(0, 0, 0, 0.85)
+	_bg.color = Color(0, 0, 0, 1.0)
 	_bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_bg)
 

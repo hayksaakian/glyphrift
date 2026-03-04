@@ -7,6 +7,7 @@ extends Control
 ## 3 attempts max. Give Up option.
 
 signal puzzle_completed(success: bool, reward_type: String, reward_data: Variant)
+signal success_reached()
 
 var instant_mode: bool = false
 var _connections: Array[Array] = []
@@ -20,6 +21,10 @@ const MAX_ATTEMPTS: int = 3
 ## Node buttons
 var _node_buttons: Array[Button] = []
 
+## Connection lines
+var _connection_lines: Array[Line2D] = []
+var _line_layer: Control = null
+
 ## Internal nodes
 var _bg: ColorRect = null
 var _title_label: Label = null
@@ -32,9 +37,11 @@ var _attempts_label: Label = null
 var _button_row: HBoxContainer = null
 var _give_up_btn: Button = null
 var _reset_btn: Button = null
+var _continue_btn: Button = null
+var _reward_label: Label = null
 
-## The three affinities in cycle order
-const AFFINITIES: Array[String] = ["electric", "water", "ground"]
+## Affinities — correct cycle is Electric→Water→Ground→Electric; Neutral is a red herring
+const AFFINITIES: Array[String] = ["electric", "water", "ground", "neutral"]
 ## Correct connections: E→W, W→G, G→E (indices: 0→1, 1→2, 2→0)
 const CORRECT_CYCLE: Array[Array] = [[0, 1], [1, 2], [2, 0]]
 
@@ -52,6 +59,7 @@ func start(p_instant_mode: bool = false) -> void:
 	_started = true
 	_completed = false
 	_connections.clear()
+	_clear_connection_lines()
 	_selected_node = -1
 	_attempts_left = MAX_ATTEMPTS
 	_instruction_label.text = "Connect the conduits to form a cycle."
@@ -61,6 +69,9 @@ func start(p_instant_mode: bool = false) -> void:
 	_update_attempts_label()
 	_give_up_btn.visible = true
 	_reset_btn.visible = false
+	_continue_btn.visible = false
+	_reward_label.visible = false
+	_attempts_label.visible = true
 	_reset_node_highlights()
 
 
@@ -87,7 +98,7 @@ func get_connections() -> Array[Array]:
 func _build_ui() -> void:
 	_bg = ColorRect.new()
 	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_bg.color = Color(0, 0, 0, 0.85)
+	_bg.color = Color(0, 0, 0, 1.0)
 	_bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_bg)
 
@@ -118,13 +129,13 @@ func _build_ui() -> void:
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_hint_label)
 
-	## Node container
-	_node_container = HBoxContainer.new()
-	(_node_container as HBoxContainer).add_theme_constant_override("separation", 40)
-	(_node_container as HBoxContainer).alignment = BoxContainer.ALIGNMENT_CENTER
+	## Node container — polygon layout (N-gon for N affinities)
+	_node_container = Control.new()
+	_node_container.custom_minimum_size = Vector2(340, 300)
+	_node_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	vbox.add_child(_node_container)
 
-	for i: int in range(3):
+	for i: int in range(AFFINITIES.size()):
 		var aff: String = AFFINITIES[i]
 		var aff_color: Color = Affinity.COLORS.get(aff, Color("#888888"))
 		var emoji: String = Affinity.EMOJI.get(aff, "")
@@ -150,6 +161,8 @@ func _build_ui() -> void:
 		btn.pressed.connect(func() -> void: _on_node_pressed(idx))
 		_node_container.add_child(btn)
 		_node_buttons.append(btn)
+
+	_position_nodes_as_polygon()
 
 	## Connection display
 	_connections_label = Label.new()
@@ -189,6 +202,29 @@ func _build_ui() -> void:
 	_give_up_btn.pressed.connect(_on_give_up)
 	_button_row.add_child(_give_up_btn)
 
+	## Reward label (shown on success)
+	_reward_label = Label.new()
+	_reward_label.add_theme_font_size_override("font_size", 15)
+	_reward_label.add_theme_color_override("font_color", Color("#88DDFF"))
+	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_reward_label.visible = false
+	vbox.add_child(_reward_label)
+
+	## Continue button (shown on success)
+	_continue_btn = Button.new()
+	_continue_btn.text = "Continue"
+	_continue_btn.custom_minimum_size = Vector2(140, 40)
+	_continue_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_continue_btn.visible = false
+	_continue_btn.pressed.connect(_on_continue)
+	vbox.add_child(_continue_btn)
+
+	## Line layer — draws connection lines on top of everything
+	_line_layer = Control.new()
+	_line_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_line_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_line_layer)
+
 
 func _on_node_pressed(idx: int) -> void:
 	if _completed or not _started:
@@ -207,11 +243,13 @@ func _on_node_pressed(idx: int) -> void:
 		_reset_node_highlights()
 	else:
 		## Connect selected to this node
-		var conn: Array = [_selected_node, idx]
+		var from: int = _selected_node
+		var conn: Array = [from, idx]
 		_connections.append(conn)
 		_selected_node = -1
 		_reset_node_highlights()
 		_update_connections_display()
+		_add_connection_line(from, idx)
 		_reset_btn.visible = true
 
 		_status_label.text = "%d/3 connections made." % _connections.size()
@@ -224,9 +262,16 @@ func _on_node_pressed(idx: int) -> void:
 				_status_label.text = "Conduit activated!"
 				_status_label.add_theme_color_override("font_color", Color("#44FF44"))
 				_connections_label.add_theme_color_override("font_color", Color("#44FF44"))
+				_color_connection_lines(Color("#44FF44"))
 				_give_up_btn.visible = false
 				_reset_btn.visible = false
-				puzzle_completed.emit(true, "codex_reveal", null)
+				_attempts_label.visible = false
+				## Let DungeonScene do the reveal and set reward text
+				success_reached.emit()
+				_reward_label.visible = true
+				_continue_btn.visible = true
+				if instant_mode:
+					puzzle_completed.emit(true, "codex_reveal", null)
 			else:
 				## Wrong — lose an attempt
 				_attempts_left -= 1
@@ -240,6 +285,7 @@ func _on_node_pressed(idx: int) -> void:
 					_connections_label.text = ""
 					_give_up_btn.visible = false
 					_reset_btn.visible = false
+					_clear_connection_lines()
 					if not instant_mode:
 						var tween: Tween = create_tween()
 						tween.tween_interval(1.5)
@@ -248,12 +294,77 @@ func _on_node_pressed(idx: int) -> void:
 						puzzle_completed.emit(false, "none", null)
 				else:
 					_connections.clear()
+					_clear_connection_lines()
 					_status_label.text = "Wrong cycle! %d attempt%s left." % [
 						_attempts_left, "s" if _attempts_left != 1 else ""
 					]
 					_status_label.add_theme_color_override("font_color", Color("#FF4444"))
 					_connections_label.text = ""
 					_reset_btn.visible = false
+
+
+func _position_nodes_as_polygon() -> void:
+	## Arrange buttons at vertices of a regular N-gon
+	var n: int = _node_buttons.size()
+	if n == 0:
+		return
+	var center: Vector2 = _node_container.custom_minimum_size / 2.0
+	var radius: float = 100.0
+	for i: int in range(n):
+		## Start from top (-PI/2), go clockwise
+		var angle: float = -PI / 2.0 + TAU * float(i) / float(n)
+		var pos: Vector2 = center + Vector2(cos(angle), sin(angle)) * radius
+		var btn: Button = _node_buttons[i]
+		btn.position = pos - btn.custom_minimum_size / 2.0
+
+
+func _get_edge_point(rect_center: Vector2, target: Vector2, rect_size: Vector2) -> Vector2:
+	## Find where a ray from rect_center toward target exits the rectangle boundary
+	var dir: Vector2 = (target - rect_center).normalized()
+	var half: Vector2 = rect_size / 2.0
+	var t_x: float = INF
+	var t_y: float = INF
+	if absf(dir.x) > 0.001:
+		t_x = half.x / absf(dir.x)
+	if absf(dir.y) > 0.001:
+		t_y = half.y / absf(dir.y)
+	var t: float = minf(t_x, t_y)
+	return rect_center + dir * t
+
+
+func _add_connection_line(from_idx: int, to_idx: int) -> void:
+	var from_btn: Button = _node_buttons[from_idx]
+	var to_btn: Button = _node_buttons[to_idx]
+	var from_center: Vector2 = from_btn.global_position + from_btn.size / 2.0
+	var to_center: Vector2 = to_btn.global_position + to_btn.size / 2.0
+
+	## Edge-to-edge: line starts/ends at button borders, not centers
+	var from_edge: Vector2 = _get_edge_point(from_center, to_center, from_btn.size)
+	var to_edge: Vector2 = _get_edge_point(to_center, from_center, to_btn.size)
+
+	## Convert to line_layer local coordinates
+	var local_from: Vector2 = from_edge - _line_layer.global_position
+	var local_to: Vector2 = to_edge - _line_layer.global_position
+
+	var aff_color: Color = Affinity.COLORS.get(AFFINITIES[from_idx], Color("#88AACC"))
+	var line: Line2D = Line2D.new()
+	line.add_point(local_from)
+	line.add_point(local_to)
+	line.width = 4.0
+	line.default_color = aff_color
+	_line_layer.add_child(line)
+	_connection_lines.append(line)
+
+
+func _clear_connection_lines() -> void:
+	for line: Line2D in _connection_lines:
+		line.queue_free()
+	_connection_lines.clear()
+
+
+func _color_connection_lines(color: Color) -> void:
+	for line: Line2D in _connection_lines:
+		line.default_color = color
 
 
 func _update_connections_display() -> void:
@@ -298,12 +409,21 @@ func _on_reset() -> void:
 	if _completed:
 		return
 	_connections.clear()
+	_clear_connection_lines()
 	_selected_node = -1
 	_connections_label.text = ""
 	_status_label.text = "Select a node to begin."
 	_status_label.add_theme_color_override("font_color", Color("#AAAAAA"))
 	_reset_btn.visible = false
 	_reset_node_highlights()
+
+
+func set_reward_text(text: String) -> void:
+	_reward_label.text = text
+
+
+func _on_continue() -> void:
+	puzzle_completed.emit(true, "codex_reveal", null)
 
 
 func _on_give_up() -> void:

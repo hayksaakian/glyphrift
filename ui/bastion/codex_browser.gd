@@ -486,12 +486,12 @@ func _refresh_rift_atlas() -> void:
 	for template: RiftTemplate in rifts:
 		var row: HBoxContainer = HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
+		row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		_rift_vbox.add_child(row)
 
 		var name_label: Label = Label.new()
 		name_label.add_theme_font_size_override("font_size", 14)
 		name_label.text = template.name
-		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(name_label)
 
 		var tier_label: Label = Label.new()

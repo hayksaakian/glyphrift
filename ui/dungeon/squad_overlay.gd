@@ -12,6 +12,8 @@ var _entries: Array[Dictionary] = []  ## [{glyph, name_label, hp_bar, hp_label}]
 var _reserve_header: Label = null
 var _reserve_rows: Array[HBoxContainer] = []
 var _roster_state: RosterState = null
+var _cargo: Array[GlyphInstance] = []
+var _cargo_capacity: int = 0
 
 
 func _ready() -> void:
@@ -35,8 +37,10 @@ func _ready() -> void:
 	add_child(_vbox)
 
 
-func setup(squad: Array[GlyphInstance], p_roster_state: RosterState = null) -> void:
+func setup(squad: Array[GlyphInstance], p_roster_state: RosterState = null, p_cargo: Array[GlyphInstance] = [], p_cargo_capacity: int = 0) -> void:
 	_roster_state = p_roster_state
+	_cargo = p_cargo
+	_cargo_capacity = p_cargo_capacity
 	_clear_entries()
 
 	for g: GlyphInstance in squad:
@@ -87,18 +91,16 @@ func _refresh_reserves() -> void:
 		row.queue_free()
 	_reserve_rows.clear()
 
-	if _roster_state == null:
-		if _reserve_header != null:
-			_reserve_header.visible = false
-		return
-
-	var reserves: Array[GlyphInstance] = []
-	for g: GlyphInstance in _roster_state.all_glyphs:
-		if not _roster_state.active_squad.has(g):
-			reserves.append(g)
+	## Use cargo (glyphs captured this rift) instead of full roster reserves
+	var reserves: Array[GlyphInstance] = _cargo
 
 	if _reserve_header != null:
-		_reserve_header.visible = not reserves.is_empty()
+		if _cargo_capacity > 0:
+			_reserve_header.text = "Cargo %d/%d" % [reserves.size(), _cargo_capacity]
+			_reserve_header.visible = true
+		else:
+			_reserve_header.visible = not reserves.is_empty()
+			_reserve_header.text = "Reserves"
 
 	for g: GlyphInstance in reserves:
 		var row: HBoxContainer = HBoxContainer.new()

@@ -69,10 +69,8 @@ func _run_step() -> void:
 
 	match step_name:
 		"01_seq_input_phase":
-			## Show input phase with sequence text visible
+			## Input phase — sequence text is hidden (player must remember)
 			_seq.start_with_order([2, 0, 3, 1] as Array[int], true)
-			## Manually show the sequence text so it's visible in screenshot
-			_seq._sequence_display.text = "Blue → Red → Orange → Green"
 
 		"02_seq_wrong_1attempt":
 			## After 2 wrong attempts (1 left)
@@ -130,9 +128,9 @@ func _run_step() -> void:
 			_conduit._on_node_pressed(0)
 			_conduit._on_node_pressed(1)  ## E→W
 			_conduit._on_node_pressed(1)
-			_conduit._on_node_pressed(0)  ## W→E (duplicate direction)
+			_conduit._on_node_pressed(2)  ## W→G
 			_conduit._on_node_pressed(2)
-			_conduit._on_node_pressed(0)  ## G→E — 3 connections, wrong cycle
+			_conduit._on_node_pressed(3)  ## G→N — wrong! neutral breaks cycle
 
 		"10_conduit_correct":
 			_conduit.start(true)

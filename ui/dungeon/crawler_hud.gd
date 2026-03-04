@@ -17,7 +17,7 @@ const ABILITIES: Array[String] = ["scan", "reinforce", "field_repair", "purge", 
 const ABILITY_LABELS: Dictionary = {
 	"scan": "Scan",
 	"reinforce": "Reinforce",
-	"field_repair": "Repair",
+	"field_repair": "Heal Glyph",
 	"purge": "Purge",
 	"emergency_warp": "Warp",
 }

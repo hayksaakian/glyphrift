@@ -111,11 +111,13 @@ func _build_ui() -> void:
 	_title_label.text = "FUSION CHAMBER"
 	_title_label.add_theme_font_size_override("font_size", 24)
 	_title_label.add_theme_color_override("font_color", Color("#FFD700"))
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_vbox.add_child(_title_label)
 
 	## Parent slots row
 	var parent_row: HBoxContainer = HBoxContainer.new()
 	parent_row.add_theme_constant_override("separation", 20)
+	parent_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	main_vbox.add_child(parent_row)
 
 	_parent_a_slot = _make_empty_slot("Parent A")
@@ -134,6 +136,7 @@ func _build_ui() -> void:
 	_error_label = Label.new()
 	_error_label.add_theme_font_size_override("font_size", 12)
 	_error_label.add_theme_color_override("font_color", Color("#FF4444"))
+	_error_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_error_label.visible = false
 	main_vbox.add_child(_error_label)
 
@@ -142,10 +145,12 @@ func _build_ui() -> void:
 	_picker_label.text = "-- Available Glyphs (mastered only) --"
 	_picker_label.add_theme_font_size_override("font_size", 14)
 	_picker_label.add_theme_color_override("font_color", Color("#AAAAAA"))
+	_picker_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_vbox.add_child(_picker_label)
 
 	_picker_container = HBoxContainer.new()
 	_picker_container.add_theme_constant_override("separation", 8)
+	_picker_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	main_vbox.add_child(_picker_container)
 
 	## Preview panel — horizontal: stats left, techniques right
@@ -158,10 +163,12 @@ func _build_ui() -> void:
 	preview_header.text = "-- Preview --"
 	preview_header.add_theme_font_size_override("font_size", 14)
 	preview_header.add_theme_color_override("font_color", Color("#AAAAAA"))
+	preview_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_preview_panel.add_child(preview_header)
 
 	var preview_hbox: HBoxContainer = HBoxContainer.new()
 	preview_hbox.add_theme_constant_override("separation", 40)
+	preview_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	_preview_panel.add_child(preview_hbox)
 
 	## Left: result info
@@ -206,6 +213,7 @@ func _build_ui() -> void:
 	## Buttons row
 	var btn_row: HBoxContainer = HBoxContainer.new()
 	btn_row.add_theme_constant_override("separation", 12)
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	main_vbox.add_child(btn_row)
 
 	_fuse_button = Button.new()

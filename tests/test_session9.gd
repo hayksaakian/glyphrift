@@ -57,6 +57,7 @@ func _run_tests() -> void:
 	_test_bastion_codex_back_to_hub()
 	_test_bastion_npc_buttons_exist()
 	_test_bastion_npc_panel_show()
+	_test_bastion_npc_unread_indicator()
 	_test_bastion_all_screens_hide_codex()
 
 	## PuzzleSequence
@@ -820,6 +821,34 @@ func _test_bastion_npc_panel_show() -> void:
 	_cleanup_bastion(bs)
 
 
+func _test_bastion_npc_unread_indicator() -> void:
+	print("--- BastionScene: NPC Unread Indicator ---")
+	var bs: BastionScene = _make_bastion_scene()
+	bs.game_state.game_phase = 1
+
+	## On first show_hub, all NPCs should have unread indicator (phase 1 > read 0)
+	bs.show_hub()
+	var kael_ind: Label = bs._npc_indicators.get("kael") as Label
+	var lira_ind: Label = bs._npc_indicators.get("lira") as Label
+	_assert(kael_ind != null, "Kael has indicator label")
+	_assert(kael_ind.visible, "Kael indicator visible when unread")
+
+	## Click Kael to read — indicator should clear
+	bs._npc_kael_btn.pressed.emit()
+	bs._npc_panel.hide_popup()
+	_assert(not kael_ind.visible, "Kael indicator hidden after reading")
+
+	## Lira should still have indicator (not yet read)
+	_assert(lira_ind.visible, "Lira indicator still visible (unread)")
+
+	## Advance phase — Kael should get indicator again
+	bs.game_state.game_phase = 2
+	bs.show_hub()
+	_assert(kael_ind.visible, "Kael indicator visible again at new phase")
+
+	_cleanup_bastion(bs)
+
+
 func _test_bastion_all_screens_hide_codex() -> void:
 	print("--- BastionScene: All Screens Hide Codex ---")
 	var bs: BastionScene = _make_bastion_scene()
@@ -945,7 +974,7 @@ func _test_puzzle_conduit_construction() -> void:
 	print("--- PuzzleConduit: Construction ---")
 	var pc: PuzzleConduit = PuzzleConduit.new()
 	root.add_child(pc)
-	_assert(pc._node_buttons.size() == 3, "3 node buttons")
+	_assert(pc._node_buttons.size() == 4, "4 node buttons (3 cycle + 1 red herring)")
 	_assert(not pc.visible, "hidden by default")
 	_cleanup_node(pc)
 
@@ -1173,7 +1202,8 @@ func _test_dungeon_puzzle_conduit_reward() -> void:
 
 	var before_count: int = cx.get_discovery_count()
 
-	## Simulate conduit puzzle completion
+	## Simulate conduit success → reveal species, then puzzle completed
+	ds_scene._on_conduit_success()
 	ds_scene._on_puzzle_completed(true, "codex_reveal", null)
 
 	var after_count: int = cx.get_discovery_count()

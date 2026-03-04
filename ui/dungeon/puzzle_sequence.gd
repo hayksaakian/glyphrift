@@ -29,6 +29,8 @@ var _attempts_label: Label = null
 var _button_row: HBoxContainer = null
 var _give_up_btn: Button = null
 var _show_again_btn: Button = null
+var _continue_btn: Button = null
+var _reward_label: Label = null
 
 ## Pillar colors
 const PILLAR_COLORS: Array[Color] = [
@@ -73,6 +75,9 @@ func start(p_instant_mode: bool = false) -> void:
 	_update_attempts_label()
 	_show_again_btn.visible = false
 	_give_up_btn.visible = true
+	_continue_btn.visible = false
+	_reward_label.visible = false
+	_attempts_label.visible = true
 	_sequence_display.text = ""
 
 	## Animate the sequence
@@ -91,6 +96,9 @@ func start_with_order(order: Array[int], p_instant_mode: bool = true) -> void:
 	_update_attempts_label()
 	_show_again_btn.visible = false
 	_give_up_btn.visible = true
+	_continue_btn.visible = false
+	_reward_label.visible = false
+	_attempts_label.visible = true
 	_sequence_display.text = ""
 	_begin_input_phase()
 
@@ -114,7 +122,7 @@ func get_correct_order() -> Array[int]:
 func _build_ui() -> void:
 	_bg = ColorRect.new()
 	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_bg.color = Color(0, 0, 0, 0.85)
+	_bg.color = Color(0, 0, 0, 1.0)
 	_bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_bg)
 
@@ -207,6 +215,23 @@ func _build_ui() -> void:
 	_give_up_btn.pressed.connect(_on_give_up)
 	_button_row.add_child(_give_up_btn)
 
+	## Reward label (shown on success)
+	_reward_label = Label.new()
+	_reward_label.add_theme_font_size_override("font_size", 15)
+	_reward_label.add_theme_color_override("font_color", Color("#88DDFF"))
+	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_reward_label.visible = false
+	vbox.add_child(_reward_label)
+
+	## Continue button (shown on success)
+	_continue_btn = Button.new()
+	_continue_btn.text = "Continue"
+	_continue_btn.custom_minimum_size = Vector2(140, 40)
+	_continue_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_continue_btn.visible = false
+	_continue_btn.pressed.connect(_on_continue)
+	vbox.add_child(_continue_btn)
+
 
 func _play_sequence() -> void:
 	_animating = true
@@ -287,6 +312,7 @@ func _begin_input_phase() -> void:
 	_input_phase = true
 	_player_input.clear()
 	_instruction_label.text = "Now repeat the sequence!"
+	_sequence_display.text = ""
 	_status_label.text = "0/%d" % _correct_order.size()
 	_status_label.add_theme_color_override("font_color", Color("#AAAAAA"))
 	_show_again_btn.visible = true
@@ -350,8 +376,17 @@ func _on_pillar_pressed(idx: int) -> void:
 		_instruction_label.text = "The pillars glow with energy!"
 		_show_again_btn.visible = false
 		_give_up_btn.visible = false
+		_attempts_label.visible = false
 		_sequence_display.text = ""
-		puzzle_completed.emit(true, "item", null)
+		_reward_label.text = "Found supplies in the cache!"
+		_reward_label.visible = true
+		_continue_btn.visible = true
+		if instant_mode:
+			puzzle_completed.emit(true, "item", null)
+
+
+func _on_continue() -> void:
+	puzzle_completed.emit(true, "item", null)
 
 
 func _on_show_again() -> void:

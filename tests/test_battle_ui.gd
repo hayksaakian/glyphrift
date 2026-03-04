@@ -481,17 +481,21 @@ func _test_formation_setup() -> void:
 	root.add_child(formation)
 
 	var squad: Array[GlyphInstance] = _make_squad(["zapplet", "stonepaw", "driftwisp"] as Array[String])
+	## Set up formation: first two front, third back (simulates Barracks assignment)
+	squad[0].row_position = "front"
+	squad[1].row_position = "front"
+	squad[2].row_position = "back"
 
 	_assert(not formation.visible, "FormationSetup starts hidden")
 
 	formation.show_formation(squad)
 	_assert(formation.visible, "FormationSetup visible after show")
 
-	## Default positions: first 2 front, last 1 back
+	## Preserves existing row_position from GlyphInstance
 	var positions: Dictionary = formation.get_positions()
-	_assert(positions[squad[0].instance_id] == "front", "First glyph defaults to front row")
-	_assert(positions[squad[1].instance_id] == "front", "Second glyph defaults to front row")
-	_assert(positions[squad[2].instance_id] == "back", "Third glyph defaults to back row")
+	_assert(positions[squad[0].instance_id] == "front", "First glyph preserves front row")
+	_assert(positions[squad[1].instance_id] == "front", "Second glyph preserves front row")
+	_assert(positions[squad[2].instance_id] == "back", "Third glyph preserves back row")
 
 	## Test signal emission
 	var confirmed_data: Dictionary = {"positions": {}}

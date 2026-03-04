@@ -278,7 +278,7 @@ func _build_scene_tree() -> void:
 	_result_overlay = ColorRect.new()
 	_result_overlay.name = "ResultOverlay"
 	_result_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_result_overlay.color = Color(0, 0, 0, 0.85)
+	_result_overlay.color = Color(0, 0, 0, 1.0)
 	_result_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	_result_overlay.visible = false
 	add_child(_result_overlay)
@@ -323,6 +323,7 @@ func _connect_internal_signals() -> void:
 	## Puzzle signals
 	_puzzle_sequence.puzzle_completed.connect(_on_puzzle_completed)
 	_puzzle_conduit.puzzle_completed.connect(_on_puzzle_completed)
+	_puzzle_conduit.success_reached.connect(_on_conduit_success)
 	_puzzle_echo.puzzle_completed.connect(_on_puzzle_completed)
 	_puzzle_echo.echo_combat_requested.connect(_on_echo_combat_requested)
 
@@ -463,9 +464,17 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 			var boss_squad: Array[GlyphInstance] = _generate_boss(boss_data)
 			combat_requested.emit(boss_squad, boss_data)
 		"cache", "hidden":
-			_pick_item()
-			_clear_current_room("Looted supplies.")
-			_state = UIState.EXPLORING
+			if room_data_local.get("cleared", false):
+				## Second click (Continue on result) — just dismiss
+				_state = UIState.EXPLORING
+			else:
+				var found_item: ItemDef = _pick_item()
+				_clear_current_room("Looted supplies.")
+				if found_item != null:
+					_room_popup.show_result("Found: %s" % found_item.name, found_item.description)
+				else:
+					_room_popup.show_result("Cache Empty", "Nothing useful remains.")
+				## Stay in POPUP — next Continue click will dismiss
 		"puzzle":
 			_launch_puzzle(room_data_local)
 		"hazard":
@@ -722,17 +731,18 @@ func _clear_current_room(history: String = "") -> void:
 	_floor_map.refresh_all()
 
 
-func _pick_item() -> void:
+func _pick_item() -> ItemDef:
 	if data_loader == null or dungeon_state == null:
-		return
+		return null
 	var all_items: Dictionary = data_loader.items
 	if all_items.is_empty():
-		return
+		return null
 	var keys: Array = all_items.keys()
 	var item_id: String = keys[randi() % keys.size()]
 	var item: ItemDef = data_loader.get_item(item_id)
 	if item != null:
 		dungeon_state.crawler.add_item(item)
+	return item
 
 
 ## --- Repair picker ---
@@ -849,12 +859,13 @@ func _on_puzzle_completed(success: bool, reward_type: String, _reward_data: Vari
 				_pick_item()
 				_clear_current_room("Puzzle solved — found supplies!")
 			"codex_reveal":
-				_reveal_random_species()
+				## Reveal already done in _on_conduit_success
 				_clear_current_room("Puzzle solved — codex updated!")
 			_:
 				_clear_current_room("Puzzle solved.")
 	else:
-		_clear_current_room("Passed by the puzzle.")
+		## Failed or gave up — room stays as puzzle for retry
+		pass
 
 	_state = UIState.EXPLORING
 
@@ -873,10 +884,19 @@ func _show_capture_with_chance(glyph: GlyphInstance, chance: float) -> void:
 	_capture_popup.show_capture(glyph, chance)
 
 
-func _reveal_random_species() -> void:
-	## Discover a random undiscovered species
+func _on_conduit_success() -> void:
+	## Do the reveal immediately so we can show the species name
+	var species_name: String = _reveal_random_species()
+	if species_name != "":
+		_puzzle_conduit.set_reward_text("Discovered: %s" % species_name)
+	else:
+		_puzzle_conduit.set_reward_text("All species already discovered!")
+
+
+func _reveal_random_species() -> String:
+	## Discover a random undiscovered species, return its name
 	if codex_state == null or data_loader == null:
-		return
+		return ""
 	var undiscovered: Array[String] = []
 	for species_id: String in data_loader.species.keys():
 		if not codex_state.is_species_discovered(species_id):
@@ -884,3 +904,6 @@ func _reveal_random_species() -> void:
 	if not undiscovered.is_empty():
 		var pick: String = undiscovered[randi() % undiscovered.size()]
 		codex_state.discover_species(pick)
+		var species: GlyphSpecies = data_loader.species[pick]
+		return species.name
+	return ""
