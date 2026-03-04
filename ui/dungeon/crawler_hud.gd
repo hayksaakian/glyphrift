@@ -47,6 +47,16 @@ func _ready() -> void:
 
 
 func setup(p_crawler: CrawlerState) -> void:
+	## Disconnect old signals if re-setup with same or different crawler
+	if crawler != null:
+		if crawler.hull_changed.is_connected(_on_hull_changed):
+			crawler.hull_changed.disconnect(_on_hull_changed)
+		if crawler.energy_changed.is_connected(_on_energy_changed):
+			crawler.energy_changed.disconnect(_on_energy_changed)
+		if crawler.item_added.is_connected(_on_item_changed):
+			crawler.item_added.disconnect(_on_item_changed)
+		if crawler.item_used.is_connected(_on_item_changed):
+			crawler.item_used.disconnect(_on_item_changed)
 	crawler = p_crawler
 	if crawler != null:
 		crawler.hull_changed.connect(_on_hull_changed)
