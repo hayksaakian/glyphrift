@@ -182,22 +182,26 @@ func _build_ui() -> void:
 	_affinity_label.add_theme_font_size_override("font_size", 9)
 	_affinity_label.add_theme_color_override("font_color", Color("#AAAAAA"))
 	_affinity_label.text = ""
+	_affinity_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	_vbox.add_child(_affinity_label)
 
 	## Name
 	_name_label = Label.new()
 	_name_label.add_theme_font_size_override("font_size", 13)
+	_name_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	_vbox.add_child(_name_label)
 
 	## HP bar + label on same line
 	var hp_row: HBoxContainer = HBoxContainer.new()
 	hp_row.add_theme_constant_override("separation", 4)
+	hp_row.mouse_filter = Control.MOUSE_FILTER_PASS
 	_vbox.add_child(hp_row)
 
 	_hp_bar = ProgressBar.new()
 	_hp_bar.custom_minimum_size = Vector2(0, 16)
 	_hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_hp_bar.show_percentage = false
+	_hp_bar.mouse_filter = Control.MOUSE_FILTER_PASS
 	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
 	fill_style.bg_color = Color("#4CAF50")
 	fill_style.corner_radius_top_left = 2
@@ -216,11 +220,13 @@ func _build_ui() -> void:
 
 	_hp_label = Label.new()
 	_hp_label.add_theme_font_size_override("font_size", 11)
+	_hp_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	hp_row.add_child(_hp_label)
 
 	## Status row
 	_status_row = HBoxContainer.new()
 	_status_row.add_theme_constant_override("separation", 2)
+	_status_row.mouse_filter = Control.MOUSE_FILTER_PASS
 	_vbox.add_child(_status_row)
 
 	## Guard border overlay (5px width + GUARD label)
