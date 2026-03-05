@@ -2,11 +2,14 @@ class_name PauseMenu
 extends ColorRect
 
 ## Reusable pause/menu overlay. Toggled by Escape key or external call.
-## Shows Resume, Save & Quit, and optionally Save Slots.
+## Shows Resume, Save Slots, and Save & Quit.
+## Always stays in the tree (never set visible=false) so Escape works.
 
 signal save_and_quit_pressed
 signal save_slot_loaded
 
+var _open: bool = false
+var _center: CenterContainer = null
 var _resume_btn: Button = null
 var _save_quit_btn: Button = null
 var _save_slots_btn: Button = null
@@ -15,24 +18,42 @@ var _save_slots_popup: SaveSlotsPopup = null
 ## When true, _unhandled_input is ignored (for headless tests)
 var instant_mode: bool = false
 
-## Set to false to hide Save Slots button (e.g. during dungeon)
-var show_save_slots: bool = true:
-	set(v):
-		show_save_slots = v
-		if _save_slots_btn != null:
-			_save_slots_btn.visible = v
+## Read-only — whether the menu is currently showing
+var is_open: bool:
+	get:
+		return _open
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	color = Color(0, 0, 0, 0.7)
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	visible = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	color = Color(0, 0, 0, 0)
 	_build_ui()
 
 
+func open() -> void:
+	if _open:
+		return
+	_open = true
+	color = Color(0, 0, 0, 0.7)
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	_center.visible = true
+
+
+func close() -> void:
+	if not _open:
+		return
+	_open = false
+	color = Color(0, 0, 0, 0)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_center.visible = false
+
+
 func toggle() -> void:
-	visible = not visible
+	if _open:
+		close()
+	else:
+		open()
 
 
 func setup_save_slots(
@@ -55,10 +76,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _build_ui() -> void:
-	var center: CenterContainer = CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(center)
+	_center = CenterContainer.new()
+	_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_center.visible = false
+	add_child(_center)
 
 	var panel: PanelContainer = PanelContainer.new()
 	panel.custom_minimum_size = Vector2(260, 180)
@@ -72,7 +94,7 @@ func _build_ui() -> void:
 	style.content_margin_top = 12
 	style.content_margin_bottom = 12
 	panel.add_theme_stylebox_override("panel", style)
-	center.add_child(panel)
+	_center.add_child(panel)
 
 	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
@@ -88,14 +110,13 @@ func _build_ui() -> void:
 	_resume_btn = Button.new()
 	_resume_btn.text = "Resume"
 	_resume_btn.custom_minimum_size = Vector2(200, 36)
-	_resume_btn.pressed.connect(func() -> void: visible = false)
+	_resume_btn.pressed.connect(close)
 	vbox.add_child(_resume_btn)
 
 	_save_slots_btn = Button.new()
 	_save_slots_btn.text = "Save Slots"
 	_save_slots_btn.custom_minimum_size = Vector2(200, 36)
 	_save_slots_btn.pressed.connect(_on_save_slots)
-	_save_slots_btn.visible = show_save_slots
 	vbox.add_child(_save_slots_btn)
 
 	_save_quit_btn = Button.new()
@@ -108,14 +129,14 @@ func _build_ui() -> void:
 	_save_slots_popup = SaveSlotsPopup.new()
 	_save_slots_popup.name = "SaveSlotsPopup"
 	_save_slots_popup.slot_loaded.connect(func() -> void:
-		visible = false
+		close()
 		save_slot_loaded.emit()
 	)
 	add_child(_save_slots_popup)
 
 
 func _on_save_quit() -> void:
-	visible = false
+	close()
 	save_and_quit_pressed.emit()
 
 

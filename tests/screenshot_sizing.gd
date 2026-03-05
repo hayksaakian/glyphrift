@@ -216,7 +216,7 @@ func _show_dungeon_with_hud() -> void:
 	hud.setup(crawler)
 
 
-func _show_pause_menu(with_slots: bool) -> void:
+func _show_pause_menu(_with_slots: bool) -> void:
 	## Show PauseMenu over a dark background to verify centering
 	var bg: ColorRect = ColorRect.new()
 	bg.name = "step_bg"
@@ -226,10 +226,9 @@ func _show_pause_menu(with_slots: bool) -> void:
 
 	var pm: PauseMenu = PauseMenu.new()
 	pm.name = "step_pause"
-	pm.show_save_slots = with_slots
 	pm.instant_mode = true
 	add_child(pm)
-	pm.visible = true
+	pm.open()
 
 
 func _take_screenshot(step_name: String) -> void:

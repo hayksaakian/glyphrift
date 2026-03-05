@@ -1626,9 +1626,10 @@ func _test_pause_menu_exists() -> void:
 	scene.start_rift(ds)
 
 	_assert(scene._pause_menu != null, "Pause menu exists")
-	_assert(not scene._pause_menu.visible, "Pause menu hidden by default")
+	_assert(not scene._pause_menu.is_open, "Pause menu closed by default")
 	_assert(scene._pause_menu._resume_btn != null, "Resume button exists")
 	_assert(scene._pause_menu._save_quit_btn != null, "Save & Quit button exists")
+	_assert(scene._pause_menu._save_slots_btn != null, "Save Slots button exists")
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)
 
@@ -1647,16 +1648,16 @@ func _test_pause_save_and_quit_signal() -> void:
 
 	## Toggle on
 	scene._pause_menu.toggle()
-	_assert(scene._pause_menu.visible, "Pause menu shown after toggle")
+	_assert(scene._pause_menu.is_open, "Pause menu open after toggle")
 
-	## Resume hides it
+	## Resume closes it
 	scene._pause_menu._resume_btn.pressed.emit()
-	_assert(not scene._pause_menu.visible, "Pause menu hidden after resume")
+	_assert(not scene._pause_menu.is_open, "Pause menu closed after resume")
 
 	## Save & quit emits signal
 	scene._pause_menu.toggle()
 	scene._pause_menu._save_quit_btn.pressed.emit()
-	_assert(not scene._pause_menu.visible, "Pause menu hidden after save & quit")
+	_assert(not scene._pause_menu.is_open, "Pause menu closed after save & quit")
 	_assert(sig["fired"], "save_and_quit_pressed signal fired")
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)

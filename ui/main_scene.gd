@@ -65,6 +65,7 @@ func setup(
 	_dungeon_scene.data_loader = data_loader
 	_dungeon_scene.roster_state = roster_state
 	_dungeon_scene.codex_state = codex_state
+	_dungeon_scene._pause_menu.setup_save_slots(game_state, roster_state, codex_state, crawler_state, data_loader)
 	_battle_scene.combat_engine = combat_engine
 	_battle_scene.mastery_tracker = mastery_tracker
 
@@ -196,6 +197,7 @@ func _connect_signals() -> void:
 	_dungeon_scene.hidden_room_entered.connect(_on_hidden_room_entered)
 	_dungeon_scene.floor_changed.connect(_on_floor_changed)
 	_dungeon_scene.save_and_quit_pressed.connect(_on_save_and_quit)
+	_dungeon_scene.save_slot_loaded.connect(_on_save_slot_loaded)
 	_battle_scene.battle_finished.connect(_on_battle_finished)
 	_squad_overlay.glyph_clicked.connect(_on_squad_overlay_glyph_clicked)
 

@@ -12,6 +12,7 @@ signal floor_changed(floor_number: int)
 signal squad_changed()
 signal hidden_room_entered()
 signal save_and_quit_pressed
+signal save_slot_loaded
 
 enum UIState {
 	EXPLORING,
@@ -267,9 +268,9 @@ func _build_scene_tree() -> void:
 	## Pause menu (reusable component, hidden)
 	_pause_menu = PauseMenu.new()
 	_pause_menu.name = "PauseMenu"
-	_pause_menu.show_save_slots = false
 	_pause_menu.instant_mode = instant_mode
 	_pause_menu.save_and_quit_pressed.connect(func() -> void: save_and_quit_pressed.emit())
+	_pause_menu.save_slot_loaded.connect(func() -> void: save_slot_loaded.emit())
 	add_child(_pause_menu)
 
 	## Room popup (centered, hidden)

@@ -301,7 +301,6 @@ func _build_ui() -> void:
 	## Pause menu (reusable, above sub-screens)
 	_pause_menu = PauseMenu.new()
 	_pause_menu.name = "PauseMenu"
-	_pause_menu.show_save_slots = true
 	_pause_menu.save_and_quit_pressed.connect(func() -> void: save_and_quit_pressed.emit())
 	_pause_menu.save_slot_loaded.connect(func() -> void: save_slot_loaded.emit())
 	add_child(_pause_menu)
