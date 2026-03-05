@@ -121,6 +121,13 @@ func _run_tests() -> void:
 	_test_bastion_squad_card_popup()
 	_test_bastion_mastery_hint()
 
+	## CrawlerBay
+	_test_crawler_bay_construction()
+	_test_crawler_bay_stats_display()
+	_test_crawler_bay_chassis_selection()
+	_test_crawler_bay_milestone_display()
+	_test_bastion_navigation_crawler_bay()
+
 	print("")
 	print("========================================")
 	print("  RESULTS: %d passed, %d failed" % [pass_count, fail_count])
@@ -1935,3 +1942,113 @@ func _test_bastion_mastery_hint() -> void:
 	_cleanup_node(cx)
 	_cleanup_node(cs)
 	_cleanup_node(fe)
+
+
+# ==========================================================================
+# CrawlerBay Tests
+# ==========================================================================
+
+func _test_crawler_bay_construction() -> void:
+	print("--- CrawlerBay: Construction ---")
+	var bay: CrawlerBay = CrawlerBay.new()
+	root.add_child(bay)
+
+	_assert(bay._stats_vbox != null, "has stats vbox")
+	_assert(bay._chassis_vbox != null, "has chassis vbox")
+	_assert(bay._milestone_vbox != null, "has milestone vbox")
+
+	_cleanup_node(bay)
+
+
+func _test_crawler_bay_stats_display() -> void:
+	print("--- CrawlerBay: Stats Display ---")
+	var cs: CrawlerState = _make_crawler_state()
+	var bay: CrawlerBay = CrawlerBay.new()
+	root.add_child(bay)
+	bay.setup(cs, null)
+	bay.refresh()
+
+	_assert(bay._stats_vbox.get_child_count() > 0, "stats section populated")
+	## Check that hull HP value appears
+	var first_label: Label = bay._stats_vbox.get_child(0) as Label
+	_assert("Hull HP" in first_label.text, "first stat is Hull HP (got: %s)" % first_label.text)
+
+	_cleanup_node(bay)
+	_cleanup_node(cs)
+
+
+func _test_crawler_bay_chassis_selection() -> void:
+	print("--- CrawlerBay: Chassis Selection ---")
+	var cs: CrawlerState = _make_crawler_state()
+	cs.unlocked_chassis = ["standard", "ironclad"]
+	cs.active_chassis = "standard"
+
+	var bay: CrawlerBay = CrawlerBay.new()
+	root.add_child(bay)
+	bay.setup(cs, null)
+	bay.refresh()
+
+	## Standard should be active (disabled), ironclad should be clickable
+	_assert(bay._chassis_buttons.has("standard"), "has standard button")
+	_assert(bay._chassis_buttons.has("ironclad"), "has ironclad button")
+	var std_btn: Button = bay._chassis_buttons["standard"]
+	var iron_btn: Button = bay._chassis_buttons["ironclad"]
+	_assert(std_btn.disabled, "standard disabled (active)")
+	_assert(not iron_btn.disabled, "ironclad enabled (unlocked, not active)")
+
+	## Select ironclad
+	bay._select_chassis("ironclad")
+	_assert(cs.active_chassis == "ironclad", "active chassis changed to ironclad")
+
+	## After refresh, ironclad should be disabled (active), standard clickable
+	var iron_btn2: Button = bay._chassis_buttons["ironclad"]
+	_assert(iron_btn2.disabled, "ironclad now disabled (active)")
+
+	_cleanup_node(bay)
+	_cleanup_node(cs)
+
+
+func _test_crawler_bay_milestone_display() -> void:
+	print("--- CrawlerBay: Milestone Display ---")
+	var cs: CrawlerState = _make_crawler_state()
+	var mt: MilestoneTracker = MilestoneTracker.new()
+	mt.crawler_state = cs
+	mt.codex_state = CodexState.new()
+	mt.initialize(_data_loader)
+
+	## Complete a milestone
+	mt.on_hidden_room_discovered()
+
+	var bay: CrawlerBay = CrawlerBay.new()
+	root.add_child(bay)
+	bay.setup(cs, mt)
+	bay.refresh()
+
+	_assert(bay._milestone_vbox.get_child_count() > 0, "milestone section populated")
+
+	## Check that at least one shows a checkmark
+	var found_check: bool = false
+	for i: int in range(bay._milestone_vbox.get_child_count()):
+		var row: HBoxContainer = bay._milestone_vbox.get_child(i) as HBoxContainer
+		if row == null:
+			continue
+		var check_label: Label = row.get_child(0) as Label
+		if check_label != null and "\u2713" in check_label.text:
+			found_check = true
+			break
+	_assert(found_check, "at least one completed milestone shows checkmark")
+
+	_cleanup_node(bay)
+	_cleanup_node(cs)
+
+
+func _test_bastion_navigation_crawler_bay() -> void:
+	print("--- BastionScene: Navigate to Crawler Bay ---")
+	var bs: BastionScene = _make_bastion_scene()
+
+	bs._crawler_bay_btn.pressed.emit()
+	_assert(bs.get_sub_screen() == BastionScene.SubScreen.CRAWLER_BAY, "sub screen is CRAWLER_BAY")
+	_assert(bs._crawler_bay.visible, "crawler bay visible")
+	_assert(not bs._hub.visible, "hub hidden")
+
+	_cleanup_bastion(bs)

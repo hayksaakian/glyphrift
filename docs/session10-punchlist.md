@@ -8,17 +8,17 @@
 - [ ] Verify "New Game" / "Continue" / "Load Game" flows from title screen
 
 ## Crawler Upgrades (content gap)
-- [ ] Milestone checking: game logic to detect when upgrade milestones are met
+- [x] Milestone checking: game logic to detect when upgrade milestones are met
   - "Clear a rift without taking Crawler damage" → +10 Hull HP
   - "Discover hidden room (1st/3rd/5th)" → unlock Ironclad/Scout/Hauler chassis
   - "Capture a Glyph of each affinity in one run" → +5 Energy
   - "Fuse 10 unique species" → +1 Cargo slot
   - "Seal a Major Rift" → +2 Capacity
-- [ ] Award upgrades: call `crawler_state.apply_upgrade()` when milestones trigger
-- [ ] Chassis selection UI in bastion (switch between unlocked chassis before a rift)
+- [x] Award upgrades: call `crawler_state.apply_upgrade()` when milestones trigger
+- [x] Chassis selection UI in bastion (switch between unlocked chassis before a rift)
 - [ ] Upgrade notification: toast/popup when a milestone is achieved
-- [ ] Persist unlocked upgrades + active chassis in save/load
-- [ ] Crawler status panel showing unlocked upgrades and milestone progress
+- [x] Persist unlocked upgrades + active chassis in save/load
+- [x] Crawler status panel showing unlocked upgrades and milestone progress
 
 ## Balance Pass
 - [ ] Difficulty curve: T1 rifts beatable with starter squad, Apex requires fused T3+

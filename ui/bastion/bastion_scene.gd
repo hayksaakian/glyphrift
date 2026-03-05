@@ -8,7 +8,7 @@ signal hub_entered
 signal save_and_quit_pressed
 signal save_slot_loaded
 
-enum SubScreen { HUB, BARRACKS, FUSION, RIFT_GATE, CODEX }
+enum SubScreen { HUB, BARRACKS, FUSION, RIFT_GATE, CODEX, CRAWLER_BAY }
 
 var game_state: GameState = null
 var roster_state: RosterState = null
@@ -23,6 +23,7 @@ var _barracks: Barracks = null
 var _fusion_chamber: FusionChamber = null
 var _rift_gate: RiftGate = null
 var _codex_browser: CodexBrowser = null
+var _crawler_bay: CrawlerBay = null
 
 ## Hub elements
 var _title_label: Label = null
@@ -31,6 +32,7 @@ var _rift_gate_btn: Button = null
 var _barracks_btn: Button = null
 var _fusion_btn: Button = null
 var _codex_btn: Button = null
+var _crawler_bay_btn: Button = null
 var _save_quit_btn: Button = null
 var _save_slots_btn: Button = null
 var _save_slots_popup: SaveSlotsPopup = null
@@ -78,6 +80,7 @@ func setup(
 	_fusion_chamber.setup(fusion_engine, roster_state, crawler_state, data_loader)
 	_rift_gate.setup(game_state, codex_state, data_loader)
 	_codex_browser.setup(data_loader, codex_state, game_state, roster_state)
+	_crawler_bay.setup(crawler_state, game_state.milestone_tracker if game_state else null)
 	_npc_panel.setup(data_loader, game_state)
 	_save_slots_popup.setup(game_state, roster_state, codex_state, crawler_state, data_loader)
 
@@ -90,11 +93,8 @@ func refresh() -> void:
 func show_hub() -> void:
 	var was_in_sub: bool = _current_screen != SubScreen.HUB
 	_current_screen = SubScreen.HUB
+	_hide_all_screens()
 	_hub.visible = true
-	_barracks.visible = false
-	_fusion_chamber.visible = false
-	_rift_gate.visible = false
-	_codex_browser.visible = false
 	_back_bar.visible = false
 	refresh()
 	_update_npc_indicators()
@@ -183,6 +183,11 @@ func _build_ui() -> void:
 	_codex_btn.custom_minimum_size = Vector2(140, 44)
 	nav_row.add_child(_codex_btn)
 
+	_crawler_bay_btn = Button.new()
+	_crawler_bay_btn.text = "Crawler Bay"
+	_crawler_bay_btn.custom_minimum_size = Vector2(140, 44)
+	nav_row.add_child(_crawler_bay_btn)
+
 	_save_quit_btn = Button.new()
 	_save_quit_btn.text = "Save & Quit"
 	_save_quit_btn.custom_minimum_size = Vector2(140, 44)
@@ -260,6 +265,11 @@ func _build_ui() -> void:
 	_codex_browser.visible = false
 	add_child(_codex_browser)
 
+	_crawler_bay = CrawlerBay.new()
+	_crawler_bay.name = "CrawlerBay"
+	_crawler_bay.visible = false
+	add_child(_crawler_bay)
+
 	## Persistent back bar (visible when in a sub-screen)
 	_back_bar = PanelContainer.new()
 	_back_bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -324,6 +334,7 @@ func _connect_signals() -> void:
 	_save_slots_btn.pressed.connect(func() -> void: _save_slots_popup.show_popup())
 	_save_slots_popup.slot_loaded.connect(func() -> void: save_slot_loaded.emit())
 
+	_crawler_bay_btn.pressed.connect(_show_crawler_bay)
 	_barracks.done_pressed.connect(show_hub)
 	_fusion_chamber.back_pressed.connect(show_hub)
 	_rift_gate.back_pressed.connect(show_hub)
@@ -336,12 +347,18 @@ func _connect_signals() -> void:
 	_npc_maro_btn.pressed.connect(func() -> void: _open_npc("maro"))
 
 
-func _show_rift_gate() -> void:
-	_current_screen = SubScreen.RIFT_GATE
+func _hide_all_screens() -> void:
 	_hub.visible = false
+	_rift_gate.visible = false
 	_barracks.visible = false
 	_fusion_chamber.visible = false
 	_codex_browser.visible = false
+	_crawler_bay.visible = false
+
+
+func _show_rift_gate() -> void:
+	_current_screen = SubScreen.RIFT_GATE
+	_hide_all_screens()
 	_rift_gate.visible = true
 	_back_bar.visible = true
 	_back_bar_title.text = "RIFT GATE"
@@ -350,10 +367,7 @@ func _show_rift_gate() -> void:
 
 func _show_barracks() -> void:
 	_current_screen = SubScreen.BARRACKS
-	_hub.visible = false
-	_rift_gate.visible = false
-	_fusion_chamber.visible = false
-	_codex_browser.visible = false
+	_hide_all_screens()
 	_barracks.visible = true
 	_back_bar.visible = true
 	_back_bar_title.text = "BARRACKS"
@@ -362,10 +376,7 @@ func _show_barracks() -> void:
 
 func _show_fusion() -> void:
 	_current_screen = SubScreen.FUSION
-	_hub.visible = false
-	_rift_gate.visible = false
-	_barracks.visible = false
-	_codex_browser.visible = false
+	_hide_all_screens()
 	_fusion_chamber.visible = true
 	_back_bar.visible = true
 	_back_bar_title.text = "FUSION CHAMBER"
@@ -374,14 +385,20 @@ func _show_fusion() -> void:
 
 func _show_codex() -> void:
 	_current_screen = SubScreen.CODEX
-	_hub.visible = false
-	_rift_gate.visible = false
-	_barracks.visible = false
-	_fusion_chamber.visible = false
+	_hide_all_screens()
 	_codex_browser.visible = true
 	_back_bar.visible = true
 	_back_bar_title.text = "CODEX"
 	_codex_browser.refresh()
+
+
+func _show_crawler_bay() -> void:
+	_current_screen = SubScreen.CRAWLER_BAY
+	_hide_all_screens()
+	_crawler_bay.visible = true
+	_back_bar.visible = true
+	_back_bar_title.text = "CRAWLER BAY"
+	_crawler_bay.refresh()
 
 
 
