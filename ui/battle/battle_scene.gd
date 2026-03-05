@@ -270,16 +270,19 @@ func _build_action_buttons() -> void:
 	_guard_button.text = "Guard"
 	_guard_button.custom_minimum_size = Vector2(200, 34)
 	_guard_button.pressed.connect(_on_guard_pressed)
+	_apply_button_fx(_guard_button)
 
 	_swap_button = Button.new()
 	_swap_button.text = "Move Row"
 	_swap_button.custom_minimum_size = Vector2(200, 34)
 	_swap_button.pressed.connect(_on_swap_pressed)
+	_apply_button_fx(_swap_button)
 
 	_flee_button = Button.new()
 	_flee_button.text = "Flee"
 	_flee_button.custom_minimum_size = Vector2(200, 34)
 	_flee_button.pressed.connect(_on_flee_pressed)
+	_apply_button_fx(_flee_button)
 
 	## Keep _attack_button non-null for backward compat (tests)
 	_attack_button = Button.new()
@@ -1088,3 +1091,16 @@ func _on_continue_pressed() -> void:
 	var won: bool = combat_engine.phase == combat_engine.BattlePhase.VICTORY
 	_result_screen.hide_result()
 	battle_finished.emit(won)
+
+
+static func _apply_button_fx(btn: Button) -> void:
+	## Subtle scale-down on press, bounce back on release
+	btn.button_down.connect(func() -> void:
+		btn.pivot_offset = btn.size / 2.0
+		btn.scale = Vector2(0.95, 0.95)
+	)
+	btn.button_up.connect(func() -> void:
+		btn.pivot_offset = btn.size / 2.0
+		var tween: Tween = btn.create_tween()
+		tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1).set_ease(Tween.EASE_OUT)
+	)

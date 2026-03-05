@@ -66,9 +66,9 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 - [x] KO'd glyphs visually minimized (shrunk to 0.65x + collapsed height + very dim)
 
 **Active turn focus:**
-- [ ] Highlight the acting glyph (glow/scale/border pulse) so it's instantly obvious whose turn it is
+- [x] Highlight the acting glyph (gold border + breathing scale pulse)
 - [ ] Techniques appear as a contextual panel near the active glyph, not a disconnected sidebar
-- [ ] Guard + Move Row grouped with techniques as a unified action menu
+- [x] Guard + Move Row grouped with techniques as a unified action menu
 
 **Turn order strip:**
 - [x] Compact horizontal strip (smaller portraits, ~32px) — shrunk from 64px to 32px
@@ -90,7 +90,7 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 - [x] Brief stat-change callout or toast so the player understands the escalation
 
 **Front/back row discoverability:**
-- [ ] Visual cues for row tactical difference (back row takes 0.7x melee/ranged damage)
+- [x] Visual cues for row tactical difference (0.9x scale, dimmer lane, −30% badge)
 - [x] Show damage reduction indicator on back-row glyphs (e.g. shield icon, "−30%" badge)
 - [x] Tooltip or first-time hint explaining row mechanics
 - [x] Damage numbers could flash a "REDUCED" tag when back-row reduction applies
@@ -124,7 +124,7 @@ Almost everything is instant/static right now. Key areas where motion would brin
 - [x] Failure: glyph breaks free with a quick dash off-screen
 
 **Bastion (medium impact):**
-- [ ] Fusion: parent cards slide together, bright flash, result card materializes
+- [x] Fusion: parent cards slide together, fade out, result card materializes with scale-in
 - [ ] Mastery complete: golden star burst / shimmer on the glyph
 - [x] Card hover: subtle lift (scale up ~5%) with shadow
 - [x] Screen transitions: sub-screens slide in/out rather than instant show/hide
@@ -132,13 +132,13 @@ Almost everything is instant/static right now. Key areas where motion would brin
 **Micro-interactions (medium impact):**
 - [x] Popups: scale up from center or slide in (not instant visible=true)
 - [ ] Notifications/toasts: slide in from edge, auto-fade after delay
-- [ ] Button press: subtle scale-down on click, bounce back on release
+- [x] Button press: subtle scale-down on click, bounce back on release
 
 General approach: all tween-based (Godot Tween class), keep durations snappy (0.1-0.3s), respect `instant_mode` for testing. No skeletal/sprite-sheet animation needed — motion comes from position, scale, rotation, modulate tweens on existing nodes.
 
 ## UI Polish (general)
 - [x] Rift Gate overflow: 5+ rift cards clip against edge — wrap in ScrollContainer, reduce card width
-- [ ] Button hover/focus states consistent across all screens
+- [x] Button hover/focus states — press scale-down on nav and action buttons
 - [x] Popup dismiss: click-outside-to-close on modal overlays (exit, repair, swap)
 - [ ] Long text doesn't overflow (species names, technique lists, mastery descriptions)
 - [ ] Screen transitions feel smooth (no flicker or state leaks)

@@ -163,39 +163,25 @@ func _build_ui() -> void:
 	nav_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	hub_vbox.add_child(nav_row)
 
-	_rift_gate_btn = Button.new()
-	_rift_gate_btn.text = "Rift Gate"
-	_rift_gate_btn.custom_minimum_size = Vector2(140, 44)
+	_rift_gate_btn = _make_nav_button("Rift Gate")
 	nav_row.add_child(_rift_gate_btn)
 
-	_barracks_btn = Button.new()
-	_barracks_btn.text = "Barracks"
-	_barracks_btn.custom_minimum_size = Vector2(140, 44)
+	_barracks_btn = _make_nav_button("Barracks")
 	nav_row.add_child(_barracks_btn)
 
-	_fusion_btn = Button.new()
-	_fusion_btn.text = "Fusion Chamber"
-	_fusion_btn.custom_minimum_size = Vector2(140, 44)
+	_fusion_btn = _make_nav_button("Fusion Chamber")
 	nav_row.add_child(_fusion_btn)
 
-	_codex_btn = Button.new()
-	_codex_btn.text = "Codex"
-	_codex_btn.custom_minimum_size = Vector2(140, 44)
+	_codex_btn = _make_nav_button("Codex")
 	nav_row.add_child(_codex_btn)
 
-	_crawler_bay_btn = Button.new()
-	_crawler_bay_btn.text = "Crawler Bay"
-	_crawler_bay_btn.custom_minimum_size = Vector2(140, 44)
+	_crawler_bay_btn = _make_nav_button("Crawler Bay")
 	nav_row.add_child(_crawler_bay_btn)
 
-	_save_quit_btn = Button.new()
-	_save_quit_btn.text = "Save & Quit"
-	_save_quit_btn.custom_minimum_size = Vector2(140, 44)
+	_save_quit_btn = _make_nav_button("Save & Quit")
 	nav_row.add_child(_save_quit_btn)
 
-	_save_slots_btn = Button.new()
-	_save_slots_btn.text = "Save Slots"
-	_save_slots_btn.custom_minimum_size = Vector2(140, 44)
+	_save_slots_btn = _make_nav_button("Save Slots")
 	nav_row.add_child(_save_slots_btn)
 
 	## Status bar
@@ -469,6 +455,14 @@ func _update_npc_indicators() -> void:
 			continue
 		var read_phase: int = game_state.npc_read_phase.get(npc_id, 0)
 		indicator.visible = phase > read_phase
+
+
+func _make_nav_button(label_text: String) -> Button:
+	var btn: Button = Button.new()
+	btn.text = label_text
+	btn.custom_minimum_size = Vector2(140, 44)
+	BattleScene._apply_button_fx(btn)
+	return btn
 
 
 func _build_npc_card(parent: Control, npc_name: String, npc_title: String, npc_color: Color) -> Button:

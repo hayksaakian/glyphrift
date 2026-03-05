@@ -533,19 +533,54 @@ func _on_fuse_pressed() -> void:
 	var tech_ids: Array[String] = _selected_technique_ids.duplicate()
 	var result: GlyphInstance = fusion_engine.execute_fusion(_parent_a, _parent_b, tech_ids)
 
-	## Check if new species was discovered (check via codex)
-	var was_new: bool = false
-	if fusion_engine.codex_state != null:
-		## FusionEngine already called discover_species and emitted new_species_discovered
-		## We listen for it via the signal approach, but for simplicity check result
-		was_new = true  ## We'll use the signal from fusion_engine instead
+	_play_fusion_animation(result)
 
-	_show_discovery(result)
+
+var instant_mode: bool = false
+
+func _play_fusion_animation(result: GlyphInstance) -> void:
+	if instant_mode:
+		_show_discovery(result)
+		return
+
+	## Parent cards slide toward each other, flash, then reveal result
+	var slot_a_pos: Vector2 = _parent_a_slot.position
+	var slot_b_pos: Vector2 = _parent_b_slot.position
+	var midpoint_x: float = (slot_a_pos.x + slot_b_pos.x) / 2.0
+
+	var tween: Tween = create_tween()
+	## Slide parent cards toward center
+	tween.set_parallel(true)
+	tween.tween_property(_parent_a_slot, "position:x", midpoint_x, 0.3).set_ease(Tween.EASE_IN)
+	tween.tween_property(_parent_b_slot, "position:x", midpoint_x, 0.3).set_ease(Tween.EASE_IN)
+	tween.set_parallel(false)
+
+	## Fade out parent slots
+	tween.tween_property(_parent_a_slot, "modulate", Color(1, 1, 1, 0), 0.15)
+	tween.tween_property(_parent_b_slot, "modulate", Color(1, 1, 1, 0), 0.0)
+
+	## Show discovery with result
+	tween.tween_callback(func() -> void:
+		## Reset parent slot positions and modulate for next fusion
+		_parent_a_slot.position = slot_a_pos
+		_parent_b_slot.position = slot_b_pos
+		_parent_a_slot.modulate = Color.WHITE
+		_parent_b_slot.modulate = Color.WHITE
+		_show_discovery(result)
+	)
 
 
 func _show_discovery(result: GlyphInstance) -> void:
 	_discovery_result_card.setup(result)
 	_discovery_overlay.visible = true
+	## Scale-in animation
+	_discovery_overlay.pivot_offset = _discovery_overlay.size / 2.0
+	_discovery_overlay.scale = Vector2(0.85, 0.85)
+	_discovery_overlay.modulate = Color(1, 1, 1, 0)
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_discovery_overlay, "scale", Vector2(1, 1), 0.2).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_discovery_overlay, "modulate", Color.WHITE, 0.2)
 
 
 func _hide_discovery() -> void:

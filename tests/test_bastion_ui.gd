@@ -801,6 +801,7 @@ func _test_fusion_execute() -> void:
 	rs.set_active_squad([g1, g2])
 
 	var fc: FusionChamber = FusionChamber.new()
+	fc.instant_mode = true
 	root.add_child(fc)
 	fc.setup(fe, rs, cs, _data_loader)
 	fc.refresh()
