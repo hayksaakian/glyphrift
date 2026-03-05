@@ -11,6 +11,7 @@ run/main_scene="res://ui/game_demo.tscn"
 [autoload]
 
 DataLoader="*res://core/data_loader.gd"
+GRBServer="*res://addons/godot-runtime-bridge/runtime_bridge/DebugServer.gd"
 
 [debug]
 
