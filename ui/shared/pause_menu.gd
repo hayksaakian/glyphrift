@@ -70,6 +70,8 @@ func setup_save_slots(
 func _input(event: InputEvent) -> void:
 	if instant_mode:
 		return
+	if not is_visible_in_tree():
+		return
 	if event.is_action_pressed("ui_cancel"):
 		toggle()
 		get_viewport().set_input_as_handled()
