@@ -67,7 +67,7 @@ func setup_save_slots(
 		_save_slots_popup.setup(game_state, roster_state, codex_state, crawler_state, data_loader)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if instant_mode:
 		return
 	if event.is_action_pressed("ui_cancel"):
