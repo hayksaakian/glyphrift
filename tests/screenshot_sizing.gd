@@ -24,6 +24,8 @@ func _ready() -> void:
 		"sizing_03_room_popup_boss",
 		"sizing_04_glyph_portrait_standalone",
 		"sizing_05_dungeon_hud_menu",
+		"sizing_06_pause_menu_open",
+		"sizing_07_pause_menu_with_slots",
 	]
 
 	await get_tree().process_frame
@@ -94,6 +96,12 @@ func _run_step() -> void:
 
 		"sizing_05_dungeon_hud_menu":
 			_show_dungeon_with_hud()
+
+		"sizing_06_pause_menu_open":
+			_show_pause_menu(false)
+
+		"sizing_07_pause_menu_with_slots":
+			_show_pause_menu(true)
 
 	## Wait for layout
 	await get_tree().process_frame
@@ -206,6 +214,22 @@ func _show_dungeon_with_hud() -> void:
 	hud.custom_minimum_size.y = 44.0
 	add_child(hud)
 	hud.setup(crawler)
+
+
+func _show_pause_menu(with_slots: bool) -> void:
+	## Show PauseMenu over a dark background to verify centering
+	var bg: ColorRect = ColorRect.new()
+	bg.name = "step_bg"
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0.05, 0.07, 0.1)
+	add_child(bg)
+
+	var pm: PauseMenu = PauseMenu.new()
+	pm.name = "step_pause"
+	pm.show_save_slots = with_slots
+	pm.instant_mode = true
+	add_child(pm)
+	pm.visible = true
 
 
 func _take_screenshot(step_name: String) -> void:

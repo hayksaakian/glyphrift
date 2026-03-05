@@ -24,7 +24,7 @@ var show_save_slots: bool = true:
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	color = Color(0, 0, 0, 0.7)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
@@ -55,13 +55,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _build_ui() -> void:
+	var center: CenterContainer = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(center)
+
 	var panel: PanelContainer = PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_CENTER)
 	panel.custom_minimum_size = Vector2(260, 180)
-	panel.offset_left = -130.0
-	panel.offset_right = 130.0
-	panel.offset_top = -90.0
-	panel.offset_bottom = 90.0
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color("#1A1A2E")
 	style.set_corner_radius_all(8)
@@ -72,7 +72,7 @@ func _build_ui() -> void:
 	style.content_margin_top = 12
 	style.content_margin_bottom = 12
 	panel.add_theme_stylebox_override("panel", style)
-	add_child(panel)
+	center.add_child(panel)
 
 	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
