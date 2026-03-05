@@ -7,7 +7,7 @@ extends Control
 signal action_pressed(room_type: String, room_data: Dictionary)
 signal formation_requested(room_type: String, room_data: Dictionary)
 
-const POPUP_SIZE: Vector2 = Vector2(320, 200)
+const POPUP_SIZE: Vector2 = Vector2(320, 280)
 
 const ROOM_TITLES: Dictionary = {
 	"enemy": "Wild Glyphs Ahead!",
@@ -350,8 +350,8 @@ func _refresh_formation_preview(show: bool) -> void:
 	## Build compact preview: "F: [icons]  B: [icons]"
 	if not front.is_empty():
 		var f_label: Label = Label.new()
-		f_label.text = "F:"
-		f_label.add_theme_font_size_override("font_size", 9)
+		f_label.text = "Front:"
+		f_label.add_theme_font_size_override("font_size", 11)
 		f_label.add_theme_color_override("font_color", Color("#AAAAAA"))
 		f_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_formation_preview.add_child(f_label)
@@ -360,8 +360,8 @@ func _refresh_formation_preview(show: bool) -> void:
 
 	if not back.is_empty():
 		var b_label: Label = Label.new()
-		b_label.text = "  B:"
-		b_label.add_theme_font_size_override("font_size", 9)
+		b_label.text = "  Back:"
+		b_label.add_theme_font_size_override("font_size", 11)
 		b_label.add_theme_color_override("font_color", Color("#AAAAAA"))
 		b_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_formation_preview.add_child(b_label)
@@ -372,8 +372,9 @@ func _refresh_formation_preview(show: bool) -> void:
 
 
 func _make_mini_icon(g: GlyphInstance) -> Control:
+	const ICON_SIZE: int = 28
 	var container: Control = Control.new()
-	container.custom_minimum_size = Vector2(20, 20)
+	container.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var aff: String = g.species.affinity if g.species else "neutral"
@@ -388,12 +389,12 @@ func _make_mini_icon(g: GlyphInstance) -> Control:
 	letter.set_anchors_preset(Control.PRESET_FULL_RECT)
 	letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	letter.add_theme_font_size_override("font_size", 11)
+	letter.add_theme_font_size_override("font_size", 14)
 	letter.add_theme_color_override("font_color", Color.WHITE)
 	letter.add_theme_color_override("font_outline_color", Color.BLACK)
 	letter.add_theme_constant_override("outline_size", 1)
 	letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	container.add_child(letter)
 
-	GlyphArt.apply_texture(container, rect, letter, g.species.id if g.species else "", 20)
+	GlyphArt.apply_texture(container, rect, letter, g.species.id if g.species else "", ICON_SIZE)
 	return container

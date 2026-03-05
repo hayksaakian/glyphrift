@@ -135,7 +135,8 @@ func _build_ui() -> void:
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_name_label.clip_text = true
-	_name_label.custom_minimum_size = Vector2(portrait_size, 0)
+	var label_width: int = maxi(portrait_size, int(portrait_size * 1.6))
+	_name_label.custom_minimum_size = Vector2(label_width, 0)
 	_name_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	_name_label.add_theme_font_size_override("font_size", maxi(9, int(portrait_size * 0.3)))
 	_name_label.add_theme_color_override("font_color", Color("#CCCCCC"))
