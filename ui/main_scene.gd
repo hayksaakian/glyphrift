@@ -90,6 +90,8 @@ func start_game() -> void:
 			game_state, roster_state, codex_state, crawler_state, data_loader
 		)
 		if loaded:
+			if _try_resume_rift():
+				return
 			_show_bastion()
 			return
 	game_state.start_new_game()
@@ -192,6 +194,7 @@ func _connect_signals() -> void:
 	_dungeon_scene.rift_completed.connect(_on_rift_completed)
 	_dungeon_scene.squad_changed.connect(_on_squad_changed)
 	_dungeon_scene.hidden_room_entered.connect(_on_hidden_room_entered)
+	_dungeon_scene.floor_changed.connect(_on_floor_changed)
 	_battle_scene.battle_finished.connect(_on_battle_finished)
 	_squad_overlay.glyph_clicked.connect(_on_squad_overlay_glyph_clicked)
 
@@ -252,6 +255,8 @@ func _on_continue() -> void:
 		return
 	_fade_to(func() -> void:
 		_bastion_scene.setup(game_state, roster_state, codex_state, crawler_state, fusion_engine, data_loader)
+		if _try_resume_rift():
+			return
 		_show_bastion()
 	)
 
@@ -263,6 +268,8 @@ func _on_load_game() -> void:
 func _on_title_slot_loaded() -> void:
 	_fade_to(func() -> void:
 		_bastion_scene.setup(game_state, roster_state, codex_state, crawler_state, fusion_engine, data_loader)
+		if _try_resume_rift():
+			return
 		_show_bastion()
 	)
 
@@ -434,6 +441,11 @@ func _on_hidden_room_entered() -> void:
 		game_state.notify_hidden_room()
 
 
+func _on_floor_changed(_floor_number: int) -> void:
+	## Auto-save on each floor transition during a rift
+	_auto_save()
+
+
 func _on_fusion_logged(_parent_a: String, _parent_b: String, _result: String) -> void:
 	if game_state != null:
 		game_state.notify_fusion()
@@ -473,6 +485,8 @@ func show_milestone_toast(text: String) -> void:
 func _on_save_slot_loaded() -> void:
 	## State objects already updated by load — re-show bastion with fresh data
 	_bastion_scene.setup(game_state, roster_state, codex_state, crawler_state, fusion_engine, data_loader)
+	if _try_resume_rift():
+		return
 	_show_bastion()
 
 
@@ -488,7 +502,34 @@ func _on_save_and_quit() -> void:
 func _auto_save() -> void:
 	if game_state == null:
 		return
-	SaveManager.save_game(game_state, roster_state, codex_state, crawler_state)
+	SaveManager.save_game(game_state, roster_state, codex_state, crawler_state, _rift_cargo)
+
+
+## --- Mid-rift resume ---
+
+func _try_resume_rift() -> bool:
+	## Check if the last load had mid-rift data. If so, resume the dungeon.
+	var rift_data: Dictionary = SaveManager.last_load_rift_data
+	if not rift_data.get("in_rift", false):
+		return false
+	var ds: DungeonState = rift_data.get("dungeon_state") as DungeonState
+	if ds == null:
+		return false
+
+	_current_rift_template = ds.rift_template
+	_rift_cargo.clear()
+	var cargo: Array = rift_data.get("rift_cargo", [])
+	for g: Variant in cargo:
+		if g is GlyphInstance:
+			_rift_cargo.append(g as GlyphInstance)
+
+	_dungeon_scene.instant_mode = instant_mode
+	_show_dungeon()
+	_dungeon_scene.start_rift(ds)
+
+	## Clear so subsequent loads don't re-trigger
+	SaveManager.last_load_rift_data = {}
+	return true
 
 
 ## --- Fade transition ---

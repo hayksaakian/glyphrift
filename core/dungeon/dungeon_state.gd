@@ -34,6 +34,17 @@ func initialize_with_floors(template: RiftTemplate, prebuilt_floors: Array[Dicti
 	_enter_floor(0)
 
 
+func restore_from_save(template: RiftTemplate, saved_floors: Array[Dictionary], floor_idx: int, room_id: String) -> void:
+	## Restore dungeon state from save — does NOT reset crawler (caller must restore crawler run state).
+	rift_template = template
+	floors = saved_floors
+	current_floor = floor_idx
+	current_room_id = room_id
+	## Don't call _enter_floor (would reset room states and emit signals).
+	## Just emit floor_changed so the UI picks up the current floor.
+	floor_changed.emit(current_floor)
+
+
 func move_to_room(room_id: String) -> bool:
 	var room: Dictionary = _get_room(current_floor, room_id)
 	if room.is_empty():

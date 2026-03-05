@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Static utility for saving/loading game state to slot-based JSON files.
 ## Autosave uses the "autosave" slot; manual slots use "slot1", "slot2", "slot3".
-## Only saves at bastion boundaries (no mid-rift saves).
+## Supports both bastion-boundary and mid-rift saves.
 
 const AUTOSAVE_SLOT: String = "autosave"
 const SAVE_VERSION: int = 1
@@ -11,6 +11,10 @@ const _LEGACY_PATH: String = "user://save.json"
 
 ## Test isolation: set non-empty so tests use separate files (e.g. "test_save_*.json").
 static var _test_prefix: String = ""
+
+## After load_from_slot, this contains mid-rift data if the save was mid-rift.
+## Keys: "in_rift" (bool), "dungeon_state" (DungeonState), "rift_cargo" (Array[GlyphInstance])
+static var last_load_rift_data: Dictionary = {}
 
 
 static func _slot_path(slot: String) -> String:
@@ -27,6 +31,7 @@ static func save_to_slot(
 	codex_state: CodexState,
 	crawler_state: CrawlerState,
 	label: String = "",
+	rift_cargo: Array[GlyphInstance] = [],
 ) -> bool:
 	var data: Dictionary = {
 		"version": SAVE_VERSION,
@@ -38,6 +43,16 @@ static func save_to_slot(
 		"crawler_state": _serialize_crawler_state(crawler_state),
 		"milestone_tracker": _serialize_milestone_tracker(game_state.milestone_tracker),
 	}
+
+	## Mid-rift save: include dungeon state + run-specific crawler state + cargo
+	if game_state.current_dungeon != null:
+		data["in_rift"] = true
+		data["dungeon_state"] = _serialize_dungeon_state(game_state.current_dungeon)
+		data["crawler_run_state"] = _serialize_crawler_run_state(crawler_state)
+		var cargo_data: Array[Dictionary] = []
+		for g: GlyphInstance in rift_cargo:
+			cargo_data.append(_serialize_glyph(g))
+		data["rift_cargo"] = cargo_data
 
 	var path: String = _slot_path(slot)
 	var json_string: String = JSON.stringify(data, "\t")
@@ -85,6 +100,30 @@ static func load_from_slot(
 	_deserialize_codex_state(data.get("codex_state", {}), codex_state)
 	_deserialize_crawler_state(data.get("crawler_state", {}), crawler_state, data_loader)
 	_deserialize_milestone_tracker(data.get("milestone_tracker", {}), game_state.milestone_tracker)
+
+	## Mid-rift restore
+	last_load_rift_data = {}
+	if data.get("in_rift", false):
+		var ds: DungeonState = _deserialize_dungeon_state(
+			data.get("dungeon_state", {}), crawler_state, data_loader
+		)
+		if ds != null:
+			## Restore crawler per-run state (hull, energy, etc.)
+			_deserialize_crawler_run_state(data.get("crawler_run_state", {}), crawler_state, data_loader)
+			## Restore rift cargo
+			var cargo: Array[GlyphInstance] = []
+			for gd: Dictionary in data.get("rift_cargo", []):
+				var g: GlyphInstance = _deserialize_glyph(gd, data_loader)
+				if g != null:
+					cargo.append(g)
+			game_state.current_dungeon = ds
+			game_state.current_state = GameState.State.RIFT
+			last_load_rift_data = {
+				"in_rift": true,
+				"dungeon_state": ds,
+				"rift_cargo": cargo,
+			}
+
 	return true
 
 
@@ -171,8 +210,9 @@ static func save_game(
 	roster_state: RosterState,
 	codex_state: CodexState,
 	crawler_state: CrawlerState,
+	rift_cargo: Array[GlyphInstance] = [],
 ) -> bool:
-	return save_to_slot(AUTOSAVE_SLOT, game_state, roster_state, codex_state, crawler_state)
+	return save_to_slot(AUTOSAVE_SLOT, game_state, roster_state, codex_state, crawler_state, "", rift_cargo)
 
 
 static func load_game(
@@ -438,3 +478,98 @@ static func _deserialize_milestone_tracker(data: Dictionary, mt: MilestoneTracke
 	for mid: Variant in data.get("completed_milestones", []):
 		mt.completed_milestones[str(mid)] = true
 	mt.hidden_rooms_found = int(data.get("hidden_rooms_found", 0))
+
+
+# --- DungeonState (mid-rift save) ---
+
+
+static func _serialize_dungeon_state(ds: DungeonState) -> Dictionary:
+	var template_id: String = ds.rift_template.rift_id if ds.rift_template else ""
+	## Deep-copy floors (rooms are mutable dicts with visited/revealed/visible state)
+	var floors_data: Array = []
+	for floor_dict: Dictionary in ds.floors:
+		var rooms_copy: Array = []
+		for room: Dictionary in floor_dict.get("rooms", []):
+			rooms_copy.append(room.duplicate(true))
+		var conns_copy: Array = []
+		for conn: Array in floor_dict.get("connections", []):
+			conns_copy.append([conn[0], conn[1]])
+		floors_data.append({
+			"rooms": rooms_copy,
+			"connections": conns_copy,
+		})
+	return {
+		"rift_template_id": template_id,
+		"current_floor": ds.current_floor,
+		"current_room_id": ds.current_room_id,
+		"floors": floors_data,
+	}
+
+
+static func _deserialize_dungeon_state(
+	data: Dictionary,
+	crawler_state: CrawlerState,
+	data_loader: Node,
+) -> DungeonState:
+	var template_id: String = str(data.get("rift_template_id", ""))
+	if template_id == "":
+		return null
+	var template: RiftTemplate = data_loader.get_rift_template(template_id)
+	if template == null:
+		push_error("SaveManager: Unknown rift template '%s'" % template_id)
+		return null
+
+	## Rebuild floors from saved data
+	var saved_floors: Array[Dictionary] = []
+	for floor_data: Variant in data.get("floors", []):
+		if floor_data is Dictionary:
+			var fd: Dictionary = floor_data as Dictionary
+			var rooms: Array[Dictionary] = []
+			for room_v: Variant in fd.get("rooms", []):
+				if room_v is Dictionary:
+					rooms.append((room_v as Dictionary).duplicate(true))
+			var conns: Array[Array] = []
+			for conn_v: Variant in fd.get("connections", []):
+				if conn_v is Array:
+					var arr: Array = conn_v as Array
+					if arr.size() >= 2:
+						conns.append([str(arr[0]), str(arr[1])])
+			saved_floors.append({"rooms": rooms, "connections": conns})
+
+	var ds: DungeonState = DungeonState.new()
+	ds.crawler = crawler_state
+	ds.restore_from_save(
+		template,
+		saved_floors,
+		int(data.get("current_floor", 0)),
+		str(data.get("current_room_id", "")),
+	)
+	return ds
+
+
+# --- Crawler per-run state (mid-rift save) ---
+
+
+static func _serialize_crawler_run_state(crs: CrawlerState) -> Dictionary:
+	var item_ids: Array[String] = []
+	for item: ItemDef in crs.items:
+		item_ids.append(item.id)
+	return {
+		"hull_hp": crs.hull_hp,
+		"energy": crs.energy,
+		"is_reinforced": crs.is_reinforced,
+		"took_hull_damage_this_run": crs.took_hull_damage_this_run,
+		"items": item_ids,
+	}
+
+
+static func _deserialize_crawler_run_state(data: Dictionary, crs: CrawlerState, data_loader: Node) -> void:
+	crs.hull_hp = int(data.get("hull_hp", crs.max_hull_hp))
+	crs.energy = int(data.get("energy", crs.max_energy))
+	crs.is_reinforced = data.get("is_reinforced", false)
+	crs.took_hull_damage_this_run = data.get("took_hull_damage_this_run", false)
+	crs.items.clear()
+	for item_id: Variant in data.get("items", []):
+		var item: ItemDef = data_loader.get_item(str(item_id))
+		if item != null:
+			crs.items.append(item)

@@ -58,6 +58,13 @@ func _run_tests() -> void:
 	_test_delete_slot()
 	_test_slot_timestamp_saved()
 
+	## Mid-rift save/load tests
+	_test_mid_rift_save_round_trip()
+	_test_mid_rift_crawler_run_state()
+	_test_mid_rift_rift_cargo()
+	_test_mid_rift_room_state_preserved()
+	_test_no_dungeon_means_bastion()
+
 	print("")
 	print("========================================")
 	var total: int = _pass_count + _fail_count
@@ -790,7 +797,7 @@ func _test_slot_timestamp_saved() -> void:
 	SaveManager.save_to_slot("slot1", gs, rs, cs, crs)
 
 	## Read raw JSON to verify timestamp field exists
-	var file: FileAccess = FileAccess.open("user://save_slot1.json", FileAccess.READ)
+	var file: FileAccess = FileAccess.open("user://test_save_slot1.json", FileAccess.READ)
 	var text: String = file.get_as_text()
 	file.close()
 	var json: JSON = JSON.new()
@@ -800,3 +807,193 @@ func _test_slot_timestamp_saved() -> void:
 	_assert(str(data["timestamp"]).length() > 0, "slot timestamp: not empty")
 
 	_cleanup([gs, rs, cs, crs])
+
+
+# --- Mid-rift save/load tests ---
+
+
+func _make_dungeon_state(crs: CrawlerState) -> DungeonState:
+	var ds: DungeonState = DungeonState.new()
+	ds.crawler = crs
+	var template: RiftTemplate = _data_loader.get_rift_template("tutorial_01")
+	## Build minimal floors for testing
+	var floor1: Dictionary = {
+		"rooms": [
+			{"id": "r1", "type": "start", "x": 0, "y": 0, "visited": true, "revealed": true, "visible": true},
+			{"id": "r2", "type": "enemy", "x": 1, "y": 0, "visited": true, "revealed": true, "visible": true},
+			{"id": "r3", "type": "exit", "x": 2, "y": 0, "visited": false, "revealed": false, "visible": true},
+		],
+		"connections": [["r1", "r2"], ["r2", "r3"]],
+	}
+	var floor2: Dictionary = {
+		"rooms": [
+			{"id": "r4", "type": "start", "x": 0, "y": 0, "visited": false, "revealed": false, "visible": false},
+			{"id": "r5", "type": "boss", "x": 1, "y": 0, "visited": false, "revealed": false, "visible": false},
+		],
+		"connections": [["r4", "r5"]],
+	}
+	ds.initialize_with_floors(template, [floor1, floor2])
+	## Move to r2 so we're mid-rift
+	ds.move_to_room("r2")
+	return ds
+
+
+func _test_mid_rift_save_round_trip() -> void:
+	print("")
+	print("--- Mid-rift: Save round-trip ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+	gs1.current_state = GameState.State.RIFT
+
+	SaveManager.save_game(gs1, rs1, cs1, crs1)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+
+	var ok: bool = SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+	_assert(ok, "mid-rift: load succeeds")
+	_assert(gs2.current_state == GameState.State.RIFT, "mid-rift: state is RIFT")
+	_assert(gs2.current_dungeon != null, "mid-rift: current_dungeon not null")
+	_assert(gs2.current_dungeon.current_room_id == "r2", "mid-rift: current room is r2")
+	_assert(gs2.current_dungeon.current_floor == 0, "mid-rift: current floor is 0")
+	_assert(gs2.current_dungeon.rift_template.rift_id == "tutorial_01", "mid-rift: template is tutorial_01")
+	_assert(SaveManager.last_load_rift_data.get("in_rift", false), "mid-rift: last_load_rift_data has in_rift")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_mid_rift_crawler_run_state() -> void:
+	print("")
+	print("--- Mid-rift: Crawler run state ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+	## Simulate mid-rift damage
+	crs1.take_hull_damage(30)
+	crs1.spend_energy(15)
+
+	SaveManager.save_game(gs1, rs1, cs1, crs1)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+	_assert(crs2.hull_hp == 70, "mid-rift crawler: hull_hp == 70")
+	_assert(crs2.energy == 35, "mid-rift crawler: energy == 35")
+	_assert(crs2.took_hull_damage_this_run == true, "mid-rift crawler: took_hull_damage_this_run")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_mid_rift_rift_cargo() -> void:
+	print("")
+	print("--- Mid-rift: Rift cargo ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+
+	var cargo_glyph: GlyphInstance = _make_glyph("sparkfin")
+	var cargo: Array[GlyphInstance] = [cargo_glyph]
+
+	SaveManager.save_game(gs1, rs1, cs1, crs1, cargo)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+	var loaded_cargo: Array = SaveManager.last_load_rift_data.get("rift_cargo", [])
+	_assert(loaded_cargo.size() == 1, "mid-rift cargo: 1 item")
+	_assert((loaded_cargo[0] as GlyphInstance).species.id == "sparkfin", "mid-rift cargo: sparkfin")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_mid_rift_room_state_preserved() -> void:
+	print("")
+	print("--- Mid-rift: Room states preserved ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+
+	SaveManager.save_game(gs1, rs1, cs1, crs1)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+	var ds2: DungeonState = gs2.current_dungeon
+	## Floor 0, room r1 was visited
+	var floor0: Dictionary = ds2.floors[0]
+	var r1_visited: bool = false
+	var r2_visited: bool = false
+	var r3_revealed: bool = false
+	for room: Dictionary in floor0["rooms"]:
+		if room["id"] == "r1":
+			r1_visited = room.get("visited", false)
+		elif room["id"] == "r2":
+			r2_visited = room.get("visited", false)
+		elif room["id"] == "r3":
+			r3_revealed = room.get("revealed", false)
+	_assert(r1_visited, "mid-rift rooms: r1 was visited")
+	_assert(r2_visited, "mid-rift rooms: r2 was visited")
+	## r3 was visible but not revealed (fog state)
+	_assert(not r3_revealed, "mid-rift rooms: r3 not revealed (foggy)")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_no_dungeon_means_bastion() -> void:
+	print("")
+	print("--- Mid-rift: No dungeon means bastion ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.current_state = GameState.State.RIFT
+	gs1.current_dungeon = null  ## No dungeon
+
+	SaveManager.save_game(gs1, rs1, cs1, crs1)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+	_assert(gs2.current_state == GameState.State.BASTION, "no dungeon: state is BASTION")
+	_assert(not SaveManager.last_load_rift_data.get("in_rift", false), "no dungeon: no rift data")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
