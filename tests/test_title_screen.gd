@@ -50,6 +50,10 @@ func _run_tests() -> void:
 	_test_main_scene_load_game_opens_popup()
 	_test_main_scene_title_slot_loaded()
 
+	## Phase progression
+	_test_phase_progression_rifts()
+	_test_phase_advancement_thresholds()
+
 	print("")
 	print("========================================")
 	print("  RESULTS: %d passed, %d failed" % [pass_count, fail_count])
@@ -549,3 +553,88 @@ func _test_main_scene_title_slot_loaded() -> void:
 	_cleanup_node(cx_save)
 	_cleanup_node(cs_save)
 	_cleanup_saves()
+
+
+# ==========================================================================
+# Phase Progression Tests
+# ==========================================================================
+
+func _test_phase_progression_rifts() -> void:
+	print("--- Phase progression: rifts available per phase ---")
+	var gs: GameState = _make_game_state()
+	var rs: RosterState = _make_roster_state()
+	var cs: CrawlerState = _make_crawler_state()
+	gs.data_loader = _data_loader
+	gs.codex_state = CodexState.new()
+	gs.roster_state = rs
+	gs.crawler_state = cs
+
+	## Phase 1: only tutorial rift
+	gs.game_phase = 1
+	var rifts1: Array[RiftTemplate] = gs.get_available_rifts()
+	_assert(rifts1.size() == 1, "Phase 1: 1 rift (tutorial)")
+	_assert(rifts1[0].id == "tutorial_01", "Phase 1: tutorial_01")
+
+	## Phase 2: tutorial + 2 minor = 3
+	gs.game_phase = 2
+	var rifts2: Array[RiftTemplate] = gs.get_available_rifts()
+	_assert(rifts2.size() == 3, "Phase 2: 3 rifts (tutorial + 2 minor)")
+
+	## Phase 3: + 2 standard = 5
+	gs.game_phase = 3
+	var rifts3: Array[RiftTemplate] = gs.get_available_rifts()
+	_assert(rifts3.size() == 5, "Phase 3: 5 rifts (+2 standard)")
+
+	## Phase 4: + 1 major = 6
+	gs.game_phase = 4
+	var rifts4: Array[RiftTemplate] = gs.get_available_rifts()
+	_assert(rifts4.size() == 6, "Phase 4: 6 rifts (+1 major)")
+
+	## Phase 5: + 1 apex = 7
+	gs.game_phase = 5
+	var rifts5: Array[RiftTemplate] = gs.get_available_rifts()
+	_assert(rifts5.size() == 7, "Phase 5: 7 rifts (+1 apex)")
+
+	_cleanup_node(gs)
+	_cleanup_node(rs)
+	_cleanup_node(cs)
+
+
+func _test_phase_advancement_thresholds() -> void:
+	print("--- Phase advancement: thresholds ---")
+	var gs: GameState = _make_game_state()
+	var rs: RosterState = _make_roster_state()
+	var cs: CrawlerState = _make_crawler_state()
+	gs.data_loader = _data_loader
+	gs.codex_state = CodexState.new()
+	gs.roster_state = rs
+	gs.crawler_state = cs
+
+	gs.game_phase = 1
+	_assert(gs.game_phase == 1, "Starts at phase 1")
+
+	## Clear 1 rift → phase 2
+	gs.codex_state.mark_rift_cleared("tutorial_01")
+	gs._check_phase_advancement()
+	_assert(gs.game_phase == 2, "Phase 2 after 1 clear")
+
+	## Clear 2 more → 3 total → phase 3
+	gs.codex_state.mark_rift_cleared("minor_01")
+	gs.codex_state.mark_rift_cleared("minor_02")
+	gs._check_phase_advancement()
+	_assert(gs.game_phase == 3, "Phase 3 after 3 clears")
+
+	## Clear 2 more → 5 total → phase 4
+	gs.codex_state.mark_rift_cleared("standard_01")
+	gs.codex_state.mark_rift_cleared("standard_02")
+	gs._check_phase_advancement()
+	_assert(gs.game_phase == 4, "Phase 4 after 5 clears")
+
+	## Clear 1 more → 6 total → phase 5
+	gs.codex_state.mark_rift_cleared("major_01")
+	gs._check_phase_advancement()
+	_assert(gs.game_phase == 5, "Phase 5 after 6 clears")
+
+	_cleanup_node(gs)
+	_cleanup_node(rs)
+	_cleanup_node(cs)

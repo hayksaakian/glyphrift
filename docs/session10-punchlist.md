@@ -2,10 +2,10 @@
 
 ## End-to-End Playthrough
 - [ ] Full playthrough: title → new game → bastion → all 7 rifts → Apex Rift boss
-- [ ] Verify phase progression unlocks correct rifts (2@1, 3@3, 4@5, 5@6)
+- [x] Verify phase progression unlocks correct rifts (2@1, 3@3, 4@5, 5@6) — 6 automated tests
 - [x] Save/load works for bastion-boundary saves (auto-save on rift entry/completion)
 - [ ] Mid-rift save/load: save dungeon state (current floor, room, crawler, HP) so quitting mid-rift doesn't lose progress
-- [ ] Verify "New Game" / "Continue" / "Load Game" flows from title screen
+- [x] Verify "New Game" / "Continue" / "Load Game" flows from title screen — covered by test_title_screen
 
 ## Crawler Upgrades (content gap)
 - [x] Milestone checking: game logic to detect when upgrade milestones are met
