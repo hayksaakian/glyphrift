@@ -44,6 +44,7 @@ var _npc_panel: NpcPanel = null
 var _back_bar: PanelContainer = null
 var _back_bar_title: Label = null
 var _mastery_hint_shown: bool = false
+var _hints_shown: Dictionary = {}  ## screen_name → true
 
 ## NPC buttons
 var _npc_kael_btn: Button = null
@@ -351,6 +352,7 @@ func _show_rift_gate() -> void:
 	_back_bar_title.text = "RIFT GATE"
 	_rift_gate.refresh()
 	_slide_in(_rift_gate)
+	_show_hint_once("rift_gate")
 
 
 func _show_barracks() -> void:
@@ -361,6 +363,7 @@ func _show_barracks() -> void:
 	_back_bar_title.text = "BARRACKS"
 	_barracks.refresh()
 	_slide_in(_barracks)
+	_show_hint_once("barracks")
 
 
 func _show_fusion() -> void:
@@ -371,6 +374,7 @@ func _show_fusion() -> void:
 	_back_bar_title.text = "FUSION CHAMBER"
 	_fusion_chamber.refresh()
 	_slide_in(_fusion_chamber)
+	_show_hint_once("fusion")
 
 
 func _show_codex() -> void:
@@ -381,6 +385,7 @@ func _show_codex() -> void:
 	_back_bar_title.text = "CODEX"
 	_codex_browser.refresh()
 	_slide_in(_codex_browser)
+	_show_hint_once("codex")
 
 
 func _show_crawler_bay() -> void:
@@ -391,6 +396,7 @@ func _show_crawler_bay() -> void:
 	_back_bar_title.text = "CRAWLER BAY"
 	_crawler_bay.refresh()
 	_slide_in(_crawler_bay)
+	_show_hint_once("crawler_bay")
 
 
 func _slide_in(screen: Control) -> void:
@@ -456,6 +462,24 @@ func _update_npc_indicators() -> void:
 			continue
 		var read_phase: int = game_state.npc_read_phase.get(npc_id, 0)
 		indicator.visible = phase > read_phase
+
+
+const SCREEN_HINTS: Dictionary = {
+	"barracks": "Manage your active squad and reserves. Drag glyphs between squad and reserve slots.",
+	"fusion": "Fuse two mastered glyphs to create a stronger species. Both parents are consumed.",
+	"codex": "Track discovered species, fusion history, and rift completions.",
+	"rift_gate": "Select a rift to explore. Clearing rifts advances the phase and unlocks new rifts.",
+	"crawler_bay": "View crawler upgrades, switch chassis, and check milestone progress.",
+}
+
+
+func _show_hint_once(screen_name: String) -> void:
+	if _hints_shown.get(screen_name, false):
+		return
+	_hints_shown[screen_name] = true
+	var hint: String = SCREEN_HINTS.get(screen_name, "")
+	if hint != "":
+		show_notification(hint, Color("#88CCFF"))
 
 
 func _make_nav_button(label_text: String) -> Button:

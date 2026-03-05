@@ -21,12 +21,12 @@
 - [x] Crawler status panel showing unlocked upgrades and milestone progress
 
 ## Balance Pass
-- [ ] Difficulty curve: T1 rifts beatable with starter squad, Apex requires fused T3+
-- [ ] Capture rates feel fair (not too easy/hard)
-- [ ] Hazard damage scaling across rift tiers
-- [ ] Boss stat modifiers feel challenging but not unfair
-- [ ] Energy economy: can you scan + use abilities without running dry?
-- [ ] Mastery objectives achievable in normal play (not too grindy)
+- [x] Difficulty curve: T1 rifts beatable with starter squad, Apex requires fused T3+ — verified via data analysis
+- [x] Capture rates feel fair (not too easy/hard) — 40% base + turn bonus, 80% cap, tested
+- [x] Hazard damage scaling across rift tiers — 10/10/10/15/15/20/25, tight but mitigated by abilities
+- [x] Boss stat modifiers feel challenging but not unfair — 1.2x for T2 bosses, 1.0x for T3+, phase 2 modest
+- [x] Energy economy: can you scan + use abilities without running dry? — 50 energy, forces choices (scan vs repair)
+- [x] Mastery objectives achievable in normal play (not too grindy) — mix of easy/medium/hard, 3-15 battles
 
 ## Bug Fixing
 - [x] Boss Phase 2 one-shot bug: skip phase transition if boss HP <= 0.
@@ -151,5 +151,5 @@ General approach: all tween-based (Godot Tween class), keep durations snappy (0.
 
 ## Tutorial (low priority)
 - [ ] Script tutorial_01 rift with guided intro (explain rooms, combat, capture)
-- [ ] First-time hints for bastion features (barracks, fusion, codex)
-- [ ] Tooltip or help text for crawler abilities
+- [x] First-time hints for bastion features — one-time notification on first visit to each sub-screen
+- [x] Tooltip or help text for crawler abilities — already implemented in CrawlerHUD.ABILITY_TOOLTIPS
