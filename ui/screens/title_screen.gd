@@ -134,7 +134,8 @@ func refresh() -> void:
 
 	var phase: int = info.get("phase", 1)
 	var glyph_count: int = info.get("glyph_count", 0)
-	_save_info_label.text = "Phase %d — %d glyphs" % [phase, glyph_count]
+	var slot_label: String = "Auto Save" if slot == SaveManager.AUTOSAVE_SLOT else slot.capitalize()
+	_save_info_label.text = "%s — Phase %d, %d glyphs" % [slot_label, phase, glyph_count]
 	_continue_btn.grab_focus()
 
 

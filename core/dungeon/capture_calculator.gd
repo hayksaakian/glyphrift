@@ -2,7 +2,7 @@ class_name CaptureCalculator
 extends RefCounted
 
 ## GDD 8.11 — Capture probability formula
-## chance = min(0.80, 0.40 + max(0, par_turns - actual_turns) * 0.10 + (0.15 if no_player_ko))
+## chance = min(0.80, 0.40 + max(0, par_turns - actual_turns) * 0.10)
 ##
 ## Par turns by enemy squad size:
 ##   1 enemy → 3 turns
@@ -11,7 +11,6 @@ extends RefCounted
 
 const BASE_CHANCE: float = 0.40
 const TURN_BONUS_PER: float = 0.10
-const NO_KO_BONUS: float = 0.15
 const MAX_CHANCE: float = 0.80
 
 const PAR_TURNS: Dictionary = {
@@ -28,8 +27,20 @@ static func get_par_turns(enemy_count: int) -> int:
 	return enemy_count * 2
 
 
-static func calculate_chance(enemy_count: int, actual_turns: int, player_had_ko: bool) -> float:
+static func calculate_chance(enemy_count: int, actual_turns: int, item_bonus: float = 0.0) -> float:
+	var bd: Dictionary = get_breakdown(enemy_count, actual_turns, item_bonus)
+	return bd["total"]
+
+
+## Returns a breakdown of all capture chance modifiers.
+static func get_breakdown(enemy_count: int, actual_turns: int, item_bonus: float = 0.0) -> Dictionary:
 	var par: int = get_par_turns(enemy_count)
 	var turn_bonus: float = maxf(0.0, float(par - actual_turns) * TURN_BONUS_PER)
-	var ko_bonus: float = 0.0 if player_had_ko else NO_KO_BONUS
-	return minf(MAX_CHANCE, BASE_CHANCE + turn_bonus + ko_bonus)
+	var total: float = minf(MAX_CHANCE, BASE_CHANCE + turn_bonus + item_bonus)
+	return {
+		"base": BASE_CHANCE,
+		"turn_bonus": turn_bonus,
+		"item_bonus": item_bonus,
+		"total": total,
+		"capped": (BASE_CHANCE + turn_bonus + item_bonus) > MAX_CHANCE,
+	}

@@ -81,7 +81,8 @@ func _run_tests() -> void:
 	_test_squad_overlay_hp_update()
 	_test_squad_overlay_color_thresholds()
 
-	## MainScene
+	## MainScene (isolate from real saves)
+	SaveManager._test_prefix = "bastion_ui_"
 	_test_main_scene_construction()
 	_test_main_scene_start_game()
 	_test_main_scene_rift_flow()
@@ -90,6 +91,7 @@ func _run_tests() -> void:
 	_test_main_scene_heal_on_return()
 	_test_main_scene_capture_flow()
 	_test_main_scene_rift_completion()
+	SaveManager._test_prefix = ""
 
 	## GlyphDetailPopup
 	_test_detail_popup_construction()
@@ -961,7 +963,7 @@ func _test_rift_gate_cleared_marker() -> void:
 
 	var found_cleared: bool = false
 	if rg._rift_panels.size() > 0:
-		found_cleared = _find_label_text_recursive(rg._rift_panels[0], "CLEARED")
+		found_cleared = _find_label_text_recursive(rg._rift_panels[0], "Cleared")
 	_assert(found_cleared, "cleared marker shown for tutorial_01")
 
 	_cleanup_node(rg)
@@ -992,9 +994,10 @@ func _test_rift_gate_enter_signal() -> void:
 	rg.rift_selected.connect(func(t: RiftTemplate) -> void: selected["value"] = t)
 
 	if rg._rift_panels.size() > 0:
-		var btn: Button = _find_button_recursive(rg._rift_panels[0], "Enter")
-		if btn != null:
-			btn.pressed.emit()
+		var click: InputEventMouseButton = InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = true
+		rg._rift_panels[0].gui_input.emit(click)
 	_assert(selected["value"] != null, "rift_selected signal fires")
 	_assert(selected["value"] is RiftTemplate, "signal passes RiftTemplate")
 
@@ -1530,7 +1533,7 @@ func _test_detail_popup_shows_glyph_info() -> void:
 	_assert(popup._stats_label.text.contains("HP:"), "stats show HP")
 	_assert(popup._stats_label.text.contains("ATK:"), "stats show ATK")
 	_assert(popup._gp_label.text.contains("GP:"), "shows GP cost")
-	_assert(popup._techniques_label.text.contains("Techniques:"), "shows techniques label")
+	_assert(popup._techniques_vbox.get_child_count() > 0, "shows technique entries")
 
 	_cleanup_node(popup)
 

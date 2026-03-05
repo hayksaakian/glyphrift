@@ -10,8 +10,10 @@ var current_room_id: String = ""
 var crawler: CrawlerState
 
 signal room_entered(room: Dictionary)
+signal room_shown(room_id: String)
 signal room_revealed(room_id: String, room_type: String)
 signal floor_changed(floor_number: int)
+signal exit_reached(floor_number: int)
 signal crawler_damaged(amount: int, remaining_hp: int)
 signal crawler_energy_spent(amount: int, remaining: int)
 signal forced_extraction()
@@ -42,14 +44,18 @@ func move_to_room(room_id: String) -> bool:
 	current_room_id = room_id
 	room["visited"] = true
 	room["revealed"] = true
+	room["visible"] = true
 	room_entered.emit(room)
+
+	## Show adjacent rooms as foggy (visible but type unknown)
+	_show_adjacent_rooms()
 
 	## Handle room type effects
 	match room["type"]:
 		"hazard":
 			_handle_hazard()
 		"exit":
-			_enter_floor(current_floor + 1)
+			exit_reached.emit(current_floor + 1)
 
 	return true
 
@@ -77,6 +83,52 @@ func use_crawler_ability(ability: String) -> bool:
 			forced_extraction.emit()
 
 	return true
+
+
+func descend() -> void:
+	_enter_floor(current_floor + 1)
+
+
+func find_path(target_id: String) -> Array[String]:
+	## BFS shortest path from current_room_id to target_id.
+	## Only traverses visible rooms. Returns room IDs (start excluded, target included).
+	if current_room_id == target_id or current_floor >= floors.size():
+		return []
+	var floor_data: Dictionary = floors[current_floor]
+
+	## Build adjacency map for visible rooms
+	var adj: Dictionary = {}
+	for room: Dictionary in floor_data["rooms"]:
+		if room.get("visible", false):
+			adj[room["id"]] = []
+	## Include current room even if not marked visible
+	if not adj.has(current_room_id):
+		adj[current_room_id] = []
+
+	for conn: Array in floor_data["connections"]:
+		var a: String = conn[0]
+		var b: String = conn[1]
+		if adj.has(a) and adj.has(b):
+			adj[a].append(b)
+			adj[b].append(a)
+
+	## BFS
+	var queue: Array = [current_room_id]
+	var came_from: Dictionary = {current_room_id: ""}
+	while not queue.is_empty():
+		var current: String = queue.pop_front()
+		if current == target_id:
+			var path: Array[String] = []
+			var step: String = target_id
+			while step != current_room_id:
+				path.push_front(step)
+				step = came_from[step]
+			return path
+		for neighbor: Variant in adj.get(current, []):
+			if not came_from.has(neighbor):
+				came_from[neighbor] = current
+				queue.append(neighbor)
+	return []
 
 
 func get_current_room() -> Dictionary:
@@ -116,12 +168,19 @@ func _enter_floor(floor_index: int) -> void:
 			current_room_id = room["id"]
 			room["visited"] = true
 			room["revealed"] = true
+			room["visible"] = true
 			break
 
-	## Reveal EXIT and BOSS rooms
-	for room: Dictionary in floor_data["rooms"]:
-		if room["type"] in ["exit", "boss"]:
-			room["revealed"] = true
+	## On final floor only, reveal boss rooms (they're the rift objective)
+	var is_final_floor: bool = floor_index == floors.size() - 1
+	if is_final_floor:
+		for room: Dictionary in floor_data["rooms"]:
+			if room["type"] == "boss":
+				room["revealed"] = true
+				room["visible"] = true
+
+	## Show adjacent rooms as foggy (visible but type unknown)
+	_show_adjacent_rooms()
 
 	floor_changed.emit(floor_index)
 
@@ -146,9 +205,20 @@ func _clear_hazard_room() -> void:
 			return
 
 
-func _reveal_adjacent_rooms() -> void:
+func _show_adjacent_rooms() -> void:
+	## Make adjacent rooms visible (foggy) without revealing their type
 	var adjacent: Array[Dictionary] = get_adjacent_rooms()
 	for room: Dictionary in adjacent:
+		if not room.get("visible", false):
+			room["visible"] = true
+			room_shown.emit(room["id"])
+
+
+func _reveal_adjacent_rooms() -> void:
+	## Fully reveal adjacent rooms (scan ability) — shows type
+	var adjacent: Array[Dictionary] = get_adjacent_rooms()
+	for room: Dictionary in adjacent:
+		room["visible"] = true
 		if not room["revealed"]:
 			room["revealed"] = true
 			room_revealed.emit(room["id"], room["type"])

@@ -123,11 +123,16 @@ func hide_result() -> void:
 
 
 func _build_ui() -> void:
+	## CenterContainer fills full rect, VBox stays compact inside it
+	var center: CenterContainer = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_PASS
+	add_child(center)
+
 	_vbox = VBoxContainer.new()
-	_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	_vbox.add_theme_constant_override("separation", 20)
-	add_child(_vbox)
+	_vbox.add_theme_constant_override("separation", 16)
+	_vbox.custom_minimum_size.x = 400.0
+	center.add_child(_vbox)
 
 	_title_label = Label.new()
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -140,11 +145,19 @@ func _build_ui() -> void:
 	_stats_label.add_theme_color_override("font_color", Color("#CCCCCC"))
 	_vbox.add_child(_stats_label)
 
-	## Mastery progress section
+	## Mastery progress section (scroll-wrapped to cap height)
+	var mastery_scroll: ScrollContainer = ScrollContainer.new()
+	mastery_scroll.custom_minimum_size.y = 0.0
+	mastery_scroll.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	mastery_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	mastery_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+	_vbox.add_child(mastery_scroll)
+
 	_mastery_section = VBoxContainer.new()
 	_mastery_section.add_theme_constant_override("separation", 4)
 	_mastery_section.visible = false
-	_vbox.add_child(_mastery_section)
+	_mastery_section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mastery_scroll.add_child(_mastery_section)
 
 	var mastery_header: Label = Label.new()
 	mastery_header.text = "-- Mastery Progress --"
@@ -153,6 +166,7 @@ func _build_ui() -> void:
 	mastery_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_mastery_section.add_child(mastery_header)
 
+	## Continue button — part of the group, not pinned separately
 	_continue_button = Button.new()
 	_continue_button.text = "Continue"
 	_continue_button.custom_minimum_size = Vector2(200, 40)

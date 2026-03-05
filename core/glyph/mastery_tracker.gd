@@ -15,6 +15,7 @@ var _battle_flags: Dictionary = {}          ## instance_id → Dictionary of fla
 var _enemy_squad: Array[GlyphInstance] = []
 var _first_actor_id: int = -1
 var _last_technique_by_glyph: Dictionary = {} ## instance_id → TechniqueDef
+var _damage_taken: Dictionary = {}           ## instance_id → int (total damage taken this battle)
 
 
 func connect_to_combat(engine: Node) -> void:
@@ -27,6 +28,17 @@ func connect_to_combat(engine: Node) -> void:
 	engine.glyph_dealt_finishing_blow.connect(_on_finishing_blow)
 	engine.status_applied.connect(_on_status_applied)
 	engine.turn_started.connect(_on_turn_started)
+
+
+func notify_capture(squad: Array[GlyphInstance]) -> void:
+	## Called by MainScene after a successful capture.
+	## Evaluates capture_participated for all squad members who took a turn.
+	for glyph: GlyphInstance in squad:
+		if not glyph.took_turn_this_battle or glyph.is_mastered:
+			continue
+		if glyph.species.tier == 4:
+			continue
+		_evaluate_objectives(glyph, "capture_occurred", {})
 
 
 func disconnect_from_combat() -> void:
@@ -81,6 +93,7 @@ func _on_battle_started(
 ) -> void:
 	_battle_flags.clear()
 	_last_technique_by_glyph.clear()
+	_damage_taken.clear()
 	_first_actor_id = -1
 	_enemy_squad = e_squad
 
@@ -112,6 +125,16 @@ func _on_battle_won(
 			func(g: GlyphInstance) -> bool: return g.took_turn_this_battle
 		)
 
+		## Check if this glyph took the most damage on the team
+		var my_damage: int = _damage_taken.get(glyph.instance_id, 0)
+		var took_most_damage: bool = my_damage > 0
+		for teammate: GlyphInstance in squad:
+			if teammate == glyph:
+				continue
+			if _damage_taken.get(teammate.instance_id, 0) >= my_damage:
+				took_most_damage = false
+				break
+
 		_evaluate_objectives(glyph, "battle_won", {
 			"turns": turns_taken,
 			"no_ko": not ko_list.has(glyph),
@@ -125,16 +148,44 @@ func _on_battle_won(
 			"finishing_blows": flags.get("finishing_blows", 0),
 			"killed_higher_tier": flags.get("killed_higher_tier", false),
 			"is_first_actor": glyph.instance_id == _first_actor_id,
+			"took_most_damage": took_most_damage,
+			"hits_while_shielded": flags.get("hits_while_shielded", 0),
+			"healed_low_hp_ally": flags.get("healed_low_hp_ally", false),
+			"killed_burned_target": flags.get("killed_burned_target", false),
+			"killed_stunned_target": flags.get("killed_stunned_target", false),
+			"null_beam_on_weakened": flags.get("null_beam_on_weakened", false),
 		})
 
 
 func _on_technique_used(
 	user: GlyphInstance,
 	technique: TechniqueDef,
-	_target: GlyphInstance,
-	_damage: int
+	target: GlyphInstance,
+	damage: int
 ) -> void:
 	_last_technique_by_glyph[user.instance_id] = technique
+
+	## Track damage taken by the target (for tank_most_damage objective)
+	if damage > 0 and target.side == "player":
+		_damage_taken[target.instance_id] = _damage_taken.get(target.instance_id, 0) + damage
+
+	## Track hits-while-shielded for brace_then_survive
+	if damage > 0 and target.side == "player" and StatusManager.has_status(target, "shield"):
+		var t_flags: Dictionary = _get_flags(target.instance_id)
+		t_flags["hits_while_shielded"] = t_flags.get("hits_while_shielded", 0) + 1
+
+	## Track heal_low_hp_ally: technique is heal_percent support, evaluate on healer
+	if technique.support_effect == "heal_percent" and target.side == "player" and user.side == "player":
+		var heal_amount: int = int(float(target.max_hp) * technique.support_value)
+		var hp_before: float = float(target.current_hp - heal_amount) / float(target.max_hp)
+		if user != target and hp_before < 0.3:
+			var u_flags: Dictionary = _get_flags(user.instance_id)
+			u_flags["healed_low_hp_ally"] = true
+
+	## Track weaken_then_null_beam: null_beam hitting a weakened target
+	if technique.id == "null_beam" and StatusManager.has_status(target, "weaken"):
+		var u_flags: Dictionary = _get_flags(user.instance_id)
+		u_flags["null_beam_on_weakened"] = true
 
 	if user.is_mastered or user.species.tier == 4:
 		return
@@ -170,6 +221,16 @@ func _on_finishing_blow(
 	if target.species.tier > attacker.species.tier:
 		flags["killed_higher_tier"] = true
 
+	## Track burn_then_kill: killed a target we previously burned
+	var burn_targets: Dictionary = flags.get("burn_targets", {})
+	if burn_targets.has(target.instance_id) and StatusManager.has_status(target, "burn"):
+		flags["killed_burned_target"] = true
+
+	## Track stun_then_kill: killed a target we previously stunned
+	var stun_targets: Dictionary = flags.get("stun_targets", {})
+	if stun_targets.has(target.instance_id) and StatusManager.has_status(target, "stun"):
+		flags["killed_stunned_target"] = true
+
 	if attacker.is_mastered or attacker.species.tier == 4:
 		return
 
@@ -190,10 +251,16 @@ func _on_status_applied(
 	for glyph_id: int in _last_technique_by_glyph:
 		var tech: TechniqueDef = _last_technique_by_glyph[glyph_id]
 		if tech.status_effect == status_id:
-			## This glyph likely applied the status
-			var applicant_id: int = glyph_id
-			## Find the actual glyph instance
-			var applicant: GlyphInstance = _find_glyph_by_id(applicant_id)
+			var applicant: GlyphInstance = _find_glyph_by_id(glyph_id)
+
+			## Track status targets for burn_then_kill and stun_then_kill
+			if applicant != null and status_id in ["burn", "stun", "weaken"]:
+				var a_flags: Dictionary = _get_flags(applicant.instance_id)
+				var key: String = "%s_targets" % status_id
+				if not a_flags.has(key):
+					a_flags[key] = {}
+				a_flags[key][target.instance_id] = true
+
 			if applicant != null and not applicant.is_mastered and applicant.species.tier != 4:
 				_evaluate_objectives(applicant, "status_applied", {
 					"status_id": status_id,
@@ -302,10 +369,31 @@ func _check_objective(
 				and event_data.get("enemy_count", 0) >= 3
 				and event_data.get("squad_no_ko", false))
 
-		## Complex species-specific objectives — stubs for prototype
-		"brace_then_survive", "tank_most_damage", "burn_then_kill", \
-		"stun_then_kill", "heal_low_hp_ally", "weaken_then_null_beam":
-			return false
+		"tank_most_damage":
+			return (event_type == "battle_won"
+				and event_data.get("no_ko", false)
+				and event_data.get("took_most_damage", false))
+
+		"brace_then_survive":
+			return (event_type == "battle_won"
+				and event_data.get("no_ko", false)
+				and event_data.get("hits_while_shielded", 0) >= params.get("attacks_to_survive", 2))
+
+		"burn_then_kill":
+			return (event_type == "battle_won"
+				and event_data.get("killed_burned_target", false))
+
+		"stun_then_kill":
+			return (event_type == "battle_won"
+				and event_data.get("killed_stunned_target", false))
+
+		"heal_low_hp_ally":
+			return (event_type == "battle_won"
+				and event_data.get("healed_low_hp_ally", false))
+
+		"weaken_then_null_beam":
+			return (event_type == "battle_won"
+				and event_data.get("null_beam_on_weakened", false))
 
 	return false
 

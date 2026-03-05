@@ -242,6 +242,15 @@ func _cleanup_bastion(bs: BastionScene) -> void:
 	_cleanup_node(fe)
 
 
+func _collect_label_text(node: Node) -> String:
+	var text: String = ""
+	if node is Label:
+		text += (node as Label).text + " "
+	for child: Node in node.get_children():
+		text += _collect_label_text(child)
+	return text
+
+
 func _cleanup_node(node: Node) -> void:
 	if node != null and is_instance_valid(node):
 		if node.get_parent() != null:
@@ -453,11 +462,12 @@ func _test_codex_fusion_log_entries() -> void:
 	cb._fusion_tab_btn.pressed.emit()
 
 	_assert(cb._fusion_vbox.get_child_count() == 1, "one fusion entry")
-	var entry: Label = cb._fusion_vbox.get_child(0) as Label
-	_assert(entry != null, "entry is a label")
-	_assert(entry.text.contains("Zapplet"), "entry contains Zapplet name")
-	_assert(entry.text.contains("Stonepaw"), "entry contains Stonepaw name")
-	_assert(entry.text.contains("Thunderclaw"), "entry contains Thunderclaw name")
+	var entry: PanelContainer = cb._fusion_vbox.get_child(0) as PanelContainer
+	_assert(entry != null, "entry is a PanelContainer")
+	var entry_text: String = _collect_label_text(entry)
+	_assert(entry_text.contains("Zapplet"), "entry contains Zapplet name")
+	_assert(entry_text.contains("Stonepaw"), "entry contains Stonepaw name")
+	_assert(entry_text.contains("Thunderclaw"), "entry contains Thunderclaw name")
 
 	_cleanup_node(cb)
 	_cleanup_node(gs)
@@ -1139,7 +1149,7 @@ func _test_dungeon_puzzle_state_exists() -> void:
 	var ds_scene: DungeonScene = DungeonScene.new()
 	root.add_child(ds_scene)
 	## PUZZLE should be a valid UIState
-	_assert(DungeonScene.UIState.PUZZLE == 6, "PUZZLE UIState exists")
+	_assert(DungeonScene.UIState.PUZZLE == 7, "PUZZLE UIState exists")
 	_cleanup_node(ds_scene)
 
 

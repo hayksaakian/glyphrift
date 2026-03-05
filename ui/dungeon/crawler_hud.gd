@@ -40,6 +40,8 @@ var _items_button: Button = null
 var _ability_buttons: Dictionary = {}  ## ability_name → Button
 var _hull_fill_style: StyleBoxFlat = null
 var _energy_fill_style: StyleBoxFlat = null
+var _effects_container: HBoxContainer = null
+var _active_effects: Dictionary = {}  ## effect_id → {label, tooltip}
 
 
 func _ready() -> void:
@@ -90,9 +92,13 @@ func _build_ui() -> void:
 	bg_style.content_margin_bottom = 4.0
 	add_theme_stylebox_override("panel", bg_style)
 
+	var outer_vbox: VBoxContainer = VBoxContainer.new()
+	outer_vbox.add_theme_constant_override("separation", 2)
+	add_child(outer_vbox)
+
 	var hbox: HBoxContainer = HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 12)
-	add_child(hbox)
+	outer_vbox.add_child(hbox)
 
 	## Hull section
 	var hull_section: HBoxContainer = _make_bar_section("Hull:", HULL_COLOR_HIGH)
@@ -102,7 +108,7 @@ func _build_ui() -> void:
 	hbox.add_child(hull_section)
 
 	## Energy section
-	var energy_section: HBoxContainer = _make_bar_section("Energy:", ENERGY_COLOR)
+	var energy_section: HBoxContainer = _make_bar_section("🔋Energy:", ENERGY_COLOR)
 	_energy_bar = energy_section.get_meta("bar")
 	_energy_label = energy_section.get_meta("label")
 	_energy_fill_style = energy_section.get_meta("fill_style")
@@ -128,6 +134,12 @@ func _build_ui() -> void:
 		btn.pressed.connect(_on_ability_pressed.bind(ability_name))
 		_ability_buttons[ability_name] = btn
 		hbox.add_child(btn)
+
+	## Active effects strip (hidden when empty)
+	_effects_container = HBoxContainer.new()
+	_effects_container.add_theme_constant_override("separation", 8)
+	_effects_container.visible = false
+	outer_vbox.add_child(_effects_container)
 
 
 func _make_bar_section(title: String, bar_color: Color) -> HBoxContainer:
@@ -215,7 +227,7 @@ func _update_abilities() -> void:
 		var btn: Button = _ability_buttons[ability_name]
 		var cost: int = crawler.get_ability_cost(ability_name)
 		var label: String = ABILITY_LABELS.get(ability_name, ability_name)
-		btn.text = "%s (%d)" % [label, cost]
+		btn.text = "%s (🔋%d)" % [label, cost]
 		var can_afford: bool = crawler.energy >= cost
 		btn.disabled = not can_afford
 		if can_afford:
@@ -235,6 +247,56 @@ func _on_energy_changed(current: int, max_e: int) -> void:
 
 func _on_item_changed(_item: ItemDef) -> void:
 	_update_items()
+
+
+func add_active_effect(effect_id: String, label_text: String, tooltip: String) -> void:
+	if _effects_container == null:
+		return
+	if _active_effects.has(effect_id):
+		return  ## Already showing
+
+	var tag: PanelContainer = PanelContainer.new()
+	var tag_style: StyleBoxFlat = StyleBoxFlat.new()
+	tag_style.bg_color = Color(0.2, 0.3, 0.2, 0.9)
+	tag_style.border_color = Color(0.4, 0.6, 0.4)
+	tag_style.set_border_width_all(1)
+	tag_style.set_corner_radius_all(4)
+	tag_style.content_margin_left = 6.0
+	tag_style.content_margin_right = 6.0
+	tag_style.content_margin_top = 1.0
+	tag_style.content_margin_bottom = 1.0
+	tag.add_theme_stylebox_override("panel", tag_style)
+	tag.tooltip_text = tooltip
+
+	var lbl: Label = Label.new()
+	lbl.text = label_text
+	lbl.add_theme_font_size_override("font_size", 11)
+	lbl.add_theme_color_override("font_color", Color("#88DD88"))
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tag.add_child(lbl)
+
+	_effects_container.add_child(tag)
+	_active_effects[effect_id] = tag
+	_effects_container.visible = true
+
+
+func remove_active_effect(effect_id: String) -> void:
+	if not _active_effects.has(effect_id):
+		return
+	var tag: PanelContainer = _active_effects[effect_id]
+	_effects_container.remove_child(tag)
+	tag.queue_free()
+	_active_effects.erase(effect_id)
+	_effects_container.visible = not _active_effects.is_empty()
+
+
+func clear_active_effects() -> void:
+	for tag: PanelContainer in _active_effects.values():
+		_effects_container.remove_child(tag)
+		tag.queue_free()
+	_active_effects.clear()
+	if _effects_container != null:
+		_effects_container.visible = false
 
 
 func _on_ability_pressed(ability_name: String) -> void:

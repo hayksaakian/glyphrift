@@ -41,6 +41,7 @@ var _affinity_label: Label = null
 var _art_initial_label: Label = null
 var _art_container: PanelContainer = null
 var _active_border: Panel = null
+var _row_badge: PanelContainer = null
 
 
 func _ready() -> void:
@@ -98,6 +99,10 @@ func refresh() -> void:
 		modulate = Color(0.4, 0.4, 0.4, 0.7)
 	else:
 		modulate = Color.WHITE
+
+	## Back-row reduction badge
+	if _row_badge != null:
+		_row_badge.visible = glyph.row_position == "back"
 
 	## Status icons
 	_refresh_statuses()
@@ -170,6 +175,8 @@ func _build_ui() -> void:
 	_art_initial_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	art_container.add_child(_art_initial_label)
 
+	## (Back-row badge added in stats column below, not overlaid on art)
+
 	## --- Right: Stats column ---
 	_vbox = VBoxContainer.new()
 	_vbox.add_theme_constant_override("separation", 1)
@@ -185,11 +192,37 @@ func _build_ui() -> void:
 	_affinity_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	_vbox.add_child(_affinity_label)
 
-	## Name
+	## Name + back-row badge on same line
+	var name_row: HBoxContainer = HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 4)
+	name_row.mouse_filter = Control.MOUSE_FILTER_PASS
+	_vbox.add_child(name_row)
+
 	_name_label = Label.new()
 	_name_label.add_theme_font_size_override("font_size", 13)
 	_name_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	_vbox.add_child(_name_label)
+	name_row.add_child(_name_label)
+
+	## Back-row reduction badge (inline, small)
+	_row_badge = PanelContainer.new()
+	_row_badge.visible = false
+	_row_badge.mouse_filter = Control.MOUSE_FILTER_PASS
+	_row_badge.tooltip_text = "Back row: melee & ranged damage reduced by 30%"
+	var badge_style: StyleBoxFlat = StyleBoxFlat.new()
+	badge_style.bg_color = Color(0.15, 0.25, 0.45, 0.8)
+	badge_style.set_corner_radius_all(3)
+	badge_style.content_margin_left = 3.0
+	badge_style.content_margin_right = 3.0
+	badge_style.content_margin_top = 0.0
+	badge_style.content_margin_bottom = 0.0
+	_row_badge.add_theme_stylebox_override("panel", badge_style)
+	var badge_label: Label = Label.new()
+	badge_label.text = "\u221230%"
+	badge_label.add_theme_font_size_override("font_size", 9)
+	badge_label.add_theme_color_override("font_color", Color("#88AAFF"))
+	badge_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_row_badge.add_child(badge_label)
+	name_row.add_child(_row_badge)
 
 	## HP bar + label on same line
 	var hp_row: HBoxContainer = HBoxContainer.new()

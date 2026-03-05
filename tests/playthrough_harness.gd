@@ -302,6 +302,9 @@ func _do_move(dungeon: DungeonState, room: Dictionary) -> void:
 		rtype = "cleared"
 	print("[MOVE] → %s (%s)" % [rid, rtype])
 	dungeon.move_to_room(rid)
+	## Exit rooms now emit exit_reached instead of auto-advancing — call descend()
+	if rtype == "exit":
+		dungeon.descend()
 
 
 ## --- Utilities ---

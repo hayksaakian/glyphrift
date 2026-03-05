@@ -6,18 +6,27 @@ extends Control
 ## Listens to DungeonState signals to update room visuals.
 
 signal room_clicked(room_id: String)
+signal room_hovered(room_id: String)
+signal room_hover_exited()
 
 const CELL_SIZE: int = 100
 const LINE_COLOR_REVEALED: Color = Color("#888888")
 const LINE_COLOR_UNREVEALED: Color = Color("#333333")
 const LINE_WIDTH: float = 2.0
+const PREVIEW_LINE_COLOR: Color = Color(0, 0.87, 0.87, 0.5)
+const PREVIEW_LINE_WIDTH: float = 3.0
 
 var dungeon_state: DungeonState = null
+var instant_mode: bool = false
 
 var _room_nodes: Dictionary = {}  ## room_id → RoomNode
 var _connection_lines: Array[Line2D] = []
 var _map_container: Control = null
 var _lines_container: Control = null
+var _token_container: Control = null
+var _crawler_token: CrawlerToken = null
+var _preview_line: Line2D = null
+var _preview_room_ids: Array[String] = []
 var _offset: Vector2 = Vector2.ZERO
 
 
@@ -36,6 +45,23 @@ func _ready() -> void:
 	_map_container.mouse_filter = Control.MOUSE_FILTER_PASS
 	add_child(_map_container)
 
+	_token_container = Control.new()
+	_token_container.name = "Token"
+	_token_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_token_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_token_container)
+
+	_crawler_token = CrawlerToken.new()
+	_crawler_token.instant_mode = instant_mode
+	_token_container.add_child(_crawler_token)
+
+	_preview_line = Line2D.new()
+	_preview_line.name = "PreviewLine"
+	_preview_line.default_color = PREVIEW_LINE_COLOR
+	_preview_line.width = PREVIEW_LINE_WIDTH
+	_preview_line.visible = false
+	_lines_container.add_child(_preview_line)
+
 
 func build_floor(floor_data: Dictionary, p_dungeon_state: DungeonState) -> void:
 	dungeon_state = p_dungeon_state
@@ -44,6 +70,13 @@ func build_floor(floor_data: Dictionary, p_dungeon_state: DungeonState) -> void:
 	_spawn_rooms(floor_data)
 	_draw_connections(floor_data)
 	_update_adjacency()
+
+	## Update token instant_mode and place on start room
+	if _crawler_token != null:
+		_crawler_token.instant_mode = instant_mode
+		var start_id: String = dungeon_state.current_room_id if dungeon_state != null else ""
+		if start_id != "" and _room_nodes.has(start_id):
+			_crawler_token.teleport_to(get_room_center(start_id))
 
 
 func update_room(room_id: String) -> void:
@@ -68,6 +101,10 @@ func set_current_room(room_id: String) -> void:
 			## Revert previous current room to visited
 			node.set_state(RoomNode.RoomState.VISITED)
 	_update_adjacency()
+
+	## Move token to current room
+	if _crawler_token != null and _room_nodes.has(room_id):
+		_crawler_token.teleport_to(get_room_center(room_id))
 
 
 func refresh_all() -> void:
@@ -157,7 +194,10 @@ func _spawn_rooms(floor_data: Dictionary) -> void:
 			float(int(room["y"]) * CELL_SIZE) + _offset.y,
 		)
 		node.room_clicked.connect(_on_room_clicked)
-		_room_nodes[room["id"]] = node
+		var rid: String = room["id"]
+		node.mouse_entered.connect(_on_room_mouse_entered.bind(rid))
+		node.mouse_exited.connect(_on_room_mouse_exited)
+		_room_nodes[rid] = node
 
 
 func _draw_connections(floor_data: Dictionary) -> void:
@@ -187,12 +227,15 @@ func _update_line_colors() -> void:
 	for line: Line2D in _connection_lines:
 		var from_id: String = line.get_meta("from_id")
 		var to_id: String = line.get_meta("to_id")
-		var from_revealed: bool = _room_nodes.has(from_id) and _room_nodes[from_id].state != RoomNode.RoomState.UNREVEALED
-		var to_revealed: bool = _room_nodes.has(to_id) and _room_nodes[to_id].state != RoomNode.RoomState.UNREVEALED
-		if from_revealed and to_revealed:
-			line.default_color = LINE_COLOR_REVEALED
+		var from_visible: bool = _room_nodes.has(from_id) and _room_nodes[from_id].state != RoomNode.RoomState.UNREVEALED
+		var to_visible: bool = _room_nodes.has(to_id) and _room_nodes[to_id].state != RoomNode.RoomState.UNREVEALED
+		if from_visible and to_visible:
+			line.visible = true
+			var from_revealed: bool = _room_nodes[from_id].state in [RoomNode.RoomState.REVEALED, RoomNode.RoomState.VISITED, RoomNode.RoomState.CURRENT]
+			var to_revealed: bool = _room_nodes[to_id].state in [RoomNode.RoomState.REVEALED, RoomNode.RoomState.VISITED, RoomNode.RoomState.CURRENT]
+			line.default_color = LINE_COLOR_REVEALED if (from_revealed and to_revealed) else LINE_COLOR_UNREVEALED
 		else:
-			line.default_color = LINE_COLOR_UNREVEALED
+			line.visible = false
 
 
 func _update_adjacency() -> void:
@@ -221,3 +264,59 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_room_clicked(room_id: String) -> void:
 	room_clicked.emit(room_id)
+
+
+func _on_room_mouse_entered(room_id: String) -> void:
+	room_hovered.emit(room_id)
+
+
+func _on_room_mouse_exited() -> void:
+	room_hover_exited.emit()
+
+
+func get_room_center(room_id: String) -> Vector2:
+	if not _room_nodes.has(room_id):
+		return Vector2.ZERO
+	var node: RoomNode = _room_nodes[room_id]
+	return node.position + Vector2(32, 28)
+
+
+func show_path_preview(path: Array[String]) -> void:
+	clear_path_preview()
+	if path.is_empty():
+		return
+
+	_preview_room_ids = path.duplicate()
+
+	## Highlight rooms along the path
+	for rid: String in path:
+		if _room_nodes.has(rid):
+			_room_nodes[rid].set_preview_highlight(true)
+
+	## Draw preview line from current room through path
+	_preview_line.clear_points()
+	var current_id: String = dungeon_state.current_room_id if dungeon_state != null else ""
+	if current_id != "" and _room_nodes.has(current_id):
+		_preview_line.add_point(get_room_center(current_id))
+	for rid: String in path:
+		if _room_nodes.has(rid):
+			_preview_line.add_point(get_room_center(rid))
+	_preview_line.visible = _preview_line.get_point_count() >= 2
+
+
+func clear_path_preview() -> void:
+	for rid: String in _preview_room_ids:
+		if _room_nodes.has(rid):
+			_room_nodes[rid].set_preview_highlight(false)
+	_preview_room_ids.clear()
+	if _preview_line != null:
+		_preview_line.clear_points()
+		_preview_line.visible = false
+
+
+func animate_token_to(room_id: String, on_complete: Callable = Callable()) -> void:
+	if _crawler_token == null or not _room_nodes.has(room_id):
+		if on_complete.is_valid():
+			on_complete.call()
+		return
+	_crawler_token.move_to(get_room_center(room_id), on_complete)

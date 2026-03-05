@@ -13,6 +13,7 @@ signal squad_changed()
 
 enum UIState {
 	EXPLORING,
+	MOVING,
 	POPUP,
 	COMBAT,
 	CAPTURE,
@@ -27,6 +28,7 @@ var _state: UIState = UIState.EXPLORING
 
 var roster_state: RosterState = null  ## Injectable — for item use
 var codex_state: CodexState = null  ## Injectable — for conduit reveal reward
+var _squad_overlay: Variant = null  ## Set by MainScene — for ward charm glyph effects
 
 ## Puzzle overlays
 var _puzzle_sequence: PuzzleSequence = null
@@ -45,6 +47,15 @@ var _swap_vbox: VBoxContainer = null
 var _swap_pending_item: ItemDef = null
 var _swap_source: String = ""  ## "cache" or "puzzle"
 
+## Active item bonuses (consumed after next combat)
+var _capture_item_bonus: float = 0.0
+var _ward_charm_active: bool = false
+
+## Last combat stats (for capture calculation)
+var _last_enemy_count: int = 1
+var _last_turns: int = 3
+var _boss_capture_pending: bool = false  ## Show rift result after boss capture dismissal
+
 var _background: ColorRect = null
 var _floor_map: FloorMap = null
 var _crawler_hud: CrawlerHUD = null
@@ -62,6 +73,20 @@ var _result_continue: Button = null
 var _result_won: bool = false
 var _warped_out: bool = false
 
+## Exit overlay
+var _exit_overlay: ColorRect = null
+var _exit_title: Label = null
+var _exit_description: Label = null
+var _exit_descend_btn: Button = null
+var _exit_stay_btn: Button = null
+var _exit_target_floor: int = -1
+
+var _pre_combat_room_id: String = ""
+
+const BATTLE_LOSS_HULL_DAMAGE: int = 15
+const BATTLE_LOSS_REVIVE_PCT: float = 0.3
+
+var _walk_queue: Array[String] = []
 var _dungeon_connections: Array[Dictionary] = []
 
 
@@ -74,6 +99,9 @@ func _ready() -> void:
 func start_rift(p_dungeon_state: DungeonState) -> void:
 	dungeon_state = p_dungeon_state
 	_connect_dungeon_signals()
+
+	## Pass instant_mode to floor map
+	_floor_map.instant_mode = instant_mode
 
 	## Show rift name
 	if dungeon_state.rift_template != null:
@@ -94,8 +122,17 @@ func get_ui_state() -> UIState:
 	return _state
 
 
-func on_combat_finished(won: bool, enemies: Array[GlyphInstance]) -> void:
+func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3) -> void:
 	## Called by parent after combat ends
+	_last_enemy_count = maxi(1, enemies.size())
+	_last_turns = turns
+
+	## Consume ward charm (single-use per battle)
+	if _ward_charm_active:
+		_ward_charm_active = false
+		_crawler_hud.remove_active_effect("status_immunity")
+		if roster_state != null and not roster_state.active_squad.is_empty():
+			_squad_overlay.clear_glyph_effect(roster_state.active_squad[0])
 
 	## Handle echo battle flow
 	if _echo_battle_active:
@@ -105,24 +142,16 @@ func on_combat_finished(won: bool, enemies: Array[GlyphInstance]) -> void:
 			_clear_current_room("Defeated echo glyph.")
 			_show_capture_with_chance(_echo_glyph, 1.0)
 		else:
-			## Loss or no echo glyph — just clear and return
+			## Loss — apply GDD 8.13 penalty
 			_clear_current_room("Echo faded away.")
-			if _is_squad_wiped():
-				_warped_out = false
-				_show_result(false)
-			else:
-				_state = UIState.EXPLORING
+			_room_popup.hide_popup()
+			_apply_battle_loss_penalty()
 		_echo_glyph = null
 		return
 
 	if not won:
 		_room_popup.hide_popup()
-		## Check if entire squad is wiped — force extraction
-		if _is_squad_wiped():
-			_warped_out = false
-			_show_result(false)
-		else:
-			_state = UIState.EXPLORING
+		_apply_battle_loss_penalty()
 		return
 
 	## Mark current room as cleared so it doesn't retrigger
@@ -136,6 +165,14 @@ func on_combat_finished(won: bool, enemies: Array[GlyphInstance]) -> void:
 			break
 
 	if was_boss:
+		## On re-runs (rift already cleared), offer boss capture before result
+		var rift_id: String = dungeon_state.rift_template.rift_id if dungeon_state.rift_template != null else ""
+		if rift_id != "" and codex_state != null and codex_state.is_rift_cleared(rift_id):
+			var boss_glyph: GlyphInstance = enemies[0] if not enemies.is_empty() else null
+			if boss_glyph != null:
+				_boss_capture_pending = true
+				_show_capture(boss_glyph)
+				return
 		_show_result(true)
 		return
 
@@ -318,6 +355,68 @@ func _build_scene_tree() -> void:
 	_puzzle_echo.name = "PuzzleEcho"
 	add_child(_puzzle_echo)
 
+	## Exit overlay (stairs choice — Descend / Stay)
+	_exit_overlay = ColorRect.new()
+	_exit_overlay.name = "ExitOverlay"
+	_exit_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_exit_overlay.color = Color(0, 0, 0, 0.7)
+	_exit_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_exit_overlay.visible = false
+	add_child(_exit_overlay)
+
+	var exit_panel: PanelContainer = PanelContainer.new()
+	exit_panel.set_anchors_preset(Control.PRESET_CENTER)
+	exit_panel.custom_minimum_size = Vector2(280, 160)
+	exit_panel.offset_left = -140.0
+	exit_panel.offset_right = 140.0
+	exit_panel.offset_top = -80.0
+	exit_panel.offset_bottom = 80.0
+	var exit_style: StyleBoxFlat = StyleBoxFlat.new()
+	exit_style.bg_color = Color("#1A1A2E")
+	exit_style.set_corner_radius_all(8)
+	exit_style.border_color = Color("#FFD700")
+	exit_style.set_border_width_all(2)
+	exit_style.content_margin_left = 16
+	exit_style.content_margin_right = 16
+	exit_style.content_margin_top = 12
+	exit_style.content_margin_bottom = 12
+	exit_panel.add_theme_stylebox_override("panel", exit_style)
+	_exit_overlay.add_child(exit_panel)
+
+	var exit_vbox: VBoxContainer = VBoxContainer.new()
+	exit_vbox.add_theme_constant_override("separation", 10)
+	exit_panel.add_child(exit_vbox)
+
+	_exit_title = Label.new()
+	_exit_title.text = "Stairs Down"
+	_exit_title.add_theme_font_size_override("font_size", 18)
+	_exit_title.add_theme_color_override("font_color", Color("#FFD700"))
+	_exit_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	exit_vbox.add_child(_exit_title)
+
+	_exit_description = Label.new()
+	_exit_description.text = "Descend to the next floor?"
+	_exit_description.add_theme_font_size_override("font_size", 13)
+	_exit_description.add_theme_color_override("font_color", Color("#AAAAAA"))
+	_exit_description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_exit_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	exit_vbox.add_child(_exit_description)
+
+	var exit_btn_row: HBoxContainer = HBoxContainer.new()
+	exit_btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	exit_btn_row.add_theme_constant_override("separation", 16)
+	exit_vbox.add_child(exit_btn_row)
+
+	_exit_descend_btn = Button.new()
+	_exit_descend_btn.text = "Descend"
+	_exit_descend_btn.custom_minimum_size = Vector2(100, 36)
+	exit_btn_row.add_child(_exit_descend_btn)
+
+	_exit_stay_btn = Button.new()
+	_exit_stay_btn.text = "Stay"
+	_exit_stay_btn.custom_minimum_size = Vector2(100, 36)
+	exit_btn_row.add_child(_exit_stay_btn)
+
 	## Floor transition overlay (full screen, hidden)
 	_floor_overlay = ColorRect.new()
 	_floor_overlay.name = "FloorOverlay"
@@ -373,6 +472,8 @@ func _build_scene_tree() -> void:
 
 func _connect_internal_signals() -> void:
 	_floor_map.room_clicked.connect(_on_room_clicked)
+	_floor_map.room_hovered.connect(_on_room_hovered)
+	_floor_map.room_hover_exited.connect(_on_room_hover_exited)
 	_room_popup.action_pressed.connect(_on_popup_action)
 	_crawler_hud.ability_pressed.connect(_on_ability_pressed)
 	_crawler_hud.items_pressed.connect(_on_items_pressed)
@@ -381,6 +482,15 @@ func _connect_internal_signals() -> void:
 	_capture_popup.dismissed.connect(_on_capture_dismissed)
 	_item_popup.closed.connect(_on_item_popup_closed)
 	_item_popup.item_used.connect(_on_item_used)
+
+	## Exit overlay signals
+	_exit_descend_btn.pressed.connect(_on_exit_descend)
+	_exit_stay_btn.pressed.connect(_on_exit_stay)
+
+	## Click-outside-to-close on modal backdrops
+	_exit_overlay.gui_input.connect(_on_backdrop_click.bind(_on_exit_stay))
+	_repair_overlay.gui_input.connect(_on_backdrop_click.bind(_hide_repair_picker))
+	_swap_overlay.gui_input.connect(_on_backdrop_click.bind(_on_swap_leave))
 
 	## Puzzle signals
 	_puzzle_sequence.puzzle_completed.connect(_on_puzzle_completed)
@@ -394,8 +504,10 @@ func _connect_dungeon_signals() -> void:
 	_disconnect_dungeon_signals()
 	var connections: Array[Array] = [
 		["room_entered", _on_room_entered],
+		["room_shown", _on_room_shown],
 		["room_revealed", _on_room_revealed],
 		["floor_changed", _on_floor_changed],
+		["exit_reached", _on_exit_reached],
 		["crawler_damaged", _on_crawler_damaged],
 		["forced_extraction", _on_forced_extraction],
 	]
@@ -432,13 +544,101 @@ func _rebuild_floor() -> void:
 func _on_room_clicked(room_id: String) -> void:
 	if _state != UIState.EXPLORING:
 		return
-	## Only allow moving to adjacent rooms
+	if dungeon_state == null:
+		return
+
+	## Clear any path preview
+	_floor_map.clear_path_preview()
+
+	## Direct adjacent move (fast path)
 	var adjacent_ids: Dictionary = {}
 	for room: Dictionary in dungeon_state.get_adjacent_rooms():
 		adjacent_ids[room["id"]] = true
-	if not adjacent_ids.has(room_id):
+	if adjacent_ids.has(room_id):
+		_walk_path([room_id] as Array[String])
 		return
-	dungeon_state.move_to_room(room_id)
+	## Non-adjacent: pathfind and walk step by step
+	var path: Array[String] = dungeon_state.find_path(room_id)
+	if path.is_empty():
+		return
+	_walk_path(path)
+
+
+func _walk_path(path: Array[String]) -> void:
+	## Walk along a BFS path, stopping early if a room triggers a blocking event.
+	if instant_mode:
+		## Synchronous walk — preserves existing test behavior
+		for room_id: String in path:
+			if _state != UIState.EXPLORING:
+				break
+			_pre_combat_room_id = dungeon_state.current_room_id
+			if not dungeon_state.move_to_room(room_id):
+				break
+		return
+
+	## Animated walk
+	_walk_queue = []
+	for rid: String in path:
+		_walk_queue.append(rid)
+	_state = UIState.MOVING
+	_walk_next_step()
+
+
+func _walk_next_step() -> void:
+	if _walk_queue.is_empty():
+		if _state == UIState.MOVING:
+			_state = UIState.EXPLORING
+		return
+
+	var next_id: String = _walk_queue[0]
+	_walk_queue.remove_at(0)
+
+	_floor_map.animate_token_to(next_id, func() -> void:
+		## Move in dungeon state (fires room_entered → _on_room_entered)
+		_pre_combat_room_id = dungeon_state.current_room_id
+		dungeon_state.move_to_room(next_id)
+
+		## If a blocking event occurred (popup, combat, etc.), stop walking
+		if _state != UIState.MOVING:
+			_walk_queue.clear()
+			return
+
+		_walk_next_step()
+	)
+
+
+func _on_room_hovered(room_id: String) -> void:
+	if _state != UIState.EXPLORING:
+		return
+	if dungeon_state == null:
+		return
+	## Only show preview for visible rooms
+	if not _room_nodes_visible(room_id):
+		return
+	var path: Array[String] = dungeon_state.find_path(room_id)
+	if path.is_empty():
+		## Adjacent room — show just that room
+		var adjacent_ids: Dictionary = {}
+		for room: Dictionary in dungeon_state.get_adjacent_rooms():
+			adjacent_ids[room["id"]] = true
+		if adjacent_ids.has(room_id) and room_id != dungeon_state.current_room_id:
+			_floor_map.show_path_preview([room_id] as Array[String])
+		return
+	_floor_map.show_path_preview(path)
+
+
+func _on_room_hover_exited() -> void:
+	_floor_map.clear_path_preview()
+
+
+func _room_nodes_visible(room_id: String) -> bool:
+	if dungeon_state == null:
+		return false
+	var floor_data: Dictionary = dungeon_state.floors[dungeon_state.current_floor]
+	for room: Dictionary in floor_data["rooms"]:
+		if room["id"] == room_id:
+			return room.get("visible", false) or room.get("visited", false) or room.get("revealed", false)
+	return false
 
 
 func _on_room_entered(room: Dictionary) -> void:
@@ -469,9 +669,14 @@ func _on_room_entered(room: Dictionary) -> void:
 					extra = species.name
 		_room_popup.show_room(room, extra)
 	elif room_type == "exit":
-		## Exit room triggers floor transition via DungeonState.move_to_room
-		## which calls _enter_floor internally — floor_changed signal handles it
+		## Exit handled via exit_reached signal → shows Descend/Stay popup
 		pass
+
+
+func _on_room_shown(room_id: String) -> void:
+	## Room became visible (foggy) — update map display
+	_floor_map.update_room(room_id)
+	_floor_map.refresh_all()
 
 
 func _on_room_revealed(room_id: String, room_type: String) -> void:
@@ -508,6 +713,24 @@ func _on_forced_extraction() -> void:
 	else:
 		_warped_out = false
 	_show_result(false)
+
+
+func _on_exit_reached(next_floor: int) -> void:
+	_exit_target_floor = next_floor
+	_exit_description.text = "Descend to Floor %d?" % (next_floor + 1)
+	_exit_overlay.visible = true
+	_state = UIState.POPUP
+
+
+func _on_exit_descend() -> void:
+	_exit_overlay.visible = false
+	if dungeon_state != null:
+		dungeon_state.descend()
+
+
+func _on_exit_stay() -> void:
+	_exit_overlay.visible = false
+	_state = UIState.EXPLORING
 
 
 func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
@@ -577,12 +800,20 @@ func _on_capture_attempted(glyph: GlyphInstance, success: bool) -> void:
 
 func _on_capture_released(_glyph: GlyphInstance) -> void:
 	_capture_popup.hide_popup()
-	_state = UIState.EXPLORING
+	if _boss_capture_pending:
+		_boss_capture_pending = false
+		_show_result(true)
+	else:
+		_state = UIState.EXPLORING
 
 
 func _on_capture_dismissed() -> void:
 	_capture_popup.hide_popup()
-	_state = UIState.EXPLORING
+	if _boss_capture_pending:
+		_boss_capture_pending = false
+		_show_result(true)
+	else:
+		_state = UIState.EXPLORING
 
 
 func _on_items_pressed() -> void:
@@ -600,12 +831,38 @@ func _on_item_popup_closed() -> void:
 	_crawler_hud.refresh()
 
 
-func _on_item_used(_item: ItemDef) -> void:
+func _on_item_used(item: ItemDef) -> void:
+	if item.effect_type == "capture_bonus":
+		_capture_item_bonus += item.effect_value / 100.0
+		_crawler_hud.add_active_effect("capture_bonus",
+			"Echo Lure +%d%%" % int(item.effect_value),
+			"Capture chance increased by %d%% for the next battle." % int(item.effect_value))
+	elif item.effect_type == "status_immunity":
+		_ward_charm_active = true
+		## Apply immunity to first squad glyph for next battle
+		if roster_state != null and not roster_state.active_squad.is_empty():
+			var target: GlyphInstance = roster_state.active_squad[0]
+			for status_id: String in ["burn", "stun", "slow", "weaken", "corrode"]:
+				target.status_immunities[status_id] = 1
+			_squad_overlay.set_glyph_effect(target, "\U0001f6e1", "Ward: blocks next status effect")
+		_crawler_hud.add_active_effect("status_immunity",
+			"Ward Charm",
+			"Next status effect on %s will be blocked." % (
+				roster_state.active_squad[0].species.name if roster_state != null and not roster_state.active_squad.is_empty() else "first glyph"
+			))
 	_crawler_hud.refresh()
 	squad_changed.emit()
 
 
 ## --- Helpers ---
+
+
+func _on_backdrop_click(event: InputEvent, dismiss_fn: Callable) -> void:
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			dismiss_fn.call()
+
 
 ## Instant mode for headless testing — skips transition animation
 var instant_mode: bool = false
@@ -677,9 +934,13 @@ func _on_result_continue() -> void:
 
 func _show_capture(glyph: GlyphInstance) -> void:
 	_state = UIState.CAPTURE
-	## Calculate capture chance (stub values for enemy_count=1, turns=3, no_ko=true)
-	var chance: float = CaptureCalculator.calculate_chance(1, 3, false)
-	_capture_popup.show_capture(glyph, chance)
+	var breakdown: Dictionary = CaptureCalculator.get_breakdown(
+		_last_enemy_count, _last_turns, _capture_item_bonus
+	)
+	_capture_popup.show_capture(glyph, breakdown["total"], breakdown)
+	## Consume capture bonus after use (single-use per item description)
+	_capture_item_bonus = 0.0
+	_crawler_hud.remove_active_effect("capture_bonus")
 
 
 func _is_squad_wiped() -> bool:
@@ -689,6 +950,34 @@ func _is_squad_wiped() -> bool:
 		if not g.is_knocked_out:
 			return false
 	return true
+
+
+func _apply_battle_loss_penalty() -> void:
+	## GDD 8.13: Revive KO'd glyphs at 30%, take 15 hull damage, push back to previous room
+	if roster_state != null:
+		for g: GlyphInstance in roster_state.active_squad:
+			if g.is_knocked_out:
+				g.is_knocked_out = false
+				g.current_hp = maxi(1, int(float(g.max_hp) * BATTLE_LOSS_REVIVE_PCT))
+		squad_changed.emit()
+
+	## Hull damage
+	if dungeon_state != null and dungeon_state.crawler != null:
+		dungeon_state.crawler.take_hull_damage(BATTLE_LOSS_HULL_DAMAGE)
+		_crawler_hud.refresh()
+
+		## If hull destroyed → forced extraction
+		if dungeon_state.crawler.hull_hp <= 0:
+			_warped_out = false
+			_show_result(false)
+			return
+
+	## Push back to pre-combat room (enemy resets by staying uncleared)
+	if _pre_combat_room_id != "" and dungeon_state != null and _pre_combat_room_id != dungeon_state.current_room_id:
+		dungeon_state.current_room_id = _pre_combat_room_id
+		_floor_map.set_current_room(_pre_combat_room_id)
+
+	_state = UIState.EXPLORING
 
 
 func _generate_scan_info(room_id: String) -> void:

@@ -57,6 +57,7 @@ var _turn_portraits: Array[GlyphPortrait] = []
 var _attack_button: Button = null
 var _guard_button: Button = null
 var _swap_button: Button = null
+var _flee_button: Button = null
 
 ## Track squads
 var _player_squad: Array[GlyphInstance] = []
@@ -71,7 +72,7 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	## Free buttons that may be orphaned (removed from tree but not freed)
-	for btn: Button in [_guard_button, _swap_button, _attack_button]:
+	for btn: Button in [_guard_button, _swap_button, _attack_button, _flee_button]:
 		if btn != null and btn.get_parent() == null:
 			btn.free()
 
@@ -310,6 +311,11 @@ func _build_action_buttons() -> void:
 	_swap_button.text = "Move Row"
 	_swap_button.custom_minimum_size = Vector2(200, 34)
 	_swap_button.pressed.connect(_on_swap_pressed)
+
+	_flee_button = Button.new()
+	_flee_button.text = "Flee"
+	_flee_button.custom_minimum_size = Vector2(200, 34)
+	_flee_button.pressed.connect(_on_flee_pressed)
 
 	## Keep _attack_button non-null for backward compat (tests)
 	_attack_button = Button.new()
@@ -559,8 +565,8 @@ func _on_turn_queue_updated(queue: Array[GlyphInstance]) -> void:
 	_refresh_turn_order(queue)
 
 
-func _on_phase_transition(boss: GlyphInstance) -> void:
-	_animation_queue.enqueue("phase_transition", {"boss": boss}, 0.1)
+func _on_phase_transition(boss: GlyphInstance, changes: Dictionary) -> void:
+	_animation_queue.enqueue("phase_transition", {"boss": boss, "changes": changes}, 0.1)
 
 
 func _on_burn_damage(glyph: GlyphInstance, damage: int) -> void:
@@ -609,7 +615,7 @@ func _process_queued_event(event: Dictionary) -> void:
 		"swap":
 			_handle_swap_visual(data["glyph"])
 		"phase_transition":
-			_handle_phase_transition_visual(data["boss"])
+			_handle_phase_transition_visual(data["boss"], data.get("changes", {}))
 		"battle_won":
 			_handle_battle_won_visual(data["turns"], data["kos"])
 		"battle_lost":
@@ -641,10 +647,9 @@ func _handle_technique_used_visual(user: GlyphInstance, technique: TechniqueDef,
 
 	if technique.category == "support":
 		if technique.support_effect == "heal_percent" or technique.support_effect == "heal_percent_all":
-			var healed: int = target.current_hp  ## Already applied by engine
-			_combat_log.add_entry("%s heals %s!" % [user_name, target_name], Color("#44FF44"))
+			_combat_log.add_entry("%s heals %s for %d HP!" % [user_name, target_name, damage], Color("#44FF44"))
 			_refresh_panel(target)
-			_spawn_damage_number(target, 0, "heal")
+			_spawn_damage_number(target, damage, "heal")
 		elif technique.support_effect == "shield":
 			_combat_log.add_entry("%s shields %s!" % [user_name, target_name], Color("#00DDDD"))
 			_refresh_panel(target)
@@ -653,12 +658,16 @@ func _handle_technique_used_visual(user: GlyphInstance, technique: TechniqueDef,
 			_combat_log.add_entry("%s uses %s on %s!" % [user_name, technique.name, target_name], Color("#44AAFF"))
 			_refresh_panel(target)
 	else:
-		_combat_log.add_entry("%s uses %s on %s for %d damage!" % [
+		var row_reduced: bool = target.row_position == "back" and technique.range_type in ["melee", "ranged"]
+		var log_msg: String = "%s uses %s on %s for %d damage!" % [
 			user_name, technique.name, target_name, damage
-		], Color.WHITE)
+		]
+		if row_reduced:
+			log_msg += " (reduced)"
+		_combat_log.add_entry(log_msg, Color.WHITE)
 		_refresh_panel(target)
 		if damage > 0:
-			_spawn_damage_number(target, damage, "damage")
+			_spawn_damage_number(target, damage, "damage", row_reduced)
 			if _panels.has(target.instance_id):
 				(_panels[target.instance_id] as GlyphPanel).flash_damage()
 
@@ -692,10 +701,18 @@ func _handle_swap_visual(glyph: GlyphInstance) -> void:
 	_rebuild_row_panels()
 
 
-func _handle_phase_transition_visual(boss: GlyphInstance) -> void:
-	var name: String = boss.species.name if boss.species else "???"
-	_combat_log.add_entry("%s enters PHASE 2!" % name, Color("#FF4444"))
-	_phase_overlay.play_transition()
+func _handle_phase_transition_visual(boss: GlyphInstance, changes: Dictionary = {}) -> void:
+	var boss_name: String = boss.species.name if boss.species else "???"
+	_combat_log.add_entry("%s enters PHASE 2!" % boss_name, Color("#FF4444"))
+	## Log individual changes
+	if changes.has("atk"):
+		_combat_log.add_entry("  ATK %s" % changes["atk"], Color("#FFAAAA"))
+	if changes.has("spd"):
+		_combat_log.add_entry("  SPD %s" % changes["spd"], Color("#FFAAAA"))
+	if changes.has("new_techniques"):
+		for t_name: Variant in changes["new_techniques"]:
+			_combat_log.add_entry("  New technique: %s" % str(t_name), Color("#FFAAAA"))
+	_phase_overlay.play_transition(changes)
 	_refresh_panel(boss)
 
 
@@ -816,6 +833,13 @@ func _rebuild_action_panel() -> void:
 	## Swap (move to other row)
 	_action_menu.add_child(_swap_button)
 
+	## Flee (not available in boss battles)
+	if combat_engine != null and not combat_engine.is_boss_battle:
+		var sep2: HSeparator = HSeparator.new()
+		sep2.add_theme_constant_override("separation", 2)
+		_action_menu.add_child(sep2)
+		_action_menu.add_child(_flee_button)
+
 
 func _on_guard_pressed() -> void:
 	if _state != UIState.ACTION_MENU:
@@ -831,6 +855,14 @@ func _on_swap_pressed() -> void:
 	_action_menu.visible = false
 	_state = UIState.ANIMATING
 	combat_engine.submit_action({"action": "swap"})
+
+
+func _on_flee_pressed() -> void:
+	if _state != UIState.ACTION_MENU:
+		return
+	_state = UIState.ANIMATING
+	_action_menu.visible = false
+	combat_engine.forfeit()
 
 
 func _on_technique_chosen(technique: TechniqueDef) -> void:
@@ -1011,21 +1043,21 @@ func _rebuild_row_panels() -> void:
 				_enemy_back_row.add_child(panel)
 
 
-func _spawn_damage_number(glyph: GlyphInstance, value: int, type: String) -> void:
+func _spawn_damage_number(glyph: GlyphInstance, value: int, type: String, reduced: bool = false) -> void:
 	if not _panels.has(glyph.instance_id):
 		return
 	var panel: GlyphPanel = _panels[glyph.instance_id] as GlyphPanel
 	var dmg_num: DamageNumber = DamageNumber.new()
 	dmg_num.position = Vector2(panel.size.x / 2.0 - 20.0, -10.0)
 	panel.add_child(dmg_num)
-	dmg_num.show_damage(value, type)
+	dmg_num.show_damage(value, type, reduced)
 
 
 func _clear_action_menu() -> void:
-	## Remove dynamic children (technique buttons, separators) but keep guard/swap alive
+	## Remove dynamic children (technique buttons, separators) but keep guard/swap/flee alive
 	for child: Node in _action_menu.get_children():
 		_action_menu.remove_child(child)
-		if child != _guard_button and child != _swap_button:
+		if child != _guard_button and child != _swap_button and child != _flee_button:
 			child.queue_free()
 
 

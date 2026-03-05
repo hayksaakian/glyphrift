@@ -10,7 +10,7 @@ const COLOR_SHIELD: Color = Color("#00DDDD")
 const COLOR_BURN: Color = Color("#FF8800")
 
 
-func show_damage(value: int, type: String = "damage") -> void:
+func show_damage(value: int, type: String = "damage", reduced: bool = false) -> void:
 	text = str(value)
 	match type:
 		"heal":
@@ -25,6 +25,8 @@ func show_damage(value: int, type: String = "damage") -> void:
 		_:
 			text = str(value)
 			add_theme_color_override("font_color", COLOR_DAMAGE)
+	if reduced:
+		text += " REDUCED"
 
 	add_theme_font_size_override("font_size", 18)
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -53,6 +53,9 @@ func _run_tests() -> void:
 	_test_dungeon_state_crawler_damaged_signal()
 	_test_dungeon_state_crawler_energy_spent_signal()
 	_test_dungeon_state_walk_full_rift()
+	_test_dungeon_state_exit_stay()
+	_test_dungeon_state_auto_reveal_on_move()
+	_test_dungeon_state_find_path()
 
 	print("")
 	print("========================================")
@@ -295,29 +298,41 @@ func _test_capture_calculator() -> void:
 	_assert(CaptureCalculator.get_par_turns(2) == 5, "Par turns for 2 enemies = 5")
 	_assert(CaptureCalculator.get_par_turns(3) == 6, "Par turns for 3 enemies = 6")
 
-	## Base case: exactly at par, player had KO → 40%
-	var chance: float = CaptureCalculator.calculate_chance(1, 3, true)
-	_assert(absf(chance - 0.40) < 0.001, "At par with KO = 40%% (got %.3f)" % chance)
+	## Base case: exactly at par → 40%
+	var chance: float = CaptureCalculator.calculate_chance(1, 3)
+	_assert(absf(chance - 0.40) < 0.001, "At par = 40%% (got %.3f)" % chance)
 
-	## At par, no KO → 40% + 15% = 55%
-	chance = CaptureCalculator.calculate_chance(1, 3, false)
-	_assert(absf(chance - 0.55) < 0.001, "At par no KO = 55%% (got %.3f)" % chance)
+	## 1 turn under par → 40% + 10% = 50%
+	chance = CaptureCalculator.calculate_chance(1, 2)
+	_assert(absf(chance - 0.50) < 0.001, "1 under par = 50%% (got %.3f)" % chance)
 
-	## 1 turn under par, no KO → 40% + 10% + 15% = 65%
-	chance = CaptureCalculator.calculate_chance(1, 2, false)
-	_assert(absf(chance - 0.65) < 0.001, "1 under par no KO = 65%% (got %.3f)" % chance)
+	## 2 turns under par → 40% + 20% = 60%
+	chance = CaptureCalculator.calculate_chance(1, 1)
+	_assert(absf(chance - 0.60) < 0.001, "2 under par = 60%% (got %.3f)" % chance)
 
-	## Over par: no turn bonus → 40% + 15% = 55%
-	chance = CaptureCalculator.calculate_chance(1, 5, false)
-	_assert(absf(chance - 0.55) < 0.001, "Over par no KO = 55%% (got %.3f)" % chance)
+	## Over par: no turn bonus → 40%
+	chance = CaptureCalculator.calculate_chance(1, 5)
+	_assert(absf(chance - 0.40) < 0.001, "Over par = 40%% (got %.3f)" % chance)
 
-	## Max cap: 3 turns under par (par=6, actual=3), no KO → 40% + 30% + 15% = 85% → capped at 80%
-	chance = CaptureCalculator.calculate_chance(3, 3, false)
-	_assert(absf(chance - 0.80) < 0.001, "Capped at 80%% (got %.3f)" % chance)
+	## Max cap: 3 turns under par (par=6, actual=3) → 40% + 30% = 70%
+	chance = CaptureCalculator.calculate_chance(3, 3)
+	_assert(absf(chance - 0.70) < 0.001, "3 under par = 70%% (got %.3f)" % chance)
 
-	## Over par, with KO → just 40%
-	chance = CaptureCalculator.calculate_chance(2, 10, true)
-	_assert(absf(chance - 0.40) < 0.001, "Over par with KO = 40%% (got %.3f)" % chance)
+	## Way over par → just base 40%
+	chance = CaptureCalculator.calculate_chance(2, 10)
+	_assert(absf(chance - 0.40) < 0.001, "Way over par = 40%% (got %.3f)" % chance)
+
+	## Echo lure bonus: at par + 25% item → 40% + 25% = 65%
+	chance = CaptureCalculator.calculate_chance(1, 3, 0.25)
+	_assert(absf(chance - 0.65) < 0.001, "Echo lure at par = 65%% (got %.3f)" % chance)
+
+	## Echo lure bonus: 2 under par + 25% → 40% + 20% + 25% = 80% (at cap)
+	chance = CaptureCalculator.calculate_chance(1, 1, 0.25)
+	_assert(absf(chance - 0.80) < 0.001, "Echo lure 2 under par = 80%% capped (got %.3f)" % chance)
+
+	## Item bonus still respects 80% cap
+	chance = CaptureCalculator.calculate_chance(1, 1, 0.50)
+	_assert(absf(chance - 0.80) < 0.001, "Item bonus capped at 80%% (got %.3f)" % chance)
 
 
 # ==========================================================
@@ -495,14 +510,15 @@ func _test_dungeon_state_floor_entry() -> void:
 	_assert(start["visited"], "Start room is visited")
 	_assert(start["revealed"], "Start room is revealed")
 
-	## Exit room is revealed but not visited (set by _enter_floor)
-	var exit_room: Dictionary = ds._get_room(0, "f0_r3")
-	_assert(exit_room["revealed"], "Exit room is revealed")
-	_assert(not exit_room["visited"], "Exit room is not visited")
-
-	## Enemy room starts unrevealed
+	## Enemy room (adjacent to start) is visible but NOT revealed (foggy)
 	var enemy_room: Dictionary = ds._get_room(0, "f0_r1")
-	_assert(not enemy_room["revealed"], "Enemy room starts unrevealed")
+	_assert(enemy_room.get("visible", false), "Enemy room (adjacent to start) is visible")
+	_assert(not enemy_room["revealed"], "Enemy room type is NOT revealed (foggy)")
+	_assert(not enemy_room["visited"], "Enemy room is not visited")
+
+	## Exit room is NOT visible (not adjacent to start)
+	var exit_room: Dictionary = ds._get_room(0, "f0_r3")
+	_assert(not exit_room.get("visible", false), "Exit room is NOT visible")
 
 
 func _test_dungeon_state_movement() -> void:
@@ -534,18 +550,24 @@ func _test_dungeon_state_fog_of_war() -> void:
 
 	var ds: DungeonState = _fresh_dungeon()
 
-	## Enemy room starts unrevealed
+	## Enemy room (adjacent to start) is visible but foggy
 	var enemy: Dictionary = ds._get_room(0, "f0_r1")
-	_assert(not enemy["revealed"], "Enemy room starts unrevealed")
+	_assert(enemy.get("visible", false), "Enemy room visible (adjacent to start)")
+	_assert(not enemy["revealed"], "Enemy room type NOT revealed (foggy)")
 
-	## Move to enemy room → now revealed
+	## Move to enemy room → now visited + revealed, adjacent become visible
 	ds.move_to_room("f0_r1")
-	_assert(enemy["revealed"], "Enemy room revealed after entry")
 	_assert(enemy["visited"], "Enemy room visited after entry")
+	_assert(enemy["revealed"], "Enemy room revealed after entry")
 
-	## Hazard room still unrevealed until visited
+	## Hazard room (adjacent to r1) is now visible but foggy
 	var hazard: Dictionary = ds._get_room(0, "f0_r2")
-	_assert(not hazard["revealed"], "Hazard room still unrevealed")
+	_assert(hazard.get("visible", false), "Hazard room visible after moving to r1")
+	_assert(not hazard["revealed"], "Hazard room type NOT revealed (foggy)")
+
+	## Exit room (adjacent to r2, not r1) still not visible
+	var exit_room: Dictionary = ds._get_room(0, "f0_r3")
+	_assert(not exit_room.get("visible", false), "Exit room not visible (not adjacent to r1)")
 
 
 func _test_dungeon_state_scan_reveals_adjacent() -> void:
@@ -553,26 +575,24 @@ func _test_dungeon_state_scan_reveals_adjacent() -> void:
 
 	var ds: DungeonState = _fresh_dungeon()
 
-	## Move to enemy room (f0_r1)
-	ds.move_to_room("f0_r1")
-
-	## Hazard room (f0_r2) is adjacent but unrevealed
-	var hazard: Dictionary = ds._get_room(0, "f0_r2")
-	_assert(not hazard["revealed"], "Hazard unrevealed before scan")
+	## r1 (adjacent to start) is visible but NOT revealed (foggy)
+	var enemy: Dictionary = ds._get_room(0, "f0_r1")
+	_assert(enemy.get("visible", false), "r1 visible after floor entry")
+	_assert(not enemy["revealed"], "r1 NOT revealed (foggy)")
 
 	## Track reveals
 	var reveals: Dictionary = {"ids": []}
 	ds.room_revealed.connect(func(rid: String, _rt: String) -> void: reveals["ids"].append(rid))
 
-	## Use scan via use_crawler_ability
+	## Scan from start → fully reveals r1 (adjacent)
 	var ok: bool = ds.use_crawler_ability("scan")
 	_assert(ok, "Scan ability succeeds")
-	_assert(hazard["revealed"], "Hazard revealed after scan")
-	_assert(_crawler.energy == 45, "Energy 50 - 5 = 45 (got %d)" % _crawler.energy)
+	_assert(enemy["revealed"], "r1 fully revealed after scan")
+	_assert(reveals["ids"].has("f0_r1"), "room_revealed signal for r1")
 
-	## Start room (f0_r0) is already revealed, shouldn't be in reveals list
-	_assert(not reveals["ids"].has("f0_r0"), "Already-revealed room not in reveals signal")
-	_assert(reveals["ids"].has("f0_r2"), "Hazard room in reveals signal")
+	## r2 (not adjacent to start) still not revealed
+	var hazard: Dictionary = ds._get_room(0, "f0_r2")
+	_assert(not hazard["revealed"], "r2 not revealed (not adjacent to start)")
 
 	## Disconnect
 	for conn: Dictionary in ds.room_revealed.get_connections():
@@ -617,27 +637,41 @@ func _test_dungeon_state_exit_advances_floor() -> void:
 	var floor_signals: Dictionary = {"floors": []}
 	ds.floor_changed.connect(func(f: int) -> void: floor_signals["floors"].append(f))
 
+	var exit_signals: Dictionary = {"floors": []}
+	ds.exit_reached.connect(func(f: int) -> void: exit_signals["floors"].append(f))
+
 	## Walk through floor 0: start → enemy → hazard → exit
 	ds.move_to_room("f0_r1")
 	ds.move_to_room("f0_r2")
 	ds.move_to_room("f0_r3")
 
-	_assert(ds.current_floor == 1, "Moved to floor 1 (got %d)" % ds.current_floor)
+	## Moving to exit emits exit_reached, does NOT auto-advance
+	_assert(ds.current_floor == 0, "Still on floor 0 after entering exit")
+	_assert(ds.current_room_id == "f0_r3", "Standing in exit room")
+	_assert(exit_signals["floors"].has(1), "exit_reached(1) emitted")
+	_assert(not floor_signals["floors"].has(1), "floor_changed NOT yet emitted")
+
+	## Calling descend() advances floor
+	ds.descend()
+
+	_assert(ds.current_floor == 1, "Moved to floor 1 after descend()")
 	_assert(ds.current_room_id == "f1_r0", "Now at floor 1 start room")
-	_assert(floor_signals["floors"].has(1), "floor_changed(1) emitted")
+	_assert(floor_signals["floors"].has(1), "floor_changed(1) emitted after descend")
 
 	## Floor 1 start room is visited/revealed
 	var f1_start: Dictionary = ds.get_current_room()
 	_assert(f1_start["visited"], "Floor 1 start is visited")
 	_assert(f1_start["revealed"], "Floor 1 start is revealed")
 
-	## Boss room on final floor is revealed (TDD: exit and boss always revealed)
+	## Boss room on final floor is revealed
 	var boss_room: Dictionary = ds._get_room(1, "f1_r2")
 	_assert(boss_room["revealed"], "Boss room on final floor is revealed")
 
 	## Disconnect
 	for conn: Dictionary in ds.floor_changed.get_connections():
 		ds.floor_changed.disconnect(conn["callable"])
+	for conn: Dictionary in ds.exit_reached.get_connections():
+		ds.exit_reached.disconnect(conn["callable"])
 
 
 func _test_dungeon_state_forced_extraction() -> void:
@@ -729,7 +763,10 @@ func _test_dungeon_state_walk_full_rift() -> void:
 	ds.move_to_room("f0_r1")
 	ds.move_to_room("f0_r2")
 	ds.move_to_room("f0_r3")
-	_assert(ds.current_floor == 1, "On floor 1")
+	## Exit emits exit_reached — must call descend() to advance
+	_assert(ds.current_floor == 0, "Still on floor 0 until descend()")
+	ds.descend()
+	_assert(ds.current_floor == 1, "On floor 1 after descend()")
 
 	## Floor 1: start → cache → boss
 	ds.move_to_room("f1_r1")
@@ -741,3 +778,105 @@ func _test_dungeon_state_walk_full_rift() -> void:
 
 	## Verify hull took 10 damage from floor 0 hazard
 	_assert(_crawler.hull_hp == 90, "Hull is 90 after one hazard hit (got %d)" % _crawler.hull_hp)
+
+
+func _test_dungeon_state_exit_stay() -> void:
+	print("--- DungeonState: exit stay ---")
+
+	var ds: DungeonState = _fresh_dungeon()
+
+	## Walk to exit: start → enemy → hazard → exit
+	ds.move_to_room("f0_r1")
+	ds.move_to_room("f0_r2")
+	ds.move_to_room("f0_r3")
+
+	## Still on floor 0 after entering exit
+	_assert(ds.current_floor == 0, "Still on floor 0")
+	_assert(ds.current_room_id == "f0_r3", "Standing in exit room")
+
+	## Can backtrack — move back to hazard
+	ds.move_to_room("f0_r2")
+	_assert(ds.current_room_id == "f0_r2", "Moved back to hazard room")
+	_assert(ds.current_floor == 0, "Still on floor 0 after backtrack")
+
+
+func _test_dungeon_state_auto_reveal_on_move() -> void:
+	print("--- DungeonState: auto-show on move ---")
+
+	var ds: DungeonState = _fresh_dungeon()
+
+	## After floor entry, r1 (adjacent to start) is visible but foggy
+	var r1: Dictionary = ds._get_room(0, "f0_r1")
+	_assert(r1.get("visible", false), "r1 visible on floor entry (adjacent to start)")
+	_assert(not r1["revealed"], "r1 NOT revealed (foggy)")
+
+	## r2 (not adjacent to start) is still not visible
+	var r2: Dictionary = ds._get_room(0, "f0_r2")
+	_assert(not r2.get("visible", false), "r2 NOT visible on floor entry")
+
+	## Move to r1 → r1 becomes revealed, r2 becomes visible (foggy)
+	ds.move_to_room("f0_r1")
+	_assert(r1["revealed"], "r1 revealed after entering")
+	_assert(r2.get("visible", false), "r2 visible after moving to r1 (foggy)")
+	_assert(not r2["revealed"], "r2 NOT revealed (still foggy)")
+
+	## r3 (exit, adjacent to r2 not r1) is still not visible
+	var r3: Dictionary = ds._get_room(0, "f0_r3")
+	_assert(not r3.get("visible", false), "r3 NOT visible (not adjacent to r1)")
+
+	## Move to r2 → r2 revealed, r3 becomes visible (foggy)
+	ds.move_to_room("f0_r2")
+	_assert(r2["revealed"], "r2 revealed after entering")
+	_assert(r3.get("visible", false), "r3 visible after moving to r2 (foggy)")
+	_assert(not r3["revealed"], "r3 NOT revealed (still foggy)")
+
+
+func _test_dungeon_state_find_path() -> void:
+	print("--- DungeonState: find_path (BFS) ---")
+
+	var ds: DungeonState = _fresh_dungeon()
+
+	## From start, only r1 is visible (adjacent). r2/r3 are not visible yet.
+	## Path to r1 (adjacent, visible) should work
+	var path: Array[String] = ds.find_path("f0_r1")
+	_assert(path.size() == 1, "Path to adjacent r1 has 1 step (got %d)" % path.size())
+	_assert(path[0] == "f0_r1", "Path step is f0_r1")
+
+	## Path to r2 fails — r2 is not visible
+	path = ds.find_path("f0_r2")
+	_assert(path.is_empty(), "No path to r2 (not visible)")
+
+	## Move to r1 → r2 becomes visible (foggy)
+	ds.move_to_room("f0_r1")
+
+	## Now path from r1 to r2 should work (1 step)
+	path = ds.find_path("f0_r2")
+	_assert(path.size() == 1, "Path to r2 from r1 has 1 step")
+
+	## Move to r2 → r3 becomes visible (foggy)
+	ds.move_to_room("f0_r2")
+
+	## Path to r3 from r2
+	path = ds.find_path("f0_r3")
+	_assert(path.size() == 1, "Path to r3 from r2 has 1 step")
+
+	## Multi-hop: move back to start, make all rooms visible, then path to r3
+	## First need to go back: r2 → r1 → r0
+	ds.move_to_room("f0_r1")
+	ds.move_to_room("f0_r0")
+	_assert(ds.current_room_id == "f0_r0", "Back at start")
+
+	## All rooms should now be visible (visited or adjacent to visited)
+	path = ds.find_path("f0_r3")
+	_assert(path.size() == 3, "Path from r0 to r3 = 3 steps (got %d)" % path.size())
+	_assert(path[0] == "f0_r1", "Step 1: f0_r1")
+	_assert(path[1] == "f0_r2", "Step 2: f0_r2")
+	_assert(path[2] == "f0_r3", "Step 3: f0_r3")
+
+	## Path to self is empty
+	path = ds.find_path("f0_r0")
+	_assert(path.is_empty(), "Path to self is empty")
+
+	## Path to nonexistent room is empty
+	path = ds.find_path("fake_room")
+	_assert(path.is_empty(), "Path to nonexistent room is empty")

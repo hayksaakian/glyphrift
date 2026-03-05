@@ -52,6 +52,9 @@ func _run_tests() -> void:
 	_test_auto_battle_smoke()
 	_test_multi_battle()
 	_test_boss_battle()
+	_test_flee_button_exists()
+	_test_forfeit_triggers_defeat()
+	_test_flee_hidden_for_boss()
 
 	print("")
 	print("========================================")
@@ -349,7 +352,7 @@ func _test_technique_button() -> void:
 	_assert(btn.technique == tech, "TechniqueButton stores technique reference")
 	_assert(btn.is_usable, "TechniqueButton is usable when set")
 	_assert("Arc Fang" in btn.text, "TechniqueButton shows technique name")
-	_assert("Pw:18" in btn.text, "TechniqueButton shows power")
+	_assert("18" in btn.text, "TechniqueButton shows power value")
 	_assert(not btn.disabled, "TechniqueButton not disabled when usable")
 
 	## Test cooldown display
@@ -852,6 +855,99 @@ func _test_boss_battle() -> void:
 	if _engine.phase_transition.get_connections().size() > 0:
 		for conn: Dictionary in _engine.phase_transition.get_connections():
 			_engine.phase_transition.disconnect(conn["callable"])
+
+	scene.queue_free()
+	_scene = null
+	_engine.auto_battle = false
+	print("")
+
+
+# ==========================================================================
+# Flee / Forfeit Tests
+# ==========================================================================
+
+func _test_flee_button_exists() -> void:
+	print("--- Flee Button: Exists in action menu ---")
+	var scene: BattleScene = _create_battle_scene()
+	_assert(scene._flee_button != null, "Flee button exists")
+	_assert(scene._flee_button.text == "Flee", "Flee button text is 'Flee'")
+
+	## Start non-boss battle
+	var p_squad: Array[GlyphInstance] = _make_squad(["sparkfin"] as Array[String])
+	var e_squad: Array[GlyphInstance] = _make_squad(["zapplet"] as Array[String])
+	scene.start_battle(p_squad, e_squad)
+	scene._on_formation_confirmed(scene._formation_setup.get_positions())
+
+	## Manually trigger action menu rebuild (battle may end before player turn)
+	scene._show_action_menu(p_squad[0])
+
+	## Flee button should be in the action menu for non-boss battles
+	var flee_in_menu: bool = scene._flee_button.get_parent() == scene._action_menu
+	_assert(flee_in_menu, "Flee button is in action menu")
+
+	scene.queue_free()
+	_scene = null
+	print("")
+
+
+func _test_forfeit_triggers_defeat() -> void:
+	print("--- Forfeit: Triggers DEFEAT ---")
+	var scene: BattleScene = _create_battle_scene()
+	var p_squad: Array[GlyphInstance] = _make_squad(["sparkfin"] as Array[String])
+	var e_squad: Array[GlyphInstance] = _make_squad(["zapplet"] as Array[String])
+
+	var lost_signal: Dictionary = {"fired": false}
+	_engine.battle_lost.connect(func(_s: Array[GlyphInstance]) -> void: lost_signal["fired"] = true)
+
+	scene.start_battle(p_squad, e_squad)
+	scene._on_formation_confirmed(scene._formation_setup.get_positions())
+	scene._animation_queue.drain()
+
+	## Call forfeit
+	_engine.forfeit()
+
+	_assert(_engine.phase == _engine.BattlePhase.DEFEAT, "Phase is DEFEAT after forfeit")
+	_assert(lost_signal["fired"], "battle_lost emitted after forfeit")
+
+	## Drain battle_lost animation
+	scene._animation_queue.drain()
+	_assert(scene._state == BattleScene.UIState.RESULT, "BattleScene enters RESULT state")
+
+	## Clean up signal
+	for conn: Dictionary in _engine.battle_lost.get_connections():
+		_engine.battle_lost.disconnect(conn["callable"])
+
+	scene.queue_free()
+	_scene = null
+	print("")
+
+
+func _test_flee_hidden_for_boss() -> void:
+	print("--- Flee Button: Hidden for boss ---")
+	var scene: BattleScene = _create_battle_scene()
+	_engine.auto_battle = false
+
+	var p_squad: Array[GlyphInstance] = _make_squad(["thunderclaw", "ironbark"] as Array[String])
+
+	## Create boss
+	var boss_def: BossDef = _data_loader.get_boss("standard_01")
+	var boss_species: GlyphSpecies = _data_loader.get_species(boss_def.species_id)
+	var boss: GlyphInstance = GlyphInstance.new()
+	boss.species = boss_species
+	for tid: String in boss_def.phase1_technique_ids:
+		var tech: TechniqueDef = _data_loader.get_technique(tid)
+		if tech != null:
+			boss.techniques.append(tech)
+	boss.calculate_stats()
+	var e_squad: Array[GlyphInstance] = [boss]
+
+	scene.start_battle(p_squad, e_squad, boss_def)
+	scene._on_formation_confirmed(scene._formation_setup.get_positions())
+	scene._animation_queue.drain()
+
+	## Flee button should NOT be in the action menu for boss battles
+	var flee_in_menu: bool = scene._flee_button.get_parent() == scene._action_menu
+	_assert(not flee_in_menu, "Flee button not in action menu for boss battle")
 
 	scene.queue_free()
 	_scene = null

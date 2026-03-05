@@ -22,6 +22,7 @@ var _art_container: Control = null
 var _name_label: Label = null
 var _info_label: Label = null
 var _chance_label: Label = null
+var _breakdown_label: Label = null
 var _capture_button: Button = null
 var _release_button: Button = null
 var _result_label: Label = null
@@ -38,7 +39,7 @@ func _ready() -> void:
 	_build_ui()
 
 
-func show_capture(glyph: GlyphInstance, chance: float) -> void:
+func show_capture(glyph: GlyphInstance, chance: float, breakdown: Dictionary = {}) -> void:
 	wild_glyph = glyph
 	capture_chance = chance
 
@@ -54,6 +55,13 @@ func show_capture(glyph: GlyphInstance, chance: float) -> void:
 	_chance_label.text = "Capture Chance: %d%%" % int(chance * 100.0)
 	_capture_button.text = "Capture" if chance >= 1.0 else "Attempt Capture"
 
+	## Show modifier breakdown
+	if not breakdown.is_empty():
+		_breakdown_label.text = _format_breakdown(breakdown)
+		_breakdown_label.visible = true
+	else:
+		_breakdown_label.visible = false
+
 	_capture_button.visible = true
 	_capture_button.disabled = false
 	_release_button.visible = true
@@ -64,6 +72,22 @@ func show_capture(glyph: GlyphInstance, chance: float) -> void:
 	_swap_container.visible = false
 	_abandon_btn.visible = false
 	visible = true
+
+
+func _format_breakdown(bd: Dictionary) -> String:
+	var parts: Array[String] = []
+	parts.append("Base %d%%" % int(bd.get("base", 0.0) * 100.0))
+	var turn_bonus: float = bd.get("turn_bonus", 0.0)
+	if turn_bonus > 0:
+		parts.append("Speed +%d%%" % int(turn_bonus * 100.0))
+	elif turn_bonus == 0.0:
+		pass  ## At par — no bonus or penalty to show
+	var item_bonus: float = bd.get("item_bonus", 0.0)
+	if item_bonus > 0:
+		parts.append("Lure +%d%%" % int(item_bonus * 100.0))
+	if bd.get("capped", false):
+		parts.append("(max 80%)")
+	return " | ".join(parts)
 
 
 func hide_popup() -> void:
@@ -112,7 +136,15 @@ func show_cargo_swap(new_glyph: GlyphInstance, cargo: Array[GlyphInstance]) -> v
 
 func _on_swap_release(released: GlyphInstance) -> void:
 	cargo_swap_chosen.emit(_swap_new_glyph, released)
-	dismissed.emit()
+	## Show result confirmation (like normal capture) instead of instant dismiss
+	_swap_container.visible = false
+	_abandon_btn.visible = false
+	_chance_label.visible = false
+	_breakdown_label.visible = false
+	_result_label.text = "CAPTURED!\nSwapped with %s." % released.species.name
+	_result_label.add_theme_color_override("font_color", Color("#44FF44"))
+	_result_label.visible = true
+	_continue_button.visible = true
 
 
 func _on_abandon_pressed() -> void:
@@ -202,6 +234,14 @@ func _build_ui() -> void:
 	_chance_label.add_theme_font_size_override("font_size", 14)
 	_chance_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_chance_label)
+
+	## Modifier breakdown
+	_breakdown_label = Label.new()
+	_breakdown_label.add_theme_font_size_override("font_size", 10)
+	_breakdown_label.add_theme_color_override("font_color", Color("#999999"))
+	_breakdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_breakdown_label.visible = false
+	vbox.add_child(_breakdown_label)
 
 	## Buttons
 	_button_container = HBoxContainer.new()

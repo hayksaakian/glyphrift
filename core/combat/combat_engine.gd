@@ -17,7 +17,7 @@ signal swap_performed(glyph: GlyphInstance)
 signal battle_won(player_squad: Array[GlyphInstance], turns_taken: int, ko_list: Array[GlyphInstance])
 signal battle_lost(player_squad: Array[GlyphInstance])
 signal turn_queue_updated(queue: Array[GlyphInstance])
-signal phase_transition(boss: GlyphInstance)
+signal phase_transition(boss: GlyphInstance, changes: Dictionary)
 signal burn_damage(glyph: GlyphInstance, damage: int)
 signal round_started(round_number: int)
 
@@ -304,14 +304,16 @@ func _execute_support(actor: GlyphInstance, technique: TechniqueDef, target: Gly
 			technique_used.emit(actor, technique, target, 0)
 		"heal_percent":
 			var heal_amount: int = int(float(target.max_hp) * technique.support_value)
+			var actual_heal: int = mini(heal_amount, target.max_hp - target.current_hp)
 			target.current_hp = mini(target.current_hp + heal_amount, target.max_hp)
-			technique_used.emit(actor, technique, target, 0)
+			technique_used.emit(actor, technique, target, actual_heal)
 		"heal_percent_all":
 			var allies: Array[GlyphInstance] = _get_squad_alive(actor.side)
 			for ally: GlyphInstance in allies:
 				var heal_amount: int = int(float(ally.max_hp) * technique.support_value)
+				var actual_heal: int = mini(heal_amount, ally.max_hp - ally.current_hp)
 				ally.current_hp = mini(ally.current_hp + heal_amount, ally.max_hp)
-				technique_used.emit(actor, technique, ally, 0)
+				technique_used.emit(actor, technique, ally, actual_heal)
 		"atk_buff":
 			## Temporary ATK boost — apply directly (not via calculate_stats which resets HP)
 			## Revisit with proper buff system for duration tracking later
@@ -456,7 +458,7 @@ func _check_boss_phase_transition(boss: GlyphInstance) -> void:
 		return
 	if boss.boss_phase >= 2:
 		return
-	if boss.current_hp <= boss.max_hp / 2:
+	if boss.current_hp > 0 and boss.current_hp <= boss.max_hp / 2:
 		boss.boss_phase = 2
 		## Clear all status effects
 		StatusManager.clear_all(boss)
@@ -466,7 +468,14 @@ func _check_boss_phase_transition(boss: GlyphInstance) -> void:
 		## Apply stat bonuses directly (not via calculate_stats which resets current_hp)
 		boss.atk = int(float(boss.atk) * (1.0 + atk_bonus))
 		boss.spd = int(float(boss.spd) * (1.0 + spd_bonus))
+		## Build changes dictionary for UI communication
+		var changes: Dictionary = {}
+		if atk_bonus > 0:
+			changes["atk"] = "+%d%%" % int(atk_bonus * 100)
+		if spd_bonus > 0:
+			changes["spd"] = "+%d%%" % int(spd_bonus * 100)
 		## Add phase 2 techniques (respect 4-technique cap per TDD)
+		var new_tech_names: Array[String] = []
 		for tid: String in _boss_def.phase2_technique_ids:
 			if boss.techniques.size() >= 4:
 				break
@@ -479,7 +488,10 @@ func _check_boss_phase_transition(boss: GlyphInstance) -> void:
 						break
 				if not already_has:
 					boss.techniques.append(tech)
-		phase_transition.emit(boss)
+					new_tech_names.append(tech.name)
+		if not new_tech_names.is_empty():
+			changes["new_techniques"] = new_tech_names
+		phase_transition.emit(boss, changes)
 
 
 func _get_squad_alive(side: String) -> Array[GlyphInstance]:
@@ -494,6 +506,11 @@ func _get_squad_alive(side: String) -> Array[GlyphInstance]:
 func _get_enemies_alive(side: String) -> Array[GlyphInstance]:
 	var enemy_side: String = "enemy" if side == "player" else "player"
 	return _get_squad_alive(enemy_side)
+
+
+func forfeit() -> void:
+	phase = BattlePhase.DEFEAT
+	battle_lost.emit(player_squad)
 
 
 func _all_knocked_out(squad: Array[GlyphInstance]) -> bool:

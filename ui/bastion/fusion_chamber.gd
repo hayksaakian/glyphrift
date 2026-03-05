@@ -41,6 +41,7 @@ var _technique_container: VBoxContainer = null
 var _fuse_button: Button = null
 var _back_button: Button = null
 var _error_label: Label = null
+var _detail_popup: GlyphDetailPopup = null
 var _discovery_overlay: ColorRect = null
 var _discovery_label: Label = null
 var _discovery_result_card: GlyphCard = null
@@ -51,10 +52,10 @@ var _technique_buttons: Array[Button] = []
 
 ## Technique button formatting (same as TechniqueButton)
 const _RANGE_TAGS: Dictionary = {
-	"melee": "M",
-	"ranged": "R",
-	"aoe": "AoE",
-	"piercing": "P",
+	"melee": "\ud83d\udc4a",
+	"ranged": "\ud83c\udff9",
+	"aoe": "\ud83d\udca5",
+	"piercing": "\ud83c\udfaf",
 }
 
 
@@ -108,12 +109,12 @@ func refresh() -> void:
 	_divider_label.visible = not unmastered_glyphs.is_empty()
 	_unmastered_grid.visible = not unmastered_glyphs.is_empty()
 
-	## Populate unmastered grid
+	## Populate unmastered grid — clicking shows detail popup
 	for g: GlyphInstance in unmastered_glyphs:
 		var card: GlyphCard = GlyphCard.new()
 		card.setup(g)
 		card.disabled_state = true
-		card.card_clicked.connect(_on_picker_clicked)
+		card.card_clicked.connect(_on_unmastered_clicked)
 		_unmastered_grid.add_child(card)
 		_picker_cards.append(card)
 
@@ -150,7 +151,8 @@ func _build_ui() -> void:
 
 	## Left column: styled panel with parents + preview + buttons (shrink to content)
 	var left_panel: PanelContainer = PanelContainer.new()
-	left_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	left_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_panel.size_flags_stretch_ratio = 0.35
 	left_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var left_style: StyleBoxFlat = StyleBoxFlat.new()
 	left_style.bg_color = Color(0.10, 0.10, 0.14)
@@ -274,7 +276,7 @@ func _build_ui() -> void:
 	var right_panel: PanelContainer = PanelContainer.new()
 	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	right_panel.size_flags_stretch_ratio = 1.0
+	right_panel.size_flags_stretch_ratio = 0.65
 	var right_style: StyleBoxFlat = StyleBoxFlat.new()
 	right_style.bg_color = Color(0.10, 0.10, 0.14)
 	right_style.border_color = Color(0.3, 0.3, 0.4)
@@ -329,6 +331,11 @@ func _build_ui() -> void:
 	_unmastered_grid.visible = false
 	_picker_container.add_child(_unmastered_grid)
 
+	## Detail popup (above main content, below discovery overlay)
+	_detail_popup = GlyphDetailPopup.new()
+	_detail_popup.name = "FusionDetailPopup"
+	add_child(_detail_popup)
+
 	## Discovery overlay (hidden)
 	_discovery_overlay = ColorRect.new()
 	_discovery_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -362,6 +369,11 @@ func _build_ui() -> void:
 	dismiss_btn.custom_minimum_size = Vector2(120, 36)
 	dismiss_btn.pressed.connect(_hide_discovery)
 	disc_vbox.add_child(dismiss_btn)
+
+
+func _on_unmastered_clicked(g: GlyphInstance) -> void:
+	if g != null and _detail_popup != null:
+		_detail_popup.show_glyph(g)
 
 
 func _on_picker_clicked(g: GlyphInstance) -> void:
@@ -551,7 +563,8 @@ func _update_picker_selection() -> void:
 
 func _make_empty_slot(label_text: String) -> PanelContainer:
 	var slot: PanelContainer = PanelContainer.new()
-	slot.custom_minimum_size = Vector2(120, 160)
+	## 120x160 card + 2px border on each side = 124x164
+	slot.custom_minimum_size = Vector2(124, 164)
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color("#222233")
 	style.border_color = Color("#555566")
@@ -623,7 +636,10 @@ func _format_technique_text(tech: TechniqueDef) -> String:
 	var aff_tag: String = Affinity.EMOJI.get(tech.affinity, "?")
 	var range_tag: String = _RANGE_TAGS.get(tech.range_type, "?")
 	if tech.power > 0:
-		return "%s %s  %s  Pw:%d" % [aff_tag, tech.name, range_tag, tech.power]
+		var result: String = "%s %s  %s %d" % [aff_tag, tech.name, range_tag, tech.power]
+		if tech.cooldown > 0:
+			result += "  \u231b%d" % tech.cooldown
+		return result
 	elif tech.category == "support":
 		return "%s %s  %s" % [aff_tag, tech.name, tech.support_effect.capitalize()]
 	else:

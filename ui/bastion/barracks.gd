@@ -98,10 +98,38 @@ func _build_ui() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_PASS
 	add_child(bg)
 
+	## Pinned status bar — always visible above scroll
+	var status_bar: VBoxContainer = VBoxContainer.new()
+	status_bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	status_bar.offset_left = 20.0
+	status_bar.offset_top = 48.0
+	status_bar.offset_right = -20.0
+	status_bar.add_theme_constant_override("separation", 2)
+	add_child(status_bar)
+
+	_gp_label = Label.new()
+	_gp_label.add_theme_font_size_override("font_size", 16)
+	_gp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_bar.add_child(_gp_label)
+
+	_squad_counter = Label.new()
+	_squad_counter.add_theme_font_size_override("font_size", 12)
+	_squad_counter.add_theme_color_override("font_color", Color("#AAAAAA"))
+	_squad_counter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_bar.add_child(_squad_counter)
+
+	_info_label = Label.new()
+	_info_label.text = "Click a reserve glyph to add to squad"
+	_info_label.add_theme_font_size_override("font_size", 11)
+	_info_label.add_theme_color_override("font_color", Color("#888888"))
+	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_bar.add_child(_info_label)
+
+	## Scrollable content below status bar
 	_scroll = ScrollContainer.new()
 	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_scroll.offset_left = 20.0
-	_scroll.offset_top = 48.0
+	_scroll.offset_top = 110.0
 	_scroll.offset_right = -20.0
 	_scroll.offset_bottom = -20.0
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -162,26 +190,6 @@ func _build_ui() -> void:
 	_reserve_container.add_theme_constant_override("h_separation", 8)
 	_reserve_container.add_theme_constant_override("v_separation", 8)
 	reserve_center.add_child(_reserve_container)
-
-	## Info / counters
-	_gp_label = Label.new()
-	_gp_label.add_theme_font_size_override("font_size", 14)
-	_gp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main_vbox.add_child(_gp_label)
-
-	_squad_counter = Label.new()
-	_squad_counter.add_theme_font_size_override("font_size", 12)
-	_squad_counter.add_theme_color_override("font_color", Color("#AAAAAA"))
-	_squad_counter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main_vbox.add_child(_squad_counter)
-
-	## Help text
-	_info_label = Label.new()
-	_info_label.text = "Click a reserve glyph to add to squad"
-	_info_label.add_theme_font_size_override("font_size", 11)
-	_info_label.add_theme_color_override("font_color", Color("#888888"))
-	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main_vbox.add_child(_info_label)
 
 	## Feedback label — fixed at bottom, outside scroll so always visible
 	_feedback_label = Label.new()

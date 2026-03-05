@@ -73,6 +73,19 @@ func _run_tests() -> void:
 
 	_test_fog_of_war()
 	_test_scan_reveals_adjacent()
+	_test_click_to_navigate()
+	_test_click_to_navigate_stops_at_combat()
+
+	_test_crawler_token_position()
+	_test_path_preview()
+	_test_preview_highlight()
+	_test_moving_state_blocks_clicks()
+
+	_test_boss_capture_on_rerun()
+	_test_boss_no_capture_on_first_clear()
+
+	_test_battle_loss_pushback()
+	_test_battle_loss_hull_zero_extracts()
 
 	print("")
 	print("========================================")
@@ -131,7 +144,7 @@ func _make_simple_floor() -> Dictionary:
 		"rooms": [
 			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
 			{"id": "r1", "x": 1, "y": 0, "type": "enemy", "visited": false, "revealed": false},
-			{"id": "r2", "x": 2, "y": 0, "type": "exit", "visited": false, "revealed": true},
+			{"id": "r2", "x": 2, "y": 0, "type": "exit", "visited": false, "revealed": false},
 		],
 		"connections": [["r0", "r1"], ["r1", "r2"]],
 	}
@@ -144,7 +157,7 @@ func _make_multi_floor() -> Array[Dictionary]:
 		"rooms": [
 			{"id": "f0_r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
 			{"id": "f0_r1", "x": 1, "y": 0, "type": "enemy", "visited": false, "revealed": false},
-			{"id": "f0_r2", "x": 2, "y": 0, "type": "exit", "visited": false, "revealed": true},
+			{"id": "f0_r2", "x": 2, "y": 0, "type": "exit", "visited": false, "revealed": false},
 		],
 		"connections": [["f0_r0", "f0_r1"], ["f0_r1", "f0_r2"]],
 	}
@@ -241,10 +254,10 @@ func _test_room_node_states() -> void:
 	_assert(is_equal_approx(node._icon_label.modulate.a, 1.0), "Visited has full opacity")
 	_assert(not node._border_panel.visible, "Visited has no border")
 
-	## Current
+	## Current (border now hidden — crawler token shows position)
 	node.set_state(RoomNode.RoomState.CURRENT)
 	_assert(node.state == RoomNode.RoomState.CURRENT, "State set to CURRENT")
-	_assert(node._border_panel.visible, "Current shows border")
+	_assert(not node._border_panel.visible, "Current no longer shows border (token replaces it)")
 	_assert(is_equal_approx(node._icon_label.modulate.a, 1.0), "Current has full opacity")
 
 	_cleanup_node(node)
@@ -413,6 +426,7 @@ func _test_floor_map_current_room() -> void:
 
 func _test_floor_map_signal_updates() -> void:
 	print("--- FloorMap: Signal-Driven Updates ---")
+	## Use simple floor — r1 is foggy (adjacent to start), r2 is unrevealed
 	var ds: DungeonState = _make_dungeon_state_with_floors([_make_simple_floor()])
 	var fm: FloorMap = FloorMap.new()
 	fm.size = Vector2(800, 500)
@@ -421,14 +435,14 @@ func _test_floor_map_signal_updates() -> void:
 	fm.set_current_room("r0")
 	fm.refresh_all()
 
-	## r1 starts unrevealed
+	## r1 starts FOGGY (visible but type unknown)
 	var r1: RoomNode = fm.get_room_node("r1")
-	_assert(r1.state == RoomNode.RoomState.UNREVEALED, "r1 starts unrevealed")
+	_assert(r1.state == RoomNode.RoomState.FOGGY, "r1 starts FOGGY")
 
-	## Simulate room reveal
+	## Simulate full reveal (as if scanned)
 	ds.floors[0]["rooms"][1]["revealed"] = true
 	fm.update_room("r1")
-	_assert(r1.state == RoomNode.RoomState.REVEALED, "r1 becomes REVEALED after update")
+	_assert(r1.state == RoomNode.RoomState.REVEALED, "r1 becomes REVEALED after scan")
 
 	_cleanup_node(fm)
 	_cleanup_node(ds.crawler)
@@ -828,7 +842,12 @@ func _test_capture_popup_cargo_swap_release() -> void:
 	_assert(signal_data["received"], "cargo_swap_chosen emitted on release click")
 	_assert(signal_data["keep"] == new_glyph, "Keep glyph is the new capture")
 	_assert(signal_data["release"] == cargo_a, "Released glyph is the clicked cargo")
-	_assert(dismissed_data["received"], "dismissed emitted after swap")
+	_assert(popup._result_label.visible, "result label visible after swap")
+	_assert("CAPTURED" in popup._result_label.text, "result shows CAPTURED after swap")
+	_assert(popup._continue_button.visible, "continue button visible after swap")
+	## Click Continue to dismiss
+	popup._continue_button.pressed.emit()
+	_assert(dismissed_data["received"], "dismissed emitted after continue")
 
 	_cleanup_node(popup)
 
@@ -905,7 +924,7 @@ func _test_dungeon_scene_room_navigation() -> void:
 		"rooms": [
 			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
 			{"id": "r1", "x": 1, "y": 0, "type": "empty", "visited": false, "revealed": true},
-			{"id": "r2", "x": 2, "y": 0, "type": "exit", "visited": false, "revealed": true},
+			{"id": "r2", "x": 2, "y": 0, "type": "exit", "visited": false, "revealed": false},
 		],
 		"connections": [["r0", "r1"], ["r1", "r2"]],
 	}
@@ -920,14 +939,15 @@ func _test_dungeon_scene_room_navigation() -> void:
 	scene._on_room_clicked("r1")
 	_assert(ds.current_room_id == "r1", "Moved to r1 after click")
 
-	## Click on non-adjacent room r2 (should fail — r2 is adjacent to r1 now though)
-	## Actually r2 IS adjacent to r1, so it should succeed
+	## r2 is now auto-revealed (adjacent to r1 after moving there)
+	## Click on r2 (exit) — shows exit popup, stays on floor 0
 	scene._room_popup.hide_popup()
 	scene._state = DungeonScene.UIState.EXPLORING
 	scene._on_room_clicked("r2")
-	## r2 is exit, so move_to_room triggers floor transition
-	## But there's only one floor, so it stays
 	_assert(ds.current_room_id == "r2", "Moved to r2 (exit)")
+	## Exit overlay shown, click Stay to dismiss
+	scene._exit_stay_btn.pressed.emit()
+	_assert(scene.get_ui_state() == DungeonScene.UIState.EXPLORING, "Back to EXPLORING after Stay")
 
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)
@@ -999,20 +1019,26 @@ func _test_dungeon_scene_floor_transition() -> void:
 	_assert(ds.current_floor == 0, "Starts on floor 0")
 	_assert("Floor 1" in scene._floor_label.text, "Label shows Floor 1")
 
-	## Navigate: r0 → r1 (enemy) → r2 (exit)
-	## First move to r1
-	ds.floors[0]["rooms"][1]["revealed"] = true
+	## Navigate: r0 → r1 (enemy) — r1 is auto-revealed (adjacent to start)
 	scene._on_room_clicked("f0_r1")
 	scene._room_popup.hide_popup()
 	scene._state = DungeonScene.UIState.EXPLORING
 
-	## Move to exit — triggers floor transition
+	## Move to exit — shows exit overlay instead of auto-advancing
 	scene._on_room_clicked("f0_r2")
 
-	_assert(ds.current_floor == 1, "Advanced to floor 1")
+	_assert(ds.current_floor == 0, "Still on floor 0 (exit popup shown)")
+	_assert(scene._exit_overlay.visible, "Exit overlay is visible")
+	_assert(scene.get_ui_state() == DungeonScene.UIState.POPUP, "UI state is POPUP")
+
+	## Click Descend to advance
+	scene._exit_descend_btn.pressed.emit()
+
+	_assert(ds.current_floor == 1, "Advanced to floor 1 after Descend")
 	_assert(floor_signal["changed"], "floor_changed signal emitted")
 	_assert(floor_signal["floor"] == 1, "floor_changed reports floor 1")
 	_assert("Floor 2" in scene._floor_label.text, "Label shows Floor 2")
+	_assert(not scene._exit_overlay.visible, "Exit overlay hidden after descend")
 
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)
@@ -1150,15 +1176,16 @@ func _test_fog_of_war() -> void:
 	var r0: RoomNode = fm.get_room_node("r0")
 	_assert(r0.state == RoomNode.RoomState.CURRENT, "Start room is CURRENT")
 
-	## r1 (enemy) is unrevealed
+	## r1 (enemy) is FOGGY (visible but type unknown, adjacent to start)
 	var r1: RoomNode = fm.get_room_node("r1")
-	_assert(r1.state == RoomNode.RoomState.UNREVEALED, "Enemy room starts unrevealed")
-	_assert(r1._icon_label.text == "?", "Unrevealed room shows ?")
+	_assert(r1.state == RoomNode.RoomState.FOGGY, "Enemy room is FOGGY (adjacent to start)")
+	_assert(r1._icon_label.text == "?", "Foggy room shows ?")
+	_assert(r1.visible, "Foggy room is visible on screen")
 
-	## r2 (exit) is revealed (DungeonState auto-reveals exits)
+	## r2 (exit) is unrevealed (not adjacent to start)
 	var r2: RoomNode = fm.get_room_node("r2")
-	_assert(r2.state == RoomNode.RoomState.REVEALED, "Exit room is auto-revealed")
-	_assert(r2._icon_label.text == "\u25bc", "Revealed exit shows down arrow")
+	_assert(r2.state == RoomNode.RoomState.UNREVEALED, "Exit room is unrevealed")
+	_assert(not r2.visible, "Unrevealed room is invisible on screen")
 
 	_cleanup_node(fm)
 	_cleanup_node(ds.crawler)
@@ -1172,10 +1199,16 @@ func _test_scan_reveals_adjacent() -> void:
 			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
 			{"id": "r1", "x": 1, "y": 0, "type": "enemy", "visited": false, "revealed": false},
 			{"id": "r2", "x": 2, "y": 0, "type": "cache", "visited": false, "revealed": false},
+			{"id": "r3", "x": 3, "y": 0, "type": "exit", "visited": false, "revealed": false},
 		],
-		"connections": [["r0", "r1"], ["r1", "r2"]],
+		"connections": [["r0", "r1"], ["r1", "r2"], ["r2", "r3"]],
 	}
 	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+
+	## After floor entry, r1 is visible but foggy (adjacent to start)
+	_assert(ds.floors[0]["rooms"][1].get("visible", false), "r1 visible (adjacent to start)")
+	_assert(not ds.floors[0]["rooms"][1]["revealed"], "r1 NOT revealed (foggy)")
+	_assert(not ds.floors[0]["rooms"][2]["revealed"], "r2 starts unrevealed")
 
 	## Connect signal to track reveals
 	var revealed_ids: Array = []
@@ -1183,16 +1216,398 @@ func _test_scan_reveals_adjacent() -> void:
 		revealed_ids.append(rid)
 	)
 
-	## r1 is adjacent to r0, r2 is not
-	_assert(not ds.floors[0]["rooms"][1]["revealed"], "r1 starts unrevealed")
-	_assert(not ds.floors[0]["rooms"][2]["revealed"], "r2 starts unrevealed")
-
-	## Use scan
+	## Scan from r0 — fully reveals r1 (adjacent, was foggy)
 	ds.use_crawler_ability("scan")
+	_assert(ds.floors[0]["rooms"][1]["revealed"], "r1 fully revealed after scan")
+	_assert(revealed_ids.has("r1"), "room_revealed signal for r1")
+	_assert(not revealed_ids.has("r2"), "r2 not adjacent to r0, not revealed")
+	_assert(ds.crawler.energy < ds.crawler.max_energy, "Scan consumed energy")
 
-	_assert(ds.floors[0]["rooms"][1]["revealed"], "r1 revealed after scan")
-	_assert(not ds.floors[0]["rooms"][2]["revealed"], "r2 still unrevealed (not adjacent)")
-	_assert(revealed_ids.has("r1"), "room_revealed signal emitted for r1")
-	_assert(not revealed_ids.has("r2"), "No room_revealed for r2")
+	_cleanup_node(ds.crawler)
 
+
+func _test_click_to_navigate() -> void:
+	print("--- Click-to-Navigate: multi-hop walk ---")
+	## Floor: start → empty → empty → exit (all visible)
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true, "visible": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "empty", "visited": true, "revealed": true, "visible": true},
+			{"id": "r2", "x": 2, "y": 0, "type": "empty", "visited": true, "revealed": true, "visible": true},
+			{"id": "r3", "x": 3, "y": 0, "type": "exit", "visited": false, "revealed": true, "visible": true},
+		],
+		"connections": [["r0", "r1"], ["r1", "r2"], ["r2", "r3"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+	scene.start_rift(ds)
+
+	## Click r3 (3 rooms away) — should pathfind and walk through empty rooms
+	## Stops at exit (exit_reached signal triggers popup)
+	scene._on_room_clicked("r3")
+
+	## Should have walked to r3 (exit popup shown)
+	_assert(ds.current_room_id == "r3", "Walked to r3 via pathfinding (got %s)" % ds.current_room_id)
+	## r1 and r2 should be visited
+	_assert(ds.floors[0]["rooms"][1]["visited"], "r1 visited along path")
+	_assert(ds.floors[0]["rooms"][2]["visited"], "r2 visited along path")
+	## Exit popup should be shown
+	_assert(scene.get_ui_state() == DungeonScene.UIState.POPUP, "Exit popup shown")
+
+	## Dismiss exit popup
+	scene._exit_stay_btn.pressed.emit()
+	_assert(scene.get_ui_state() == DungeonScene.UIState.EXPLORING, "Back to exploring after stay")
+
+	## Click r0 (backtrack 3 rooms) — should walk back through cleared rooms
+	scene._on_room_clicked("r0")
+	_assert(ds.current_room_id == "r0", "Walked back to r0 via pathfinding")
+
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+func _test_click_to_navigate_stops_at_combat() -> void:
+	print("--- Click-to-Navigate: stops at combat room ---")
+	## Floor: start → enemy → empty (all visible)
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true, "visible": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "enemy", "visited": false, "revealed": true, "visible": true},
+			{"id": "r2", "x": 2, "y": 0, "type": "empty", "visited": false, "revealed": true, "visible": true},
+		],
+		"connections": [["r0", "r1"], ["r1", "r2"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+	scene.start_rift(ds)
+
+	## Click r2 (2 rooms away) — should stop at r1 (enemy popup)
+	scene._on_room_clicked("r2")
+
+	_assert(ds.current_room_id == "r1", "Stopped at enemy room r1 (got %s)" % ds.current_room_id)
+	_assert(scene.get_ui_state() == DungeonScene.UIState.POPUP, "Enemy popup shown")
+	_assert(ds.floors[0]["rooms"][2]["visited"] == false, "r2 NOT visited (path interrupted)")
+
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+# ==========================================================================
+# Crawler Token & Path Preview Tests
+# ==========================================================================
+
+func _test_crawler_token_position() -> void:
+	print("--- CrawlerToken: Position after start_rift ---")
+	var floor_data: Dictionary = _make_simple_floor()
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+	scene.start_rift(ds)
+
+	## Token should exist
+	var token: CrawlerToken = scene._floor_map._crawler_token
+	_assert(token != null, "CrawlerToken exists on FloorMap")
+	_assert(token.instant_mode, "Token has instant_mode from FloorMap")
+
+	## Token should be at start room center
+	var start_center: Vector2 = scene._floor_map.get_room_center("r0")
+	var expected_pos: Vector2 = start_center - CrawlerToken.TOKEN_SIZE / 2.0
+	_assert(token.position.distance_to(expected_pos) < 1.0, "Token at start room center (got %s, expected %s)" % [token.position, expected_pos])
+
+	## Move to r1 — token should update
+	ds.move_to_room("r1")
+	var r1_center: Vector2 = scene._floor_map.get_room_center("r1")
+	var expected_r1: Vector2 = r1_center - CrawlerToken.TOKEN_SIZE / 2.0
+	_assert(token.position.distance_to(expected_r1) < 1.0, "Token moved to r1 center after navigation")
+
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+func _test_path_preview() -> void:
+	print("--- PathPreview: Show and clear ---")
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true, "visible": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "empty", "visited": true, "revealed": true, "visible": true},
+			{"id": "r2", "x": 2, "y": 0, "type": "empty", "visited": true, "revealed": true, "visible": true},
+		],
+		"connections": [["r0", "r1"], ["r1", "r2"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+	scene.start_rift(ds)
+
+	## Show preview for path [r1, r2]
+	var path: Array[String] = ["r1", "r2"]
+	scene._floor_map.show_path_preview(path)
+
+	## Preview line should be visible with 3 points (current + 2 path rooms)
+	_assert(scene._floor_map._preview_line.visible, "Preview line visible after show_path_preview")
+	_assert(scene._floor_map._preview_line.get_point_count() == 3, "Preview line has 3 points (got %d)" % scene._floor_map._preview_line.get_point_count())
+
+	## Room r1 and r2 should have preview highlight
+	var r1_node: RoomNode = scene._floor_map.get_room_node("r1")
+	var r2_node: RoomNode = scene._floor_map.get_room_node("r2")
+	_assert(r1_node._preview_highlight.visible, "r1 preview highlight visible")
+	_assert(r2_node._preview_highlight.visible, "r2 preview highlight visible")
+
+	## r0 (current) should NOT have preview highlight
+	var r0_node: RoomNode = scene._floor_map.get_room_node("r0")
+	_assert(not r0_node._preview_highlight.visible, "r0 (current) no preview highlight")
+
+	## Clear preview
+	scene._floor_map.clear_path_preview()
+	_assert(not scene._floor_map._preview_line.visible, "Preview line hidden after clear")
+	_assert(not r1_node._preview_highlight.visible, "r1 preview cleared")
+	_assert(not r2_node._preview_highlight.visible, "r2 preview cleared")
+
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+func _test_preview_highlight() -> void:
+	print("--- RoomNode: Preview Highlight ---")
+	var node: RoomNode = RoomNode.new()
+	root.add_child(node)
+	node.setup({"id": "r1", "x": 0, "y": 0, "type": "enemy", "visited": true, "revealed": true})
+
+	_assert(node._preview_highlight != null, "Has preview highlight panel")
+	_assert(not node._preview_highlight.visible, "Preview highlight hidden by default")
+
+	node.set_preview_highlight(true)
+	_assert(node._preview_highlight.visible, "Preview highlight shown when set")
+
+	node.set_preview_highlight(false)
+	_assert(not node._preview_highlight.visible, "Preview highlight hidden when cleared")
+
+	_cleanup_node(node)
+
+
+func _test_moving_state_blocks_clicks() -> void:
+	print("--- DungeonScene: MOVING state blocks clicks ---")
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true, "visible": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "empty", "visited": true, "revealed": true, "visible": true},
+		],
+		"connections": [["r0", "r1"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+	scene.start_rift(ds)
+
+	## Manually set MOVING state
+	scene._state = DungeonScene.UIState.MOVING
+	scene._on_room_clicked("r1")
+
+	## Should NOT have moved (still at r0)
+	_assert(ds.current_room_id == "r0", "MOVING state blocks room click (still at r0, got %s)" % ds.current_room_id)
+
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+func _test_boss_capture_on_rerun() -> void:
+	print("--- BossCapture: Offered on re-run ---")
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "boss", "visited": false, "revealed": true},
+		],
+		"connections": [["r0", "r1"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+
+	## Mark this rift as previously cleared
+	var codex: CodexState = CodexState.new()
+	var rift_id: String = ds.rift_template.rift_id
+	codex.mark_rift_cleared(rift_id)
+	scene.codex_state = codex
+
+	scene.start_rift(ds)
+
+	## Create a boss glyph
+	var boss: GlyphInstance = _make_glyph("zapplet")
+	boss.is_boss = true
+	boss.side = "enemy"
+	var enemies: Array[GlyphInstance] = [boss]
+
+	## Simulate winning the boss fight on a re-run
+	scene.on_combat_finished(true, enemies, 3)
+
+	## Should show capture popup (not result screen)
+	_assert(scene.get_ui_state() == DungeonScene.UIState.CAPTURE, "Boss capture offered on re-run (got state %d)" % scene.get_ui_state())
+	_assert(scene._boss_capture_pending, "Boss capture pending flag set")
+
+	## Dismiss capture → should show rift result
+	scene._on_capture_dismissed()
+	_assert(scene.get_ui_state() == DungeonScene.UIState.RESULT, "Rift result shown after boss capture dismiss")
+	_assert(not scene._boss_capture_pending, "Boss capture pending cleared")
+
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+func _test_boss_no_capture_on_first_clear() -> void:
+	print("--- BossCapture: Not offered on first clear ---")
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "boss", "visited": false, "revealed": true},
+		],
+		"connections": [["r0", "r1"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+
+	## Codex with NO prior clear
+	var codex: CodexState = CodexState.new()
+	scene.codex_state = codex
+
+	scene.start_rift(ds)
+
+	## Create a boss glyph
+	var boss: GlyphInstance = _make_glyph("zapplet")
+	boss.is_boss = true
+	boss.side = "enemy"
+	var enemies: Array[GlyphInstance] = [boss]
+
+	## Simulate winning the boss fight on first clear
+	scene.on_combat_finished(true, enemies, 3)
+
+	## Should go straight to result (no capture)
+	_assert(scene.get_ui_state() == DungeonScene.UIState.RESULT, "First clear skips boss capture (got state %d)" % scene.get_ui_state())
+	_assert(not scene._boss_capture_pending, "No boss capture pending on first clear")
+
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+# ==========================================================================
+# Battle Loss Penalty Tests (GDD 8.13)
+# ==========================================================================
+
+func _test_battle_loss_pushback() -> void:
+	print("--- BattleLoss: Pushback + revive + hull damage ---")
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "enemy", "visited": false, "revealed": true},
+		],
+		"connections": [["r0", "r1"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+
+	## Set up roster with a squad
+	var roster: RosterState = RosterState.new()
+	var g1: GlyphInstance = _make_glyph("sparkfin")
+	var g2: GlyphInstance = _make_glyph("zapplet")
+	roster.active_squad.append(g1)
+	roster.active_squad.append(g2)
+	scene.roster_state = roster
+
+	scene.start_rift(ds)
+
+	## Navigate to enemy room
+	scene._on_room_clicked("r1")
+	_assert(ds.current_room_id == "r1", "Moved to r1")
+
+	## Enter combat
+	scene._on_popup_action("enemy", {"type": "enemy", "id": "r1"})
+	_assert(scene._pre_combat_room_id == "r0", "Pre-combat room saved as r0 (got %s)" % scene._pre_combat_room_id)
+
+	## KO one glyph
+	g1.current_hp = 0
+	g1.is_knocked_out = true
+
+	var initial_hull: int = ds.crawler.hull_hp
+
+	## Simulate losing the battle
+	var enemies: Array[GlyphInstance] = [_make_glyph("zapplet")]
+	scene.on_combat_finished(false, enemies, 3)
+
+	## Assertions
+	_assert(ds.current_room_id == "r0", "Pushed back to previous room r0 (got %s)" % ds.current_room_id)
+	_assert(not g1.is_knocked_out, "KO'd glyph revived")
+	_assert(g1.current_hp == maxi(1, int(float(g1.max_hp) * 0.3)), "Revived at 30%% HP (got %d, expected %d)" % [g1.current_hp, maxi(1, int(float(g1.max_hp) * 0.3))])
+	_assert(ds.crawler.hull_hp == initial_hull - 15, "Hull took 15 damage (got %d, expected %d)" % [ds.crawler.hull_hp, initial_hull - 15])
+	_assert(scene.get_ui_state() == DungeonScene.UIState.EXPLORING, "Back to EXPLORING state")
+
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+func _test_battle_loss_hull_zero_extracts() -> void:
+	print("--- BattleLoss: Hull zero → forced extraction ---")
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "enemy", "visited": false, "revealed": true},
+		],
+		"connections": [["r0", "r1"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+
+	## Set up roster with a squad
+	var roster: RosterState = RosterState.new()
+	var g1: GlyphInstance = _make_glyph("sparkfin")
+	roster.active_squad.append(g1)
+	scene.roster_state = roster
+
+	scene.start_rift(ds)
+
+	## Navigate to enemy room and enter combat
+	scene._on_room_clicked("r1")
+	scene._on_popup_action("enemy", {"type": "enemy", "id": "r1"})
+
+	## Set hull very low (< 15 so loss penalty destroys it)
+	ds.crawler.hull_hp = 10
+
+	## Simulate losing the battle
+	var enemies: Array[GlyphInstance] = [_make_glyph("zapplet")]
+	scene.on_combat_finished(false, enemies, 3)
+
+	## Hull should be 0 and result overlay shown (forced extraction)
+	_assert(ds.crawler.hull_hp == 0, "Hull reduced to 0")
+	_assert(scene.get_ui_state() == DungeonScene.UIState.RESULT, "Forced extraction → RESULT state")
+
+	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)

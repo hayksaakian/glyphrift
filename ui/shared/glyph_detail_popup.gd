@@ -17,7 +17,8 @@ var _art_rect: ColorRect = null
 var _initial_label: Label = null
 var _stats_label: Label = null
 var _gp_label: Label = null
-var _techniques_label: Label = null
+var _techniques_header: Label = null
+var _techniques_vbox: VBoxContainer = null
 var _mastery_header: Label = null
 var _mastery_vbox: VBoxContainer = null
 var _mastery_bonus_label: Label = null
@@ -25,6 +26,13 @@ var _mastered_banner: Label = null
 var _location_label: Label = null
 var _close_button: Button = null
 var _art_panel: PanelContainer = null
+
+const _RANGE_TAGS: Dictionary = {
+	"melee": "\ud83d\udc4a",
+	"ranged": "\ud83c\udff9",
+	"aoe": "\ud83d\udca5",
+	"piercing": "\ud83c\udfaf",
+}
 
 
 
@@ -82,10 +90,7 @@ func _refresh() -> void:
 	_gp_label.text = "GP: %d" % sp.gp_cost
 
 	## Techniques
-	var tech_names: Array[String] = []
-	for tech: TechniqueDef in glyph.techniques:
-		tech_names.append(tech.name)
-	_techniques_label.text = "Techniques: %s" % ", ".join(tech_names)
+	_refresh_techniques(glyph.techniques)
 
 	## Mastery section
 	_refresh_mastery()
@@ -111,12 +116,12 @@ func _refresh_species(sp: GlyphSpecies, data_loader: Node, is_captured: bool) ->
 	_gp_label.text = "GP: %d" % sp.gp_cost
 
 	## All native techniques
-	var tech_names: Array[String] = []
+	var techs: Array[TechniqueDef] = []
 	for tid: String in sp.technique_ids:
 		var tech: TechniqueDef = data_loader.get_technique(tid)
 		if tech != null:
-			tech_names.append(tech.name)
-	_techniques_label.text = "Techniques: %s" % ", ".join(tech_names)
+			techs.append(tech)
+	_refresh_techniques(techs)
 
 	## Mastery: show possible objectives for this tier
 	_refresh_species_mastery(sp, data_loader)
@@ -326,11 +331,16 @@ func _build_ui() -> void:
 	stats_vbox.add_child(_gp_label)
 
 	## Techniques
-	_techniques_label = Label.new()
-	_techniques_label.add_theme_font_size_override("font_size", 13)
-	_techniques_label.add_theme_color_override("font_color", Color("#CCCCCC"))
-	_techniques_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_vbox.add_child(_techniques_label)
+	_techniques_header = Label.new()
+	_techniques_header.text = "-- Techniques --"
+	_techniques_header.add_theme_font_size_override("font_size", 13)
+	_techniques_header.add_theme_color_override("font_color", Color("#AAAAAA"))
+	_techniques_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_vbox.add_child(_techniques_header)
+
+	_techniques_vbox = VBoxContainer.new()
+	_techniques_vbox.add_theme_constant_override("separation", 2)
+	_vbox.add_child(_techniques_vbox)
 
 	## Mastery header
 	_mastery_header = Label.new()
@@ -376,6 +386,37 @@ func _build_ui() -> void:
 		closed.emit()
 	)
 	_vbox.add_child(_close_button)
+
+
+func _refresh_techniques(techs: Array[TechniqueDef]) -> void:
+	for child: Node in _techniques_vbox.get_children():
+		_techniques_vbox.remove_child(child)
+		child.queue_free()
+
+	for tech: TechniqueDef in techs:
+		var label: Label = Label.new()
+		label.add_theme_font_size_override("font_size", 13)
+		label.text = _format_technique(tech)
+		var tech_color: Color = Affinity.COLORS.get(tech.affinity, Color.WHITE)
+		label.add_theme_color_override("font_color", tech_color)
+		_techniques_vbox.add_child(label)
+
+
+func _format_technique(tech: TechniqueDef) -> String:
+	var aff_tag: String = Affinity.EMOJI.get(tech.affinity, "?")
+	var range_tag: String = _RANGE_TAGS.get(tech.range_type, "?")
+	var text: String = ""
+	if tech.power > 0:
+		text = "%s %s  %s %d" % [aff_tag, tech.name, range_tag, tech.power]
+	elif tech.category == "support":
+		text = "%s %s  %s" % [aff_tag, tech.name, tech.support_effect.capitalize()]
+	else:
+		text = "%s %s  %s" % [aff_tag, tech.name, range_tag]
+	if tech.cooldown > 0:
+		text += "  \u231b%d" % tech.cooldown
+	if tech.status_effect != "":
+		text += "  [%s %d%%]" % [tech.status_effect.capitalize(), tech.status_accuracy]
+	return text
 
 
 func _gui_input(event: InputEvent) -> void:

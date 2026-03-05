@@ -275,10 +275,15 @@ func _dungeon_loop(template: RiftTemplate) -> void:
 
 		_prev_room_id = dungeon.current_room_id
 		var _was_reinforced: bool = _crawler.is_reinforced
+		var target_type: String = adjacent[move_idx].get("type", "")
 		dungeon.move_to_room(adjacent[move_idx]["id"])
 		## Check if reinforced blocked a hazard (flag consumed by move_to_room)
 		if _was_reinforced and not _crawler.is_reinforced:
 			print("  Hazard! But hull was reinforced — no damage.")
+		## Exit rooms now emit exit_reached — descend to next floor
+		if target_type == "exit":
+			print("  Descending to next floor...")
+			dungeon.descend()
 
 
 func _handle_room(room: Dictionary, template: RiftTemplate) -> void:
@@ -651,14 +656,9 @@ func _attempt_capture(enemies: Array[GlyphInstance], template: RiftTemplate) -> 
 		return
 
 	var target: GlyphInstance = capturable[randi() % capturable.size()]
-	var player_had_ko: bool = false
-	for g: GlyphInstance in _engine.player_squad:
-		if g.is_knocked_out:
-			player_had_ko = true
-			break
 
 	var chance: float = CaptureCalculator.calculate_chance(
-		enemies.size(), _engine.turn_count, player_had_ko)
+		enemies.size(), _engine.turn_count)
 	chance = minf(CaptureCalculator.MAX_CHANCE, chance + _capture_bonus)
 	_capture_bonus = 0.0
 	var roll: float = randf()

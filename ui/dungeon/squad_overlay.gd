@@ -8,7 +8,7 @@ extends PanelContainer
 signal glyph_clicked(glyph: GlyphInstance)
 
 var _vbox: VBoxContainer = null
-var _entries: Array[Dictionary] = []  ## [{glyph, name_label, hp_bar, hp_label}]
+var _entries: Array[Dictionary] = []  ## [{glyph, name_label, hp_bar, hp_label, effect_badge}]
 var _reserve_header: Label = null
 var _reserve_rows: Array[HBoxContainer] = []
 var _roster_state: RosterState = null
@@ -152,6 +152,14 @@ func _make_entry(g: GlyphInstance) -> Dictionary:
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_row.add_child(name_label)
 
+	## Effect badge (hidden by default, shown when glyph has an active effect)
+	var effect_badge: Label = Label.new()
+	effect_badge.add_theme_font_size_override("font_size", 10)
+	effect_badge.add_theme_color_override("font_color", Color("#66DD88"))
+	effect_badge.mouse_filter = Control.MOUSE_FILTER_PASS
+	effect_badge.visible = false
+	name_row.add_child(effect_badge)
+
 	var hp_row: HBoxContainer = HBoxContainer.new()
 	hp_row.add_theme_constant_override("separation", 4)
 	_vbox.add_child(hp_row)
@@ -181,7 +189,7 @@ func _make_entry(g: GlyphInstance) -> Dictionary:
 	hp_label.custom_minimum_size = Vector2(24, 0)
 	hp_row.add_child(hp_label)
 
-	return {"glyph": g, "name_label": name_label, "hp_bar": hp_bar, "hp_label": hp_label}
+	return {"glyph": g, "name_label": name_label, "hp_bar": hp_bar, "hp_label": hp_label, "effect_badge": effect_badge}
 
 
 func _clear_entries() -> void:
@@ -191,6 +199,30 @@ func _clear_entries() -> void:
 	for child: Node in _vbox.get_children():
 		_vbox.remove_child(child)
 		child.queue_free()
+
+
+func set_glyph_effect(glyph: GlyphInstance, text: String, tooltip: String = "") -> void:
+	for entry: Dictionary in _entries:
+		if entry["glyph"] == glyph:
+			var badge: Label = entry["effect_badge"]
+			badge.text = text
+			badge.tooltip_text = tooltip
+			badge.visible = true
+			return
+
+
+func clear_glyph_effect(glyph: GlyphInstance) -> void:
+	for entry: Dictionary in _entries:
+		if entry["glyph"] == glyph:
+			var badge: Label = entry["effect_badge"]
+			badge.visible = false
+			return
+
+
+func clear_all_effects() -> void:
+	for entry: Dictionary in _entries:
+		var badge: Label = entry["effect_badge"]
+		badge.visible = false
 
 
 func _make_art_icon(g: GlyphInstance, icon_size: int, clickable: bool = true) -> Control:

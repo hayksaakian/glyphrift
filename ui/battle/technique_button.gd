@@ -7,10 +7,10 @@ extends Button
 signal technique_selected(technique: TechniqueDef)
 
 const RANGE_TAGS: Dictionary = {
-	"melee": "M",
-	"ranged": "R",
-	"aoe": "AoE",
-	"piercing": "P",
+	"melee": "\ud83d\udc4a",
+	"ranged": "\ud83c\udff9",
+	"aoe": "\ud83d\udca5",
+	"piercing": "\ud83c\udfaf",
 }
 
 var technique: TechniqueDef = null
@@ -53,14 +53,14 @@ func _update_display() -> void:
 	var range_tag: String = RANGE_TAGS.get(technique.range_type, "?")
 
 	if technique.power > 0:
-		text = "%s %s  %s  Pw:%d" % [aff_tag, technique.name, range_tag, technique.power]
+		text = "%s %s  %s %d" % [aff_tag, technique.name, range_tag, technique.power]
 	elif technique.category == "support":
 		text = "%s %s  %s" % [aff_tag, technique.name, technique.support_effect.capitalize()]
 	else:
 		text = "%s %s  %s" % [aff_tag, technique.name, range_tag]
 
 	if technique.cooldown > 0:
-		text += "  CD:%d" % technique.cooldown
+		text += "  \u231b%d" % technique.cooldown
 
 	## Show/hide badge
 	if _se_badge != null:

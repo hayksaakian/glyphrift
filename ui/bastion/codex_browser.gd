@@ -416,20 +416,111 @@ func _refresh_fusion_log() -> void:
 		return
 
 	for entry: Dictionary in codex_state.fusion_log:
-		var label: Label = Label.new()
-		label.add_theme_font_size_override("font_size", 14)
-		label.add_theme_color_override("font_color", Color("#CCCCCC"))
+		var row: PanelContainer = _build_fusion_entry(entry)
+		_fusion_vbox.add_child(row)
 
-		var parent_a_name: String = _get_species_display(entry.get("parent_a", ""))
-		var parent_b_name: String = _get_species_display(entry.get("parent_b", ""))
-		var result_name: String = _get_species_display(entry.get("result", ""))
 
-		var a_emoji: String = _get_species_emoji(entry.get("parent_a", ""))
-		var b_emoji: String = _get_species_emoji(entry.get("parent_b", ""))
-		var r_emoji: String = _get_species_emoji(entry.get("result", ""))
+func _build_fusion_entry(entry: Dictionary) -> PanelContainer:
+	var panel: PanelContainer = PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color("#1A1A2E")
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.content_margin_left = 12.0
+	style.content_margin_right = 12.0
+	style.content_margin_top = 8.0
+	style.content_margin_bottom = 8.0
+	panel.add_theme_stylebox_override("panel", style)
 
-		label.text = "%s %s + %s %s → %s %s" % [a_emoji, parent_a_name, b_emoji, parent_b_name, r_emoji, result_name]
-		_fusion_vbox.add_child(label)
+	var hbox: HBoxContainer = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 10)
+	panel.add_child(hbox)
+
+	## Parent A portrait
+	hbox.add_child(_build_mini_portrait(entry.get("parent_a", "")))
+
+	## "+" connector
+	var plus_label: Label = Label.new()
+	plus_label.text = "+"
+	plus_label.add_theme_font_size_override("font_size", 18)
+	plus_label.add_theme_color_override("font_color", Color("#888888"))
+	plus_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hbox.add_child(plus_label)
+
+	## Parent B portrait
+	hbox.add_child(_build_mini_portrait(entry.get("parent_b", "")))
+
+	## "→" connector
+	var arrow_label: Label = Label.new()
+	arrow_label.text = "→"
+	arrow_label.add_theme_font_size_override("font_size", 18)
+	arrow_label.add_theme_color_override("font_color", Color("#888888"))
+	arrow_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hbox.add_child(arrow_label)
+
+	## Result portrait
+	hbox.add_child(_build_mini_portrait(entry.get("result", "")))
+
+	return panel
+
+
+func _build_mini_portrait(species_id: String) -> VBoxContainer:
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+
+	var sp: GlyphSpecies = null
+	if data_loader != null:
+		sp = data_loader.get_species(species_id)
+
+	var aff_color: Color = Color("#888888")
+	var display_name: String = species_id
+	if sp != null:
+		aff_color = Affinity.COLORS.get(sp.affinity, Affinity.COLORS["neutral"])
+		display_name = sp.name
+
+	## Art placeholder (48x48)
+	var art_center: CenterContainer = CenterContainer.new()
+	art_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(art_center)
+
+	var art_rect: ColorRect = ColorRect.new()
+	art_rect.custom_minimum_size = Vector2(48, 48)
+	art_rect.color = aff_color
+	art_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	art_center.add_child(art_rect)
+
+	var initial_label: Label = Label.new()
+	initial_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	initial_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	initial_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	initial_label.add_theme_font_size_override("font_size", 20)
+	initial_label.add_theme_color_override("font_color", Color.WHITE)
+	initial_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	initial_label.add_theme_constant_override("outline_size", 2)
+	initial_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if sp != null:
+		initial_label.text = sp.name[0].to_upper()
+	else:
+		initial_label.text = "?"
+	art_rect.add_child(initial_label)
+
+	if sp != null:
+		GlyphArt.apply_texture(art_rect, art_rect, initial_label, species_id, 48)
+
+	## Species name
+	var name_label: Label = Label.new()
+	name_label.text = display_name
+	name_label.add_theme_font_size_override("font_size", 10)
+	name_label.add_theme_color_override("font_color", aff_color)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(name_label)
+
+	return vbox
 
 
 func _get_species_display(species_id: String) -> String:

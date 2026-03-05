@@ -256,15 +256,17 @@ func _on_combat_requested(enemies: Array[GlyphInstance], boss_def: BossDef) -> v
 
 
 func _on_battle_finished(won: bool) -> void:
-	## Get enemies from combat engine for capture flow
+	## Get combat stats for capture calculation
 	var enemies: Array[GlyphInstance] = []
+	var turns: int = 3
 	if combat_engine != null:
 		enemies = combat_engine.enemy_squad
+		turns = combat_engine.turn_count
 
 	_fade_to(func() -> void:
 		_show_dungeon()
 		_squad_overlay.refresh()
-		_dungeon_scene.on_combat_finished(won, enemies)
+		_dungeon_scene.on_combat_finished(won, enemies, turns)
 	)
 
 
@@ -296,6 +298,10 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 	_rift_cargo.append(wild_glyph)
 	codex_state.discover_species(wild_glyph.species.id)
 
+	## Notify mastery tracker about the capture
+	if mastery_tracker != null:
+		mastery_tracker.notify_capture(roster_state.active_squad)
+
 	## Update popup to confirm where the glyph went
 	_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to cargo."
 
@@ -315,6 +321,10 @@ func _on_cargo_swap(keep_glyph: GlyphInstance, release_glyph: GlyphInstance) -> 
 	roster_state.add_glyph(keep_glyph)
 	_rift_cargo.append(keep_glyph)
 	codex_state.discover_species(keep_glyph.species.id)
+
+	## Notify mastery tracker about the capture
+	if mastery_tracker != null:
+		mastery_tracker.notify_capture(roster_state.active_squad)
 
 	_append_room_history("Captured %s (released %s)." % [keep_glyph.species.name, release_glyph.species.name])
 	_squad_overlay.refresh()
