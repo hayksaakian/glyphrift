@@ -131,7 +131,7 @@ Almost everything is instant/static right now. Key areas where motion would brin
 
 **Micro-interactions (medium impact):**
 - [x] Popups: scale up from center or slide in (not instant visible=true)
-- [ ] Notifications/toasts: slide in from edge, auto-fade after delay
+- [x] Notifications/toasts: slide in from top, auto-fade after 3s delay
 - [x] Button press: subtle scale-down on click, bounce back on release
 
 General approach: all tween-based (Godot Tween class), keep durations snappy (0.1-0.3s), respect `instant_mode` for testing. No skeletal/sprite-sheet animation needed — motion comes from position, scale, rotation, modulate tweens on existing nodes.
@@ -140,7 +140,7 @@ General approach: all tween-based (Godot Tween class), keep durations snappy (0.
 - [x] Rift Gate overflow: 5+ rift cards clip against edge — wrap in ScrollContainer, reduce card width
 - [x] Button hover/focus states — press scale-down on nav and action buttons
 - [x] Popup dismiss: click-outside-to-close on modal overlays (exit, repair, swap)
-- [ ] Long text doesn't overflow (species names, technique lists, mastery descriptions)
+- [x] Long text doesn't overflow — ellipsis clipping on names in panel, card, portrait
 - [ ] Screen transitions feel smooth (no flicker or state leaks)
 - [x] Floor transition overlay shows rift name + floor number
 - [x] Result screen (RIFT COMPLETE / EXTRACTED / RIFT FAILED) messaging

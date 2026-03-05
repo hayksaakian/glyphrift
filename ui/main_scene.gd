@@ -451,7 +451,18 @@ func show_milestone_toast(text: String) -> void:
 	_milestone_toast.modulate = Color.WHITE
 	if instant_mode:
 		return
+	## Slide in from top
+	var target_top: float = 20.0
+	_milestone_toast.offset_top = -60.0
+	_milestone_toast.offset_bottom = -10.0
+	_milestone_toast.modulate = Color(1, 1, 1, 0)
 	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_milestone_toast, "offset_top", target_top, 0.3).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_milestone_toast, "offset_bottom", target_top + 50.0, 0.3).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_milestone_toast, "modulate", Color.WHITE, 0.2)
+	tween.set_parallel(false)
+	## Hold then fade out
 	tween.tween_interval(3.0)
 	tween.tween_property(_milestone_toast, "modulate", Color(1, 1, 1, 0), 1.0)
 	tween.tween_callback(func() -> void: _milestone_toast.visible = false)

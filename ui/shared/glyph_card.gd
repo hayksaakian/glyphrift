@@ -179,6 +179,8 @@ func _build_ui() -> void:
 	_name_label = Label.new()
 	_name_label.add_theme_font_size_override("font_size", 12)
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_name_label.clip_text = true
 	_name_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	_vbox.add_child(_name_label)
 
