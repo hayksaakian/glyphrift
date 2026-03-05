@@ -121,6 +121,11 @@ func _run_tests() -> void:
 	_test_bastion_squad_card_popup()
 	_test_bastion_mastery_hint()
 
+	## Milestone Toast
+	SaveManager._test_prefix = "bastion_ui_"
+	_test_milestone_toast()
+	SaveManager._test_prefix = ""
+
 	## CrawlerBay
 	_test_crawler_bay_construction()
 	_test_crawler_bay_stats_display()
@@ -1437,6 +1442,10 @@ func _make_main_scene() -> MainScene:
 	var fe: FusionEngine = _make_fusion_engine()
 	var ce: Node = _make_combat_engine()
 	var mt: MasteryTracker = MasteryTracker.new()
+	var mlt: MilestoneTracker = MilestoneTracker.new()
+	mlt.crawler_state = cs
+	mlt.codex_state = cx
+	mlt.initialize(_data_loader)
 
 	fe.data_loader = _data_loader
 	fe.codex_state = cx
@@ -1450,6 +1459,7 @@ func _make_main_scene() -> MainScene:
 	gs.fusion_engine = fe
 	gs.combat_engine = ce
 	gs.mastery_tracker = mt
+	gs.milestone_tracker = mlt
 
 	var ms: MainScene = MainScene.new()
 	ms.set_meta("_gs", gs)
@@ -1942,6 +1952,35 @@ func _test_bastion_mastery_hint() -> void:
 	_cleanup_node(cx)
 	_cleanup_node(cs)
 	_cleanup_node(fe)
+
+
+# ==========================================================================
+# Milestone Toast Tests
+# ==========================================================================
+
+func _test_milestone_toast() -> void:
+	print("--- MainScene: Milestone Toast ---")
+	var ms: MainScene = _make_main_scene()
+	ms.instant_mode = true
+
+	_assert(ms._milestone_toast != null, "has milestone toast")
+	_assert(not ms._milestone_toast.visible, "toast hidden initially")
+
+	## Trigger a milestone via show_milestone_toast
+	ms.show_milestone_toast("+10 Hull HP")
+	_assert(ms._milestone_toast.visible, "toast visible after milestone")
+	_assert(ms._milestone_toast_label.text.contains("UPGRADE UNLOCKED"), "toast says UPGRADE UNLOCKED")
+	_assert(ms._milestone_toast_label.text.contains("+10 Hull HP"), "toast shows description")
+
+	## Trigger via milestone_tracker signal
+	ms._milestone_toast.visible = false
+	var gs: GameState = ms.get_meta("_gs")
+	if gs.milestone_tracker != null:
+		gs.milestone_tracker.milestone_completed.emit("test_id", "Test reward")
+		_assert(ms._milestone_toast.visible, "toast appears on signal")
+		_assert(ms._milestone_toast_label.text.contains("Test reward"), "toast shows signal description")
+
+	_cleanup_main_scene(ms)
 
 
 # ==========================================================================

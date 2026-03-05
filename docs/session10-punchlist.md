@@ -16,7 +16,7 @@
   - "Seal a Major Rift" → +2 Capacity
 - [x] Award upgrades: call `crawler_state.apply_upgrade()` when milestones trigger
 - [x] Chassis selection UI in bastion (switch between unlocked chassis before a rift)
-- [ ] Upgrade notification: toast/popup when a milestone is achieved
+- [x] Upgrade notification: toast/popup when a milestone is achieved
 - [x] Persist unlocked upgrades + active chassis in save/load
 - [x] Crawler status panel showing unlocked upgrades and milestone progress
 

@@ -21,6 +21,8 @@ var _battle_scene: BattleScene = null
 var _transition_overlay: ColorRect = null
 var _squad_overlay: SquadOverlay = null
 var _detail_popup: GlyphDetailPopup = null
+var _milestone_toast: PanelContainer = null
+var _milestone_toast_label: Label = null
 
 ## For testing — skip transition tweens
 var instant_mode: bool = false
@@ -69,6 +71,8 @@ func setup(
 	## Wire milestone signals
 	if codex_state != null:
 		codex_state.fusion_logged.connect(_on_fusion_logged)
+	if game_state != null and game_state.milestone_tracker != null:
+		game_state.milestone_tracker.milestone_completed.connect(_on_milestone_completed)
 
 
 func show_title() -> void:
@@ -137,6 +141,32 @@ func _build_scene_tree() -> void:
 	_detail_popup = GlyphDetailPopup.new()
 	_detail_popup.name = "DetailPopup"
 	add_child(_detail_popup)
+
+	## Milestone toast (top-center, above scenes)
+	_milestone_toast = PanelContainer.new()
+	_milestone_toast.name = "MilestoneToast"
+	_milestone_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_milestone_toast.offset_left = -200.0
+	_milestone_toast.offset_right = 200.0
+	_milestone_toast.offset_top = 20.0
+	_milestone_toast.offset_bottom = 70.0
+	_milestone_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_milestone_toast.visible = false
+	var toast_style: StyleBoxFlat = StyleBoxFlat.new()
+	toast_style.bg_color = Color(0.1, 0.1, 0.1, 0.9)
+	toast_style.border_color = Color("#FFD700")
+	toast_style.set_border_width_all(2)
+	toast_style.set_corner_radius_all(6)
+	toast_style.set_content_margin_all(8)
+	_milestone_toast.add_theme_stylebox_override("panel", toast_style)
+	_milestone_toast_label = Label.new()
+	_milestone_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_milestone_toast_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_milestone_toast_label.add_theme_font_size_override("font_size", 14)
+	_milestone_toast_label.add_theme_color_override("font_color", Color("#FFD700"))
+	_milestone_toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_milestone_toast.add_child(_milestone_toast_label)
+	add_child(_milestone_toast)
 
 	## Transition overlay (full screen black for fades)
 	_transition_overlay = ColorRect.new()
@@ -407,6 +437,24 @@ func _on_hidden_room_entered() -> void:
 func _on_fusion_logged(_parent_a: String, _parent_b: String, _result: String) -> void:
 	if game_state != null:
 		game_state.notify_fusion()
+
+
+func _on_milestone_completed(_upgrade_id: String, description: String) -> void:
+	show_milestone_toast(description)
+
+
+func show_milestone_toast(text: String) -> void:
+	if _milestone_toast == null or _milestone_toast_label == null:
+		return
+	_milestone_toast_label.text = "UPGRADE UNLOCKED!\n%s" % text
+	_milestone_toast.visible = true
+	_milestone_toast.modulate = Color.WHITE
+	if instant_mode:
+		return
+	var tween: Tween = create_tween()
+	tween.tween_interval(3.0)
+	tween.tween_property(_milestone_toast, "modulate", Color(1, 1, 1, 0), 1.0)
+	tween.tween_callback(func() -> void: _milestone_toast.visible = false)
 
 
 ## --- Save slot loaded ---
