@@ -99,6 +99,7 @@ func show_hub() -> void:
 	refresh()
 	_update_npc_indicators()
 	if was_in_sub:
+		_slide_in(_hub)
 		hub_entered.emit()
 
 	if not _mastery_hint_shown:

@@ -67,13 +67,13 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 
 **Active turn focus:**
 - [x] Highlight the acting glyph (gold border + breathing scale pulse)
-- [ ] Techniques appear as a contextual panel near the active glyph, not a disconnected sidebar
+- [x] Techniques appear as a contextual panel near the active glyph — dynamically positioned right of actor panel
 - [x] Guard + Move Row grouped with techniques as a unified action menu
 
 **Turn order strip:**
 - [x] Compact horizontal strip (smaller portraits, ~32px) — shrunk from 64px to 32px
 - [x] Clear current-turn marker (arrow or ring), dim upcoming, remove KO'd from queue
-- [ ] Position as thin bar, not a major screen element
+- [x] Position as thin bar, not a major screen element — centered strip with dark bg panel
 
 **HP bars:**
 - [x] Larger, more readable HP bars — increased to 20px height
@@ -82,8 +82,8 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 
 **Battle log:**
 - [x] Shrink to 2-3 most recent lines, not a scrolling 30% of screen
-- [ ] Make expandable/collapsible for players who want detail
-- [ ] Or overlay as a toast/feed that fades
+- [x] Make expandable/collapsible — LOG toggle button, compact 75px default → 220px expanded
+- [x] Or overlay as a toast/feed that fades — chose collapsible approach
 
 **Boss Phase 2 communication:**
 - [x] Phase 2 overlay should show what actually changed (e.g. "ATK +20%, SPD +15%, new techniques unlocked")
@@ -141,7 +141,7 @@ General approach: all tween-based (Godot Tween class), keep durations snappy (0.
 - [x] Button hover/focus states — press scale-down on nav and action buttons
 - [x] Popup dismiss: click-outside-to-close on modal overlays (exit, repair, swap)
 - [x] Long text doesn't overflow — ellipsis clipping on names in panel, card, portrait
-- [ ] Screen transitions feel smooth (no flicker or state leaks)
+- [x] Screen transitions feel smooth — fade_to for major transitions, slide_in for sub-screens + hub return
 - [x] Floor transition overlay shows rift name + floor number
 - [x] Result screen (RIFT COMPLETE / EXTRACTED / RIFT FAILED) messaging
 

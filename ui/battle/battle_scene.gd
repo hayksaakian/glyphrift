@@ -144,26 +144,37 @@ func _build_scene_tree() -> void:
 
 	_build_battlefield()
 
-	## Turn order bar at top
+	## Turn order bar at top — thin strip with semi-transparent background
+	var turn_bar_bg: PanelContainer = PanelContainer.new()
+	turn_bar_bg.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	turn_bar_bg.offset_left = 0.0
+	turn_bar_bg.offset_top = 0.0
+	turn_bar_bg.offset_right = 0.0
+	turn_bar_bg.offset_bottom = 42.0
+	var turn_style: StyleBoxFlat = StyleBoxFlat.new()
+	turn_style.bg_color = Color(0.04, 0.04, 0.08, 0.8)
+	turn_style.content_margin_left = 12
+	turn_style.content_margin_right = 12
+	turn_style.content_margin_top = 4
+	turn_style.content_margin_bottom = 4
+	turn_bar_bg.add_theme_stylebox_override("panel", turn_style)
+	add_child(turn_bar_bg)
+
 	_turn_order_bar = HBoxContainer.new()
-	_turn_order_bar.position = Vector2(20, 12)
-	_turn_order_bar.add_theme_constant_override("separation", 6)
-	add_child(_turn_order_bar)
+	_turn_order_bar.add_theme_constant_override("separation", 4)
+	_turn_order_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	turn_bar_bg.add_child(_turn_order_bar)
 
 	## Turn order label
 	var turn_label: Label = Label.new()
-	turn_label.text = "TURN: "
-	turn_label.add_theme_font_size_override("font_size", 14)
-	turn_label.add_theme_color_override("font_color", Color("#AAAAAA"))
+	turn_label.text = "TURN:"
+	turn_label.add_theme_font_size_override("font_size", 11)
+	turn_label.add_theme_color_override("font_color", Color("#888888"))
 	_turn_order_bar.add_child(turn_label)
 
-	## Action menu — techniques + guard/swap in one panel (right side)
+	## Action menu — techniques + guard/swap, positioned near active glyph
 	_action_menu = VBoxContainer.new()
-	_action_menu.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	_action_menu.offset_left = -340.0
-	_action_menu.offset_top = -120.0
-	_action_menu.offset_right = -20.0
-	_action_menu.offset_bottom = 120.0
+	_action_menu.custom_minimum_size = Vector2(240, 0)
 	_action_menu.add_theme_constant_override("separation", 6)
 	_action_menu.visible = false
 	add_child(_action_menu)
@@ -174,11 +185,11 @@ func _build_scene_tree() -> void:
 	_target_selector = TargetSelector.new()
 	add_child(_target_selector)
 
-	## Combat log (bottom, full width minus right panel)
+	## Combat log (bottom, collapsible)
 	_combat_log = BattleLog.new()
 	_combat_log.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_combat_log.offset_left = 20.0
-	_combat_log.offset_top = -75.0
+	_combat_log.offset_top = -85.0
 	_combat_log.offset_right = -200.0
 	_combat_log.offset_bottom = -10.0
 	add_child(_combat_log)
@@ -771,7 +782,39 @@ func _show_action_menu(actor: GlyphInstance) -> void:
 	_state = UIState.ACTION_MENU
 	_current_actor = actor
 	_rebuild_action_panel()
+	_position_action_menu_near(actor)
 	_action_menu.visible = true
+
+
+func _position_action_menu_near(actor: GlyphInstance) -> void:
+	## Place action menu to the right of the active glyph's panel
+	if not _panels.has(actor.instance_id):
+		## Fallback: right-center
+		_action_menu.position = Vector2(size.x - 260, size.y / 2.0 - 100)
+		return
+
+	var panel: GlyphPanel = _panels[actor.instance_id] as GlyphPanel
+	var panel_global: Vector2 = panel.global_position
+	var panel_size: Vector2 = panel.size * panel.scale
+
+	## Try placing to the right of the panel
+	var menu_x: float = panel_global.x + panel_size.x + 16.0
+	var menu_y: float = panel_global.y
+
+	## Clamp within screen bounds
+	var menu_width: float = 240.0
+	var menu_height: float = _action_menu.get_combined_minimum_size().y
+	if menu_height < 80.0:
+		menu_height = 200.0  ## Estimate before layout
+
+	## If menu would go off-screen right, place to the left of the panel
+	if menu_x + menu_width > size.x - 10:
+		menu_x = panel_global.x - menu_width - 16.0
+
+	## Clamp vertically
+	menu_y = clampf(menu_y, 50.0, maxf(size.y - menu_height - 10.0, 50.0))
+
+	_action_menu.position = Vector2(menu_x, menu_y)
 
 
 func _rebuild_action_panel() -> void:
