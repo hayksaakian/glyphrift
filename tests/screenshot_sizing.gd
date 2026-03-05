@@ -23,6 +23,7 @@ func _ready() -> void:
 		"sizing_02_room_popup_enemy",
 		"sizing_03_room_popup_boss",
 		"sizing_04_glyph_portrait_standalone",
+		"sizing_05_dungeon_hud_menu",
 	]
 
 	await get_tree().process_frame
@@ -90,6 +91,9 @@ func _run_step() -> void:
 
 		"sizing_04_glyph_portrait_standalone":
 			_show_portrait_gallery()
+
+		"sizing_05_dungeon_hud_menu":
+			_show_dungeon_with_hud()
 
 	## Wait for layout
 	await get_tree().process_frame
@@ -182,6 +186,26 @@ func _show_portrait_gallery() -> void:
 			portrait.portrait_size = sz
 			portrait.glyph = g
 			hbox.add_child(portrait)
+
+
+func _show_dungeon_with_hud() -> void:
+	## Show just the CrawlerHUD to verify Menu button is integrated
+	var bg: ColorRect = ColorRect.new()
+	bg.name = "step_bg"
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0.05, 0.07, 0.1)
+	add_child(bg)
+
+	var crawler: CrawlerState = CrawlerState.new()
+	crawler.name = "step_crawler"
+	add_child(crawler)
+
+	var hud: CrawlerHUD = CrawlerHUD.new()
+	hud.name = "step_hud"
+	hud.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	hud.custom_minimum_size.y = 44.0
+	add_child(hud)
+	hud.setup(crawler)
 
 
 func _take_screenshot(step_name: String) -> void:

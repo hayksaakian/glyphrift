@@ -195,6 +195,7 @@ func _connect_signals() -> void:
 	_dungeon_scene.squad_changed.connect(_on_squad_changed)
 	_dungeon_scene.hidden_room_entered.connect(_on_hidden_room_entered)
 	_dungeon_scene.floor_changed.connect(_on_floor_changed)
+	_dungeon_scene.save_and_quit_pressed.connect(_on_save_and_quit)
 	_battle_scene.battle_finished.connect(_on_battle_finished)
 	_squad_overlay.glyph_clicked.connect(_on_squad_overlay_glyph_clicked)
 

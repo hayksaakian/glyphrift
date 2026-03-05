@@ -11,6 +11,7 @@ signal rift_completed(won: bool)
 signal floor_changed(floor_number: int)
 signal squad_changed()
 signal hidden_room_entered()
+signal save_and_quit_pressed
 
 enum UIState {
 	EXPLORING,
@@ -94,6 +95,11 @@ var _dungeon_connections: Array[Dictionary] = []
 var _formation_setup: FormationSetup = null
 var _pending_formation_room_type: String = ""
 var _pending_formation_room_data: Dictionary = {}
+
+## Pause menu
+var _pause_overlay: ColorRect = null
+var _pause_resume_btn: Button = null
+var _pause_save_quit_btn: Button = null
 
 ## Tutorial hint tracking (tutorial_01 only)
 var _tutorial_hints_shown: Dictionary = {}
@@ -259,6 +265,9 @@ func _build_scene_tree() -> void:
 	_floor_label.text = "Floor 1"
 	_floor_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_floor_label)
+
+	## Pause overlay (hidden)
+	_build_pause_overlay()
 
 	## Room popup (centered, hidden)
 	_room_popup = RoomPopup.new()
@@ -518,6 +527,7 @@ func _connect_internal_signals() -> void:
 	_room_popup.formation_requested.connect(_on_formation_requested)
 	_crawler_hud.ability_pressed.connect(_on_ability_pressed)
 	_crawler_hud.items_pressed.connect(_on_items_pressed)
+	_crawler_hud.menu_pressed.connect(_on_menu_pressed)
 	_capture_popup.capture_attempted.connect(_on_capture_attempted)
 	_capture_popup.capture_released.connect(_on_capture_released)
 	_capture_popup.dismissed.connect(_on_capture_dismissed)
@@ -1527,3 +1537,72 @@ func _show_tutorial_hint(hint_id: String, text: String) -> void:
 		tween.tween_interval(4.0)
 		tween.tween_property(_tutorial_label, "modulate:a", 0.0, 1.0)
 		tween.tween_callback(_tutorial_label.set.bind("visible", false))
+
+
+## --- Pause menu ---
+
+func _build_pause_overlay() -> void:
+	_pause_overlay = ColorRect.new()
+	_pause_overlay.name = "PauseOverlay"
+	_pause_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_pause_overlay.color = Color(0, 0, 0, 0.7)
+	_pause_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_pause_overlay.visible = false
+	add_child(_pause_overlay)
+
+	var panel: PanelContainer = PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.custom_minimum_size = Vector2(240, 140)
+	panel.offset_left = -120.0
+	panel.offset_right = 120.0
+	panel.offset_top = -70.0
+	panel.offset_bottom = 70.0
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color("#1A1A2E")
+	style.set_corner_radius_all(8)
+	style.border_color = Color("#FFD700")
+	style.set_border_width_all(2)
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	panel.add_theme_stylebox_override("panel", style)
+	_pause_overlay.add_child(panel)
+
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	panel.add_child(vbox)
+
+	var title: Label = Label.new()
+	title.text = "Paused"
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color("#FFD700"))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	_pause_resume_btn = Button.new()
+	_pause_resume_btn.text = "Resume"
+	_pause_resume_btn.custom_minimum_size = Vector2(180, 36)
+	_pause_resume_btn.pressed.connect(_on_pause_resume)
+	vbox.add_child(_pause_resume_btn)
+
+	_pause_save_quit_btn = Button.new()
+	_pause_save_quit_btn.text = "Save & Quit"
+	_pause_save_quit_btn.custom_minimum_size = Vector2(180, 36)
+	_pause_save_quit_btn.pressed.connect(_on_pause_save_quit)
+	vbox.add_child(_pause_save_quit_btn)
+
+
+func _on_menu_pressed() -> void:
+	if _state != UIState.EXPLORING:
+		return
+	_pause_overlay.visible = true
+
+
+func _on_pause_resume() -> void:
+	_pause_overlay.visible = false
+
+
+func _on_pause_save_quit() -> void:
+	_pause_overlay.visible = false
+	save_and_quit_pressed.emit()

@@ -6,6 +6,7 @@ extends PanelContainer
 
 signal ability_pressed(ability_name: String)
 signal items_pressed()
+signal menu_pressed
 
 const HULL_COLOR_HIGH: Color = Color("#4CAF50")
 const HULL_COLOR_MED: Color = Color("#FFC107")
@@ -134,6 +135,19 @@ func _build_ui() -> void:
 		btn.pressed.connect(_on_ability_pressed.bind(ability_name))
 		_ability_buttons[ability_name] = btn
 		hbox.add_child(btn)
+
+	## Separator before menu
+	var sep2: VSeparator = VSeparator.new()
+	hbox.add_child(sep2)
+
+	## Menu button (integrated into HUD row)
+	var menu_btn: Button = Button.new()
+	menu_btn.name = "MenuButton"
+	menu_btn.text = "\u2630"  ## Hamburger menu icon
+	menu_btn.tooltip_text = "Menu — Save & Quit"
+	menu_btn.custom_minimum_size.x = 36.0
+	menu_btn.pressed.connect(func() -> void: menu_pressed.emit())
+	hbox.add_child(menu_btn)
 
 	## Active effects strip (hidden when empty)
 	_effects_container = HBoxContainer.new()

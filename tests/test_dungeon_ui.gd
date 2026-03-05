@@ -87,6 +87,9 @@ func _run_tests() -> void:
 	_test_battle_loss_pushback()
 	_test_battle_loss_hull_zero_extracts()
 
+	_test_pause_menu_exists()
+	_test_pause_save_and_quit_signal()
+
 	print("")
 	print("========================================")
 	print("  RESULTS: %d passed, %d failed" % [pass_count, fail_count])
@@ -1609,5 +1612,51 @@ func _test_battle_loss_hull_zero_extracts() -> void:
 	_assert(ds.crawler.hull_hp == 0, "Hull reduced to 0")
 	_assert(scene.get_ui_state() == DungeonScene.UIState.RESULT, "Forced extraction → RESULT state")
 
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+func _test_pause_menu_exists() -> void:
+	print("--- Pause menu exists ---")
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+	var ds: DungeonState = _make_dungeon_state()
+	scene.start_rift(ds)
+
+	_assert(scene._pause_overlay != null, "Pause overlay exists")
+	_assert(not scene._pause_overlay.visible, "Pause overlay hidden by default")
+	_assert(scene._pause_resume_btn != null, "Resume button exists")
+	_assert(scene._pause_save_quit_btn != null, "Save & Quit button exists")
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+func _test_pause_save_and_quit_signal() -> void:
+	print("--- Pause save & quit emits signal ---")
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+	var ds: DungeonState = _make_dungeon_state()
+	scene.start_rift(ds)
+
+	var sig: Dictionary = {"fired": false}
+	scene.save_and_quit_pressed.connect(func() -> void: sig["fired"] = true)
+
+	## Menu should only work in EXPLORING state
+	scene._on_menu_pressed()
+	_assert(scene._pause_overlay.visible, "Pause overlay shown after menu press")
+
+	## Resume hides overlay
+	scene._on_pause_resume()
+	_assert(not scene._pause_overlay.visible, "Pause overlay hidden after resume")
+
+	## Save & quit emits signal
+	scene._on_menu_pressed()
+	scene._on_pause_save_quit()
+	_assert(not scene._pause_overlay.visible, "Pause overlay hidden after save & quit")
+	_assert(sig["fired"], "save_and_quit_pressed signal fired")
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)
