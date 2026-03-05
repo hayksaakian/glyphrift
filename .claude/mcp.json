@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "godot-runtime-bridge": {
+      "command": "node",
+      "args": ["/Users/hayk/tools/godot-runtime-bridge/mcp/index.js"],
+      "env": {
+        "GODOT_PATH": "/Users/hayk/bin/godot"
+      }
+    }
+  }
+}
