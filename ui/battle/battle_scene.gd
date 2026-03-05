@@ -730,9 +730,20 @@ func _handle_battle_won_visual(turns: int, kos: Array) -> void:
 	_state = UIState.RESULT
 	_action_menu.visible = false
 	_combat_log.add_entry("VICTORY!", Color("#FFD700"))
-	var player_kos: int = 0
+	## Victory bounce on alive player panels
 	for g: GlyphInstance in _player_squad:
-		if g.is_knocked_out:
+		if not g.is_knocked_out and _panels.has(g.instance_id):
+			var panel: GlyphPanel = _panels[g.instance_id] as GlyphPanel
+			panel.stop_active_pulse()
+			panel.pivot_offset = panel.size / 2.0
+			var delay: float = randf() * 0.15
+			var tw: Tween = create_tween()
+			tw.tween_interval(delay)
+			tw.tween_property(panel, "position:y", panel.position.y - 12.0, 0.15).set_ease(Tween.EASE_OUT)
+			tw.tween_property(panel, "position:y", panel.position.y, 0.15).set_ease(Tween.EASE_IN)
+	var player_kos: int = 0
+	for g2: GlyphInstance in _player_squad:
+		if g2.is_knocked_out:
 			player_kos += 1
 	_result_screen.show_victory(turns, player_kos)
 	if not _mastery_events.is_empty():
@@ -743,6 +754,14 @@ func _handle_battle_lost_visual() -> void:
 	_state = UIState.RESULT
 	_action_menu.visible = false
 	_combat_log.add_entry("DEFEAT...", Color("#FF4444"))
+	## Droop on alive player panels
+	for g: GlyphInstance in _player_squad:
+		if _panels.has(g.instance_id):
+			var panel: GlyphPanel = _panels[g.instance_id] as GlyphPanel
+			panel.stop_active_pulse()
+			var tw: Tween = create_tween()
+			tw.tween_property(panel, "position:y", panel.position.y + 8.0, 0.3)
+			tw.tween_property(panel, "modulate", Color(0.6, 0.6, 0.6), 0.3)
 	_result_screen.show_defeat()
 
 

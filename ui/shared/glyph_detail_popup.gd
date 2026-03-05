@@ -48,6 +48,7 @@ func show_glyph(p_glyph: GlyphInstance) -> void:
 	glyph = p_glyph
 	species = p_glyph.species if p_glyph != null else null
 	visible = true
+	_animate_show()
 	_location_label.visible = false
 	_refresh()
 
@@ -57,6 +58,7 @@ func show_species_info(sp: GlyphSpecies, data_loader: Node, is_captured: bool) -
 	glyph = null
 	species = sp
 	visible = true
+	_animate_show()
 	_refresh_species(sp, data_loader, is_captured)
 
 
@@ -64,6 +66,18 @@ func hide_popup() -> void:
 	visible = false
 	glyph = null
 	species = null
+
+
+func _animate_show() -> void:
+	if _panel == null:
+		return
+	_panel.pivot_offset = _panel.size / 2.0
+	_panel.scale = Vector2(0.8, 0.8)
+	_panel.modulate = Color(1, 1, 1, 0)
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_panel, "scale", Vector2(1.0, 1.0), 0.15).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_panel, "modulate", Color.WHITE, 0.15)
 
 
 func _refresh() -> void:

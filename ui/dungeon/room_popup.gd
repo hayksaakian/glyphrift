@@ -71,6 +71,7 @@ func show_room(p_room_data: Dictionary, extra_info: String = "") -> void:
 
 	_action_button.text = ACTION_LABELS.get(room_type, "Continue")
 	visible = true
+	_animate_show()
 
 
 func show_result(title: String, description: String) -> void:
@@ -80,10 +81,21 @@ func show_result(title: String, description: String) -> void:
 	_clear_enemy_preview()
 	_action_button.text = "Continue"
 	visible = true
+	_animate_show()
 
 
 func hide_popup() -> void:
 	visible = false
+
+
+func _animate_show() -> void:
+	pivot_offset = size / 2.0
+	scale = Vector2(0.85, 0.85)
+	modulate = Color(1, 1, 1, 0)
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.12).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "modulate", Color.WHITE, 0.12)
 
 
 func get_title_text() -> String:

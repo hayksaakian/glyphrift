@@ -109,7 +109,7 @@ Almost everything is instant/static right now. Key areas where motion would brin
 - [x] Status applied: icon pops in with a small scale bounce
 - [x] Active turn: acting glyph pulses or breathes (subtle scale oscillation)
 - [x] Guard: brief shield shimmer or flash on the guarding glyph
-- [ ] Victory/defeat: squad celebrates (bounce) or slumps (droop)
+- [x] Victory/defeat: squad celebrates (bounce) or slumps (droop)
 
 **Dungeon (high impact):**
 - [x] Room movement: crawler token (cyan diamond) slides between rooms with tween
@@ -130,7 +130,7 @@ Almost everything is instant/static right now. Key areas where motion would brin
 - [ ] Screen transitions: sub-screens slide in/out rather than instant show/hide
 
 **Micro-interactions (medium impact):**
-- [ ] Popups: scale up from center or slide in (not instant visible=true)
+- [x] Popups: scale up from center or slide in (not instant visible=true)
 - [ ] Notifications/toasts: slide in from edge, auto-fade after delay
 - [ ] Button press: subtle scale-down on click, bounce back on release
 

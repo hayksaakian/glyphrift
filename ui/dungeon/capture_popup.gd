@@ -72,6 +72,7 @@ func show_capture(glyph: GlyphInstance, chance: float, breakdown: Dictionary = {
 	_swap_container.visible = false
 	_abandon_btn.visible = false
 	visible = true
+	_animate_show()
 
 
 func _format_breakdown(bd: Dictionary) -> String:
@@ -379,6 +380,16 @@ func attempt_capture_with_roll(roll: float) -> bool:
 	_release_button.visible = false
 	_show_capture_result(success)
 	return success
+
+
+func _animate_show() -> void:
+	pivot_offset = size / 2.0
+	scale = Vector2(0.85, 0.85)
+	modulate = Color(1, 1, 1, 0)
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.12).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "modulate", Color.WHITE, 0.12)
 
 
 func _on_release_pressed() -> void:
