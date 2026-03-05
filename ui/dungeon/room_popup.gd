@@ -5,6 +5,7 @@ extends Control
 ## Content varies by room type; action button triggers interaction.
 
 signal action_pressed(room_type: String, room_data: Dictionary)
+signal formation_requested(room_type: String, room_data: Dictionary)
 
 const POPUP_SIZE: Vector2 = Vector2(320, 200)
 
@@ -34,10 +35,14 @@ const ACTION_LABELS: Dictionary = {
 
 var room_data: Dictionary = {}
 var data_loader: DataLoader = null
+var roster_state: RosterState = null  ## Injectable — for formation preview
 
 var _title_label: Label = null
 var _description_label: Label = null
 var _action_button: Button = null
+var _formation_button: Button = null
+var _formation_preview: HBoxContainer = null
+var _button_row: HBoxContainer = null
 var _vbox: VBoxContainer = null
 var _enemy_preview: HBoxContainer = null
 
@@ -70,6 +75,12 @@ func show_room(p_room_data: Dictionary, extra_info: String = "") -> void:
 		_description_label.text = _get_description(room_type, extra_info)
 
 	_action_button.text = ACTION_LABELS.get(room_type, "Continue")
+
+	## Show formation preview + adjust button for combat rooms
+	var is_combat: bool = room_type in ["enemy", "boss"]
+	_formation_button.visible = is_combat
+	_refresh_formation_preview(is_combat)
+
 	visible = true
 	_animate_show()
 
@@ -80,6 +91,8 @@ func show_result(title: String, description: String) -> void:
 	_description_label.visible = true
 	_clear_enemy_preview()
 	_action_button.text = "Continue"
+	_formation_button.visible = false
+	_formation_preview.visible = false
 	visible = true
 	_animate_show()
 
@@ -167,12 +180,32 @@ func _build_ui() -> void:
 	_enemy_preview.visible = false
 	_vbox.add_child(_enemy_preview)
 
+	## Formation preview (small icons showing front/back row, hidden by default)
+	_formation_preview = HBoxContainer.new()
+	_formation_preview.add_theme_constant_override("separation", 4)
+	_formation_preview.alignment = BoxContainer.ALIGNMENT_CENTER
+	_formation_preview.visible = false
+	_vbox.add_child(_formation_preview)
+
+	## Button row (Fight + Adjust Formation side by side for combat rooms)
+	_button_row = HBoxContainer.new()
+	_button_row.add_theme_constant_override("separation", 12)
+	_button_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_vbox.add_child(_button_row)
+
 	## Action button
 	_action_button = Button.new()
 	_action_button.custom_minimum_size = Vector2(120, 36)
-	_action_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_action_button.pressed.connect(_on_action_pressed)
-	_vbox.add_child(_action_button)
+	_button_row.add_child(_action_button)
+
+	## Adjust Formation button (hidden for non-combat rooms)
+	_formation_button = Button.new()
+	_formation_button.text = "Formation"
+	_formation_button.custom_minimum_size = Vector2(100, 36)
+	_formation_button.pressed.connect(_on_formation_pressed)
+	_formation_button.visible = false
+	_button_row.add_child(_formation_button)
 
 
 func _show_enemy_preview(species_ids: Array, is_boss: bool) -> void:
@@ -289,3 +322,78 @@ func _get_description(room_type: String, extra_info: String) -> String:
 func _on_action_pressed() -> void:
 	var room_type: String = room_data.get("type", "empty")
 	action_pressed.emit(room_type, room_data)
+
+
+func _on_formation_pressed() -> void:
+	var room_type: String = room_data.get("type", "empty")
+	formation_requested.emit(room_type, room_data)
+
+
+func _refresh_formation_preview(show: bool) -> void:
+	## Clear old preview
+	for child: Node in _formation_preview.get_children():
+		_formation_preview.remove_child(child)
+		child.queue_free()
+
+	if not show or roster_state == null:
+		_formation_preview.visible = false
+		return
+
+	var front: Array[GlyphInstance] = []
+	var back: Array[GlyphInstance] = []
+	for g: GlyphInstance in roster_state.active_squad:
+		if g.row_position == "back":
+			back.append(g)
+		else:
+			front.append(g)
+
+	## Build compact preview: "F: [icons]  B: [icons]"
+	if not front.is_empty():
+		var f_label: Label = Label.new()
+		f_label.text = "F:"
+		f_label.add_theme_font_size_override("font_size", 9)
+		f_label.add_theme_color_override("font_color", Color("#AAAAAA"))
+		f_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_formation_preview.add_child(f_label)
+		for g: GlyphInstance in front:
+			_formation_preview.add_child(_make_mini_icon(g))
+
+	if not back.is_empty():
+		var b_label: Label = Label.new()
+		b_label.text = "  B:"
+		b_label.add_theme_font_size_override("font_size", 9)
+		b_label.add_theme_color_override("font_color", Color("#AAAAAA"))
+		b_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_formation_preview.add_child(b_label)
+		for g: GlyphInstance in back:
+			_formation_preview.add_child(_make_mini_icon(g))
+
+	_formation_preview.visible = true
+
+
+func _make_mini_icon(g: GlyphInstance) -> Control:
+	var container: Control = Control.new()
+	container.custom_minimum_size = Vector2(20, 20)
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var aff: String = g.species.affinity if g.species else "neutral"
+	var rect: ColorRect = ColorRect.new()
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(rect)
+
+	var letter: Label = Label.new()
+	letter.text = g.species.name[0].to_upper() if g.species else "?"
+	letter.set_anchors_preset(Control.PRESET_FULL_RECT)
+	letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	letter.add_theme_font_size_override("font_size", 11)
+	letter.add_theme_color_override("font_color", Color.WHITE)
+	letter.add_theme_color_override("font_outline_color", Color.BLACK)
+	letter.add_theme_constant_override("outline_size", 1)
+	letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(letter)
+
+	GlyphArt.apply_texture(container, rect, letter, g.species.id if g.species else "", 20)
+	return container

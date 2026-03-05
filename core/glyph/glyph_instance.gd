@@ -76,6 +76,29 @@ func calculate_stats() -> void:
 	current_hp = max_hp
 
 
+func get_completed_objective_count() -> int:
+	var count: int = 0
+	for obj: Dictionary in mastery_objectives:
+		if obj.get("completed", false):
+			count += 1
+	return count
+
+
+func get_mastery_stars_text() -> String:
+	## Returns star string: gold stars for completed objectives, dim for remaining.
+	## T4 glyphs have no mastery, returns empty.
+	var total: int = mastery_objectives.size()
+	if total == 0:
+		return ""
+	var completed: int = get_completed_objective_count()
+	if completed == 0:
+		return ""
+	var stars: String = ""
+	for i: int in range(completed):
+		stars += "\u2605"  ## Filled star
+	return stars
+
+
 func get_effective_spd() -> float:
 	var base: float = float(spd)
 	if active_statuses.has("slow"):

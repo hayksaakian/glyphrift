@@ -97,12 +97,9 @@ func refresh() -> void:
 		else:
 			hp_fill.bg_color = Color("#F44336")
 
-	## Mastery bar
+	## Mastery stars
 	var total: int = glyph.mastery_objectives.size()
-	var completed: int = 0
-	for obj: Dictionary in glyph.mastery_objectives:
-		if obj.get("completed", false):
-			completed += 1
+	var completed: int = glyph.get_completed_objective_count()
 
 	if total == 0:
 		_mastery_row.visible = false
@@ -110,11 +107,18 @@ func refresh() -> void:
 		_mastery_row.visible = true
 		_mastery_bar.max_value = total
 		_mastery_bar.value = completed
-		_mastery_count.text = "%d/%d" % [completed, total]
+		## Show stars instead of fraction
+		var star_text: String = ""
+		for i: int in range(total):
+			if i < completed:
+				star_text += "\u2605"  ## Filled star
+			else:
+				star_text += "\u2606"  ## Empty star
+		_mastery_count.text = star_text
 		if glyph.is_mastered:
 			_mastery_check.visible = true
 			_mastery_check.text = " \u2713"
-			_mastery_count.add_theme_color_override("font_color", Color("#4CAF50"))
+			_mastery_count.add_theme_color_override("font_color", Color("#FFD700"))
 			if _mastery_border != null:
 				_mastery_border.visible = true
 		else:

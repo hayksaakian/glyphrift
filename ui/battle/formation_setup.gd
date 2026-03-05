@@ -121,6 +121,7 @@ func _rebuild_slots() -> void:
 
 	for g: GlyphInstance in _squad:
 		var portrait: GlyphPortrait = GlyphPortrait.new()
+		portrait.portrait_size = 56
 		portrait.glyph = g
 		portrait.clicked.connect(_on_portrait_clicked)
 		_portraits[g.instance_id] = portrait

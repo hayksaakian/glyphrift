@@ -293,6 +293,7 @@ func _on_rift_selected(template: RiftTemplate) -> void:
 func _on_combat_requested(enemies: Array[GlyphInstance], boss_def: BossDef) -> void:
 	_fade_to(func() -> void:
 		_show_battle()
+		_battle_scene.skip_formation = true
 		_battle_scene.start_battle(roster_state.active_squad, enemies, boss_def)
 	)
 
@@ -383,10 +384,15 @@ func _on_cargo_swap(keep_glyph: GlyphInstance, release_glyph: GlyphInstance) -> 
 func _on_rift_completed(won: bool) -> void:
 	if won and _current_rift_template != null:
 		game_state.complete_rift(_current_rift_template.rift_id)
+	else:
+		## Loss/extraction: complete_rift already clears current_dungeon on win,
+		## but on loss we must clear it so the save doesn't contain mid-rift state.
+		game_state.current_dungeon = null
 
 	## Heal all glyphs when returning to bastion
 	_heal_all_glyphs()
 
+	_rift_cargo.clear()
 	_auto_save()
 
 	var msg: String = ""

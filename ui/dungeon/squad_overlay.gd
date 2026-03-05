@@ -146,7 +146,12 @@ func _make_entry(g: GlyphInstance) -> Dictionary:
 	name_row.add_child(art)
 
 	var name_label: Label = Label.new()
-	name_label.text = g.species.name if g.species else "???"
+	var sp_name_overlay: String = g.species.name if g.species else "???"
+	var stars_overlay: String = g.get_mastery_stars_text()
+	if stars_overlay != "":
+		name_label.text = "%s %s" % [sp_name_overlay, stars_overlay]
+	else:
+		name_label.text = sp_name_overlay
 	name_label.add_theme_font_size_override("font_size", 11)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE

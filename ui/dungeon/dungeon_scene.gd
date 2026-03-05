@@ -90,6 +90,11 @@ const BATTLE_LOSS_REVIVE_PCT: float = 0.3
 var _walk_queue: Array[String] = []
 var _dungeon_connections: Array[Dictionary] = []
 
+## Formation setup (shown on demand from combat popup)
+var _formation_setup: FormationSetup = null
+var _pending_formation_room_type: String = ""
+var _pending_formation_room_data: Dictionary = {}
+
 ## Tutorial hint tracking (tutorial_01 only)
 var _tutorial_hints_shown: Dictionary = {}
 var _tutorial_label: Label = null
@@ -113,6 +118,9 @@ func start_rift(p_dungeon_state: DungeonState) -> void:
 		_rift_name_label.text = dungeon_state.rift_template.name
 	else:
 		_rift_name_label.text = ""
+
+	## Pass roster_state to popup for formation preview
+	_room_popup.roster_state = roster_state
 
 	## Setup CrawlerHUD
 	_crawler_hud.setup(dungeon_state.crawler)
@@ -479,6 +487,11 @@ func _build_scene_tree() -> void:
 	result_vbox.add_child(_result_continue)
 
 
+	## Formation setup overlay (hidden, shown on demand)
+	_formation_setup = FormationSetup.new()
+	_formation_setup.name = "FormationSetup"
+	add_child(_formation_setup)
+
 	## Tutorial hint label (top center, overlays everything)
 	_tutorial_label = Label.new()
 	_tutorial_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -502,6 +515,7 @@ func _connect_internal_signals() -> void:
 	_floor_map.room_hovered.connect(_on_room_hovered)
 	_floor_map.room_hover_exited.connect(_on_room_hover_exited)
 	_room_popup.action_pressed.connect(_on_popup_action)
+	_room_popup.formation_requested.connect(_on_formation_requested)
 	_crawler_hud.ability_pressed.connect(_on_ability_pressed)
 	_crawler_hud.items_pressed.connect(_on_items_pressed)
 	_capture_popup.capture_attempted.connect(_on_capture_attempted)
@@ -518,6 +532,9 @@ func _connect_internal_signals() -> void:
 	_exit_overlay.gui_input.connect(_on_backdrop_click.bind(_on_exit_stay))
 	_repair_overlay.gui_input.connect(_on_backdrop_click.bind(_hide_repair_picker))
 	_swap_overlay.gui_input.connect(_on_backdrop_click.bind(_on_swap_leave))
+
+	## Formation setup
+	_formation_setup.formation_confirmed.connect(_on_dungeon_formation_confirmed)
 
 	## Puzzle signals
 	_puzzle_sequence.puzzle_completed.connect(_on_puzzle_completed)
@@ -860,6 +877,27 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 		"exit":
 			## Should not get here — exit handled by DungeonState
 			_state = UIState.EXPLORING
+
+
+func _on_formation_requested(room_type: String, room_data_local: Dictionary) -> void:
+	## Player wants to adjust formation before fighting
+	if roster_state == null:
+		return
+	_pending_formation_room_type = room_type
+	_pending_formation_room_data = room_data_local
+	_room_popup.hide_popup()
+	_formation_setup.show_formation(roster_state.active_squad)
+
+
+func _on_dungeon_formation_confirmed(positions: Dictionary) -> void:
+	## Apply formation positions to squad
+	_formation_setup.hide_formation()
+	for g: GlyphInstance in roster_state.active_squad:
+		g.row_position = positions.get(g.instance_id, g.row_position)
+	## Now proceed to combat with the pending room data
+	_on_popup_action(_pending_formation_room_type, _pending_formation_room_data)
+	_pending_formation_room_type = ""
+	_pending_formation_room_data = {}
 
 
 func _on_ability_pressed(ability_name: String) -> void:

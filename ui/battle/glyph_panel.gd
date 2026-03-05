@@ -41,6 +41,7 @@ var _art_initial_label: Label = null
 var _art_container: PanelContainer = null
 var _active_border: Panel = null
 var _row_badge: PanelContainer = null
+var _mastery_stars: Label = null
 
 
 func _ready() -> void:
@@ -97,6 +98,12 @@ func refresh() -> void:
 		modulate = Color(0.4, 0.4, 0.4, 0.7)
 	else:
 		modulate = Color.WHITE
+
+	## Mastery stars
+	if _mastery_stars != null:
+		var stars: String = glyph.get_mastery_stars_text()
+		_mastery_stars.text = stars
+		_mastery_stars.visible = stars != ""
 
 	## Back-row reduction badge
 	if _row_badge != null:
@@ -282,6 +289,14 @@ func _build_ui() -> void:
 	badge_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_row_badge.add_child(badge_label)
 	name_row.add_child(_row_badge)
+
+	## Mastery stars (gold, inline after name)
+	_mastery_stars = Label.new()
+	_mastery_stars.add_theme_font_size_override("font_size", 10)
+	_mastery_stars.add_theme_color_override("font_color", Color("#FFD700"))
+	_mastery_stars.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mastery_stars.visible = false
+	name_row.add_child(_mastery_stars)
 
 	## HP bar with overlaid label
 	_hp_bar = ProgressBar.new()

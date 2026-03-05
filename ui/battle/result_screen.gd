@@ -44,12 +44,7 @@ func show_mastery_progress(events: Array[Dictionary]) -> void:
 	if events.is_empty():
 		return
 
-	## Clear old labels
-	for child: Node in _mastery_section.get_children():
-		if child != _mastery_section.get_child(0):  ## Keep header
-			_mastery_section.remove_child(child)
-			child.queue_free()
-
+	_clear_mastery_content()
 	var has_content: bool = false
 
 	for event: Dictionary in events:
@@ -81,25 +76,67 @@ func show_mastery_progress(events: Array[Dictionary]) -> void:
 				_mastery_section.add_child(label)
 				has_content = true
 
-		elif type == "objective_progressed":
-			var obj_idx: int = event.get("objective_index", -1)
-			if obj_idx >= 0 and obj_idx < g.mastery_objectives.size():
-				var obj: Dictionary = g.mastery_objectives[obj_idx]
+	_mastery_section.visible = has_content
+
+
+func show_squad_mastery(squad: Array[GlyphInstance]) -> void:
+	## Show per-glyph mastery stars and next objective progress for all squad members.
+	## Called after show_victory + show_mastery_progress.
+	if squad.is_empty():
+		return
+
+	_clear_mastery_content()
+	var has_content: bool = false
+
+	for g: GlyphInstance in squad:
+		if g.species == null or g.species.tier == 4:
+			continue
+		var total: int = g.mastery_objectives.size()
+		if total == 0:
+			continue
+
+		var completed: int = g.get_completed_objective_count()
+
+		## Stars line
+		var star_text: String = ""
+		for i: int in range(total):
+			if i < completed:
+				star_text += "\u2605"
+			else:
+				star_text += "\u2606"
+
+		var star_color: Color = Color("#FFD700") if g.is_mastered else Color("#CCCCCC")
+		var mastered_tag: String = " MASTERED" if g.is_mastered else ""
+
+		var star_label: Label = Label.new()
+		star_label.text = "%s  %s%s" % [g.species.name, star_text, mastered_tag]
+		star_label.add_theme_font_size_override("font_size", 13)
+		star_label.add_theme_color_override("font_color", star_color)
+		star_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_mastery_section.add_child(star_label)
+		has_content = true
+
+		## Show next incomplete objective progress
+		if not g.is_mastered:
+			for obj: Dictionary in g.mastery_objectives:
+				if obj.get("completed", false):
+					continue
 				var desc: String = obj.get("description", "")
 				var params: Dictionary = obj.get("params", {})
 				var progress_text: String = ""
 				if params.has("current") and params.has("target"):
-					progress_text = " [%d/%d]" % [params.get("current", 0), params.get("target", 1)]
-				var label: Label = Label.new()
-				label.text = "%s: %s%s" % [g.species.name, desc, progress_text]
-				label.add_theme_font_size_override("font_size", 12)
-				label.add_theme_color_override("font_color", Color("#AAAAAA"))
-				label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-				label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-				_mastery_section.add_child(label)
-				has_content = true
+					progress_text = " [%d/%d]" % [int(params["current"]), int(params["target"])]
+				var obj_label: Label = Label.new()
+				obj_label.text = "  Next: %s%s" % [desc, progress_text]
+				obj_label.add_theme_font_size_override("font_size", 11)
+				obj_label.add_theme_color_override("font_color", Color("#888888"))
+				obj_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				obj_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				_mastery_section.add_child(obj_label)
+				break  ## Only show first incomplete objective
 
-	_mastery_section.visible = has_content
+	if has_content:
+		_mastery_section.visible = true
 
 
 func show_defeat() -> void:
@@ -120,6 +157,13 @@ func show_defeat() -> void:
 func hide_result() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _clear_mastery_content() -> void:
+	for child: Node in _mastery_section.get_children():
+		if child != _mastery_section.get_child(0):  ## Keep header
+			_mastery_section.remove_child(child)
+			child.queue_free()
 
 
 func _build_ui() -> void:

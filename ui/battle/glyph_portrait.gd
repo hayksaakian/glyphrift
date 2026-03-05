@@ -9,6 +9,7 @@ signal clicked(glyph: GlyphInstance)
 
 var glyph: GlyphInstance = null
 var _highlighted: bool = false
+var portrait_size: int = 32  ## Set before adding to tree for custom size
 
 var _color_rect: ColorRect = null
 var _initial_label: Label = null
@@ -41,7 +42,7 @@ func refresh() -> void:
 	_color_rect.color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
 	_initial_label.text = glyph.species.name[0].to_upper() if glyph.species else "?"
 	_name_label.text = glyph.species.name if glyph.species else "?"
-	GlyphArt.apply_texture(_square, _color_rect, _initial_label, glyph.species.id if glyph.species else "", 32)
+	GlyphArt.apply_texture(_square, _color_rect, _initial_label, glyph.species.id if glyph.species else "", portrait_size)
 
 	## Side border color
 	var border_style: StyleBoxFlat = _border.get_theme_stylebox("panel") as StyleBoxFlat
@@ -63,17 +64,18 @@ func set_highlighted(active: bool) -> void:
 	if not is_inside_tree():
 		return
 	if active:
-		_square.custom_minimum_size = Vector2(40, 40)
+		var hl_size: int = portrait_size + 8
+		_square.custom_minimum_size = Vector2(hl_size, hl_size)
 		_highlight_border.visible = true
 	else:
-		_square.custom_minimum_size = Vector2(32, 32)
+		_square.custom_minimum_size = Vector2(portrait_size, portrait_size)
 		_highlight_border.visible = false
 
 
 func _build_ui() -> void:
 	## Colored square container
 	_square = PanelContainer.new()
-	_square.custom_minimum_size = Vector2(32, 32)
+	_square.custom_minimum_size = Vector2(portrait_size, portrait_size)
 	_square.mouse_filter = Control.MOUSE_FILTER_PASS
 	var square_style: StyleBoxFlat = StyleBoxFlat.new()
 	square_style.bg_color = Color(0, 0, 0, 0)
@@ -93,7 +95,7 @@ func _build_ui() -> void:
 	_initial_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_initial_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_initial_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	_initial_label.add_theme_font_size_override("font_size", 16)
+	_initial_label.add_theme_font_size_override("font_size", maxi(10, int(portrait_size * 0.5)))
 	_initial_label.add_theme_color_override("font_color", Color.WHITE)
 	_initial_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_initial_label.add_theme_constant_override("outline_size", 3)
@@ -133,9 +135,9 @@ func _build_ui() -> void:
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_name_label.clip_text = true
-	_name_label.custom_minimum_size = Vector2(32, 0)
+	_name_label.custom_minimum_size = Vector2(portrait_size, 0)
 	_name_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	_name_label.add_theme_font_size_override("font_size", 9)
+	_name_label.add_theme_font_size_override("font_size", maxi(9, int(portrait_size * 0.3)))
 	_name_label.add_theme_color_override("font_color", Color("#CCCCCC"))
 	add_child(_name_label)
 

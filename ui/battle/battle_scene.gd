@@ -423,13 +423,26 @@ func _on_glyph_mastered(glyph: GlyphInstance) -> void:
 # CombatEngine Signal Handlers → enqueue to AnimationQueue
 # ==========================================================================
 
+var skip_formation: bool = false
+
 func _on_battle_started(p_squad: Array[GlyphInstance], e_squad: Array[GlyphInstance]) -> void:
 	_player_squad = p_squad
 	_enemy_squad = e_squad
-	_state = UIState.FORMATION
-	_battlefield.visible = false
-	_formation_setup.show_formation(p_squad)
 	_combat_log.add_entry("Battle begins!", Color("#FFD700"))
+
+	if skip_formation:
+		## Use existing row_position assignments — go straight to battlefield
+		_battlefield.visible = true
+		_state = UIState.ANIMATING
+		var positions: Dictionary = {}
+		for g: GlyphInstance in p_squad:
+			positions[g.instance_id] = g.row_position
+		combat_engine.set_formation(positions)
+		_populate_battlefield()
+	else:
+		_state = UIState.FORMATION
+		_battlefield.visible = false
+		_formation_setup.show_formation(p_squad)
 
 
 func _on_turn_started(glyph: GlyphInstance, turn_index: int) -> void:
@@ -718,6 +731,9 @@ func _handle_battle_won_visual(turns: int, kos: Array) -> void:
 	_result_screen.show_victory(turns, player_kos)
 	if not _mastery_events.is_empty():
 		_result_screen.show_mastery_progress(_mastery_events)
+	else:
+		## Always show squad mastery status even if no objectives completed this battle
+		_result_screen.show_squad_mastery(_player_squad)
 
 
 func _handle_battle_lost_visual() -> void:
