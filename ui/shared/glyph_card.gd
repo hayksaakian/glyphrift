@@ -50,6 +50,8 @@ var show_info_button: bool = false:
 func _ready() -> void:
 	custom_minimum_size = Vector2(120, 160)
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_entered.connect(_on_hover_enter)
+	mouse_exited.connect(_on_hover_exit)
 	_build_ui()
 	if glyph != null:
 		refresh()
@@ -322,6 +324,17 @@ func _update_modulate() -> void:
 		modulate = Color(0.5, 0.5, 0.5, 0.7)
 	else:
 		modulate = Color.WHITE
+
+
+func _on_hover_enter() -> void:
+	pivot_offset = size / 2.0
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "scale", Vector2(1.05, 1.05), 0.1).set_ease(Tween.EASE_OUT)
+
+
+func _on_hover_exit() -> void:
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.1).set_ease(Tween.EASE_IN)
 
 
 func _gui_input(event: InputEvent) -> void:

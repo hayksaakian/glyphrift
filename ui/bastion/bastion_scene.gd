@@ -363,6 +363,7 @@ func _show_rift_gate() -> void:
 	_back_bar.visible = true
 	_back_bar_title.text = "RIFT GATE"
 	_rift_gate.refresh()
+	_slide_in(_rift_gate)
 
 
 func _show_barracks() -> void:
@@ -372,6 +373,7 @@ func _show_barracks() -> void:
 	_back_bar.visible = true
 	_back_bar_title.text = "BARRACKS"
 	_barracks.refresh()
+	_slide_in(_barracks)
 
 
 func _show_fusion() -> void:
@@ -381,6 +383,7 @@ func _show_fusion() -> void:
 	_back_bar.visible = true
 	_back_bar_title.text = "FUSION CHAMBER"
 	_fusion_chamber.refresh()
+	_slide_in(_fusion_chamber)
 
 
 func _show_codex() -> void:
@@ -390,6 +393,7 @@ func _show_codex() -> void:
 	_back_bar.visible = true
 	_back_bar_title.text = "CODEX"
 	_codex_browser.refresh()
+	_slide_in(_codex_browser)
 
 
 func _show_crawler_bay() -> void:
@@ -399,6 +403,16 @@ func _show_crawler_bay() -> void:
 	_back_bar.visible = true
 	_back_bar_title.text = "CRAWLER BAY"
 	_crawler_bay.refresh()
+	_slide_in(_crawler_bay)
+
+
+func _slide_in(screen: Control) -> void:
+	screen.position.x = 40.0
+	screen.modulate = Color(1, 1, 1, 0)
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(screen, "position:x", 0.0, 0.15).set_ease(Tween.EASE_OUT)
+	tween.tween_property(screen, "modulate", Color.WHITE, 0.15)
 
 
 

@@ -126,8 +126,8 @@ Almost everything is instant/static right now. Key areas where motion would brin
 **Bastion (medium impact):**
 - [ ] Fusion: parent cards slide together, bright flash, result card materializes
 - [ ] Mastery complete: golden star burst / shimmer on the glyph
-- [ ] Card hover: subtle lift (scale up ~5%) with shadow
-- [ ] Screen transitions: sub-screens slide in/out rather than instant show/hide
+- [x] Card hover: subtle lift (scale up ~5%) with shadow
+- [x] Screen transitions: sub-screens slide in/out rather than instant show/hide
 
 **Micro-interactions (medium impact):**
 - [x] Popups: scale up from center or slide in (not instant visible=true)
