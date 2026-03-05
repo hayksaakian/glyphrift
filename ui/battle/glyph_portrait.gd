@@ -41,7 +41,7 @@ func refresh() -> void:
 	_color_rect.color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
 	_initial_label.text = glyph.species.name[0].to_upper() if glyph.species else "?"
 	_name_label.text = glyph.species.name if glyph.species else "?"
-	GlyphArt.apply_texture(_square, _color_rect, _initial_label, glyph.species.id if glyph.species else "", 64)
+	GlyphArt.apply_texture(_square, _color_rect, _initial_label, glyph.species.id if glyph.species else "", 32)
 
 	## Side border color
 	var border_style: StyleBoxFlat = _border.get_theme_stylebox("panel") as StyleBoxFlat
@@ -63,17 +63,17 @@ func set_highlighted(active: bool) -> void:
 	if not is_inside_tree():
 		return
 	if active:
-		_square.custom_minimum_size = Vector2(80, 80)
+		_square.custom_minimum_size = Vector2(40, 40)
 		_highlight_border.visible = true
 	else:
-		_square.custom_minimum_size = Vector2(64, 64)
+		_square.custom_minimum_size = Vector2(32, 32)
 		_highlight_border.visible = false
 
 
 func _build_ui() -> void:
 	## Colored square container
 	_square = PanelContainer.new()
-	_square.custom_minimum_size = Vector2(64, 64)
+	_square.custom_minimum_size = Vector2(32, 32)
 	_square.mouse_filter = Control.MOUSE_FILTER_PASS
 	var square_style: StyleBoxFlat = StyleBoxFlat.new()
 	square_style.bg_color = Color(0, 0, 0, 0)
@@ -93,7 +93,7 @@ func _build_ui() -> void:
 	_initial_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_initial_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_initial_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	_initial_label.add_theme_font_size_override("font_size", 26)
+	_initial_label.add_theme_font_size_override("font_size", 16)
 	_initial_label.add_theme_color_override("font_color", Color.WHITE)
 	_initial_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_initial_label.add_theme_constant_override("outline_size", 3)
@@ -132,7 +132,7 @@ func _build_ui() -> void:
 	_name_label = Label.new()
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_name_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	_name_label.add_theme_font_size_override("font_size", 11)
+	_name_label.add_theme_font_size_override("font_size", 9)
 	_name_label.add_theme_color_override("font_color", Color("#CCCCCC"))
 	add_child(_name_label)
 

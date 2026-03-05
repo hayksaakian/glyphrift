@@ -8,7 +8,7 @@ var _entry_count: int = 0
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(300, 120)
+	custom_minimum_size = Vector2(300, 60)
 	_build_ui()
 
 
@@ -42,6 +42,6 @@ func _build_ui() -> void:
 	_rich_text.scroll_following = true
 	_rich_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_rich_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_rich_text.add_theme_font_size_override("normal_font_size", 14)
+	_rich_text.add_theme_font_size_override("normal_font_size", 12)
 	_rich_text.add_theme_color_override("default_color", Color("#CCCCCC"))
 	add_child(_rich_text)

@@ -71,8 +71,8 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 - [ ] Guard + Move Row grouped with techniques as a unified action menu
 
 **Turn order strip:**
-- [ ] Compact horizontal strip (smaller portraits, ~32px) — currently oversized at 64px
-- [ ] Clear current-turn marker (arrow or ring), dim upcoming, remove KO'd from queue
+- [x] Compact horizontal strip (smaller portraits, ~32px) — shrunk from 64px to 32px
+- [x] Clear current-turn marker (arrow or ring), dim upcoming, remove KO'd from queue
 - [ ] Position as thin bar, not a major screen element
 
 **HP bars:**
@@ -81,7 +81,7 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 - [ ] Show numeric HP overlaid on bar (not beside it)
 
 **Battle log:**
-- [ ] Shrink to 2-3 most recent lines, not a scrolling 30% of screen
+- [x] Shrink to 2-3 most recent lines, not a scrolling 30% of screen
 - [ ] Make expandable/collapsible for players who want detail
 - [ ] Or overlay as a toast/feed that fades
 

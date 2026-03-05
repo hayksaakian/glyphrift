@@ -178,7 +178,7 @@ func _build_scene_tree() -> void:
 	_combat_log = BattleLog.new()
 	_combat_log.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_combat_log.offset_left = 20.0
-	_combat_log.offset_top = -150.0
+	_combat_log.offset_top = -75.0
 	_combat_log.offset_right = -200.0
 	_combat_log.offset_bottom = -10.0
 	add_child(_combat_log)
@@ -1012,14 +1012,23 @@ func _refresh_turn_order(queue: Array[GlyphInstance]) -> void:
 
 	_turn_portraits.clear()
 
+	## Filter KO'd from queue
+	var alive_queue: Array[GlyphInstance] = []
+	for g: GlyphInstance in queue:
+		if not g.is_knocked_out:
+			alive_queue.append(g)
+
 	## Current round: remaining actors
-	var count: int = mini(queue.size(), 6)
+	var count: int = mini(alive_queue.size(), 8)
 	for i: int in range(count):
 		var portrait: GlyphPortrait = GlyphPortrait.new()
-		portrait.glyph = queue[i]
+		portrait.glyph = alive_queue[i]
 		_turn_order_bar.add_child(portrait)
 		_turn_portraits.append(portrait)
 		portrait.set_highlighted(i == 0)
+		## Dim upcoming turns
+		if i > 0:
+			portrait.modulate = Color(0.7, 0.7, 0.7, 0.9)
 
 	## Next round preview: separator + SPD-sorted alive glyphs (dimmed)
 	var next_round: Array[GlyphInstance] = _compute_next_round_preview()
@@ -1029,17 +1038,17 @@ func _refresh_turn_order(queue: Array[GlyphInstance]) -> void:
 	## Round separator
 	var sep_label: Label = Label.new()
 	sep_label.text = "|"
-	sep_label.add_theme_font_size_override("font_size", 28)
+	sep_label.add_theme_font_size_override("font_size", 20)
 	sep_label.add_theme_color_override("font_color", Color("#555555"))
 	sep_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_turn_order_bar.add_child(sep_label)
 
-	## Show up to 6 total slots worth of next-round portraits (dimmed)
-	var next_slots: int = mini(next_round.size(), maxi(6 - count, 2))
+	## Show up to 8 total slots worth of next-round portraits (dimmed)
+	var next_slots: int = mini(next_round.size(), maxi(8 - count, 2))
 	for i: int in range(next_slots):
 		var portrait: GlyphPortrait = GlyphPortrait.new()
 		portrait.glyph = next_round[i]
-		portrait.modulate = Color(0.5, 0.5, 0.5, 0.7)
+		portrait.modulate = Color(0.4, 0.4, 0.4, 0.6)
 		_turn_order_bar.add_child(portrait)
 
 

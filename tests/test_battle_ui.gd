@@ -128,7 +128,7 @@ func _test_component_construction() -> void:
 	var portrait: GlyphPortrait = GlyphPortrait.new()
 	root.add_child(portrait)
 	_assert(portrait != null, "GlyphPortrait instantiates")
-	_assert(portrait._square.custom_minimum_size == Vector2(64, 64), "GlyphPortrait square has correct min size")
+	_assert(portrait._square.custom_minimum_size == Vector2(32, 32), "GlyphPortrait square has correct min size")
 	portrait.queue_free()
 
 	## TechniqueButton
@@ -313,23 +313,23 @@ func _test_portrait_highlight() -> void:
 	portrait.glyph = g
 	root.add_child(portrait)
 
-	## Default: not highlighted, 64x64
-	_assert(portrait._square.custom_minimum_size == Vector2(64, 64),
-		"GlyphPortrait default square is 64x64")
+	## Default: not highlighted, 32x32
+	_assert(portrait._square.custom_minimum_size == Vector2(32, 32),
+		"GlyphPortrait default square is 32x32")
 	_assert(not portrait._highlight_border.visible,
 		"GlyphPortrait highlight border hidden by default")
 
 	## Highlight on
 	portrait.set_highlighted(true)
-	_assert(portrait._square.custom_minimum_size == Vector2(80, 80),
-		"GlyphPortrait highlighted square is 80x80")
+	_assert(portrait._square.custom_minimum_size == Vector2(40, 40),
+		"GlyphPortrait highlighted square is 40x40")
 	_assert(portrait._highlight_border.visible,
 		"GlyphPortrait highlight border visible when highlighted")
 
 	## Highlight off
 	portrait.set_highlighted(false)
-	_assert(portrait._square.custom_minimum_size == Vector2(64, 64),
-		"GlyphPortrait square returns to 64x64 when unhighlighted")
+	_assert(portrait._square.custom_minimum_size == Vector2(32, 32),
+		"GlyphPortrait square returns to 32x32 when unhighlighted")
 	_assert(not portrait._highlight_border.visible,
 		"GlyphPortrait highlight border hidden when unhighlighted")
 
