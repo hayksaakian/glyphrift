@@ -103,12 +103,12 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 Almost everything is instant/static right now. Key areas where motion would bring the game to life:
 
 **Combat (highest impact):**
-- [ ] Attack: attacker lunges toward target, snaps back (tween position)
-- [ ] Damage received: target shakes + flashes white, then settles (already have floating damage numbers)
-- [ ] KO: defeated glyph shrinks/fades out rather than just greying
-- [ ] Status applied: icon pops in with a small scale bounce
-- [ ] Active turn: acting glyph pulses or breathes (subtle scale oscillation)
-- [ ] Guard: brief shield shimmer or flash on the guarding glyph
+- [x] Attack: attacker lunges toward target, snaps back (tween position)
+- [x] Damage received: target shakes + flashes white, then settles (already have floating damage numbers)
+- [x] KO: defeated glyph shrinks/fades out rather than just greying
+- [x] Status applied: icon pops in with a small scale bounce
+- [x] Active turn: acting glyph pulses or breathes (subtle scale oscillation)
+- [x] Guard: brief shield shimmer or flash on the guarding glyph
 - [ ] Victory/defeat: squad celebrates (bounce) or slumps (droop)
 
 **Dungeon (high impact):**

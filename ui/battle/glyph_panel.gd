@@ -138,7 +138,72 @@ func flash_heal() -> void:
 
 func play_ko() -> void:
 	var tween: Tween = create_tween()
+	tween.set_parallel(true)
 	tween.tween_property(self, "modulate", Color(0.4, 0.4, 0.4, 0.7), 0.5)
+	tween.tween_property(self, "scale", Vector2(0.85, 0.85), 0.5)
+
+
+func play_hit() -> void:
+	## Shake + white flash on damage received
+	var original_pos: Vector2 = position
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate", Color(2.0, 2.0, 2.0), 0.05)
+	tween.tween_property(self, "position", original_pos + Vector2(6, 0), 0.03)
+	tween.tween_property(self, "position", original_pos + Vector2(-6, 0), 0.03)
+	tween.tween_property(self, "position", original_pos + Vector2(4, 0), 0.03)
+	tween.tween_property(self, "position", original_pos + Vector2(-4, 0), 0.03)
+	tween.tween_property(self, "position", original_pos, 0.03)
+	tween.tween_property(self, "modulate", Color.WHITE, 0.1)
+
+
+func play_attack(target_pos: Vector2) -> void:
+	## Lunge toward target position, then snap back
+	var original_pos: Vector2 = position
+	var direction: Vector2 = (target_pos - original_pos).normalized()
+	var lunge_pos: Vector2 = original_pos + direction * 30.0
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "position", lunge_pos, 0.1).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "position", original_pos, 0.15).set_ease(Tween.EASE_IN)
+
+
+func play_guard_flash() -> void:
+	## Brief bright flash on guard border
+	if _guard_border == null:
+		return
+	_guard_border.modulate = Color(2.0, 2.0, 2.0)
+	var tween: Tween = create_tween()
+	tween.tween_property(_guard_border, "modulate", Color.WHITE, 0.3)
+
+
+func play_status_bounce(status_id: String) -> void:
+	## Find the status icon and bounce it
+	for child: Node in _status_row.get_children():
+		if child.has_meta("status_id") and child.get_meta("status_id") == status_id:
+			child.pivot_offset = child.size / 2.0
+			child.scale = Vector2(0.3, 0.3)
+			var tween: Tween = create_tween()
+			tween.tween_property(child, "scale", Vector2(1.2, 1.2), 0.15).set_ease(Tween.EASE_OUT)
+			tween.tween_property(child, "scale", Vector2(1.0, 1.0), 0.1).set_ease(Tween.EASE_IN)
+			return
+
+
+func start_active_pulse() -> void:
+	## Subtle breathing scale animation for active turn
+	pivot_offset = size / 2.0
+	var tween: Tween = create_tween()
+	tween.set_loops()
+	tween.tween_property(self, "scale", Vector2(1.03, 1.03), 0.6).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.6).set_ease(Tween.EASE_IN_OUT)
+	set_meta("_pulse_tween", tween)
+
+
+func stop_active_pulse() -> void:
+	if has_meta("_pulse_tween"):
+		var tween: Tween = get_meta("_pulse_tween") as Tween
+		if tween != null and tween.is_valid():
+			tween.kill()
+		remove_meta("_pulse_tween")
+	scale = Vector2(1.0, 1.0)
 
 
 func _build_ui() -> void:

@@ -496,7 +496,9 @@ func _on_status_applied(target: GlyphInstance, status_id: String) -> void:
 		_combat_log.add_entry("%s is now %s!" % [target.species.name, status_id.to_upper()], Color("#FFAA00"))
 		_refresh_panel(target)
 		if _panels.has(target.instance_id):
-			(_panels[target.instance_id] as GlyphPanel).flash_status(status_id)
+			var status_panel: GlyphPanel = _panels[target.instance_id] as GlyphPanel
+			status_panel.flash_status(status_id)
+			status_panel.play_status_bounce(status_id)
 	, 0.15)
 
 
@@ -543,6 +545,8 @@ func _on_guard_activated(glyph: GlyphInstance) -> void:
 		else:
 			_combat_log.add_entry("%s is guarding." % glyph.species.name, Color("#00BFFF"))
 		_refresh_panel(glyph)
+		if _panels.has(glyph.instance_id):
+			(_panels[glyph.instance_id] as GlyphPanel).play_guard_flash()
 	, 0.2)
 
 
@@ -665,11 +669,17 @@ func _handle_technique_used_visual(user: GlyphInstance, technique: TechniqueDef,
 		if row_reduced:
 			log_msg += " (reduced)"
 		_combat_log.add_entry(log_msg, Color.WHITE)
+		## Attack lunge animation
+		if _panels.has(user.instance_id) and _panels.has(target.instance_id):
+			var user_panel: GlyphPanel = _panels[user.instance_id] as GlyphPanel
+			var target_panel: GlyphPanel = _panels[target.instance_id] as GlyphPanel
+			user_panel.play_attack(target_panel.position)
 		_refresh_panel(target)
 		if damage > 0:
 			_spawn_damage_number(target, damage, "damage", row_reduced)
 			if _panels.has(target.instance_id):
-				(_panels[target.instance_id] as GlyphPanel).flash_damage()
+				var hit_panel: GlyphPanel = _panels[target.instance_id] as GlyphPanel
+				hit_panel.play_hit()
 
 	_refresh_panel(user)
 
@@ -966,7 +976,12 @@ func _highlight_current_actor(glyph: GlyphInstance) -> void:
 	## Show gold active-turn border on current actor, clear others
 	for id: int in _panels:
 		var panel: GlyphPanel = _panels[id] as GlyphPanel
-		panel.set_active_turn(panel.glyph == glyph)
+		var is_active: bool = panel.glyph == glyph
+		panel.set_active_turn(is_active)
+		if is_active:
+			panel.start_active_pulse()
+		else:
+			panel.stop_active_pulse()
 
 
 func _refresh_turn_order(queue: Array[GlyphInstance]) -> void:
