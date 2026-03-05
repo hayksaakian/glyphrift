@@ -150,6 +150,6 @@ General approach: all tween-based (Godot Tween class), keep durations snappy (0.
 - [x] Verify all test suites pass: 1255/1255 across 11 suites
 
 ## Tutorial (low priority)
-- [ ] Script tutorial_01 rift with guided intro (explain rooms, combat, capture)
+- [x] Script tutorial_01 rift with guided intro (explain rooms, combat, capture) — contextual hints for explore, enemy, hazard, cache, exit, capture; auto-fade after 4s
 - [x] First-time hints for bastion features — one-time notification on first visit to each sub-screen
 - [x] Tooltip or help text for crawler abilities — already implemented in CrawlerHUD.ABILITY_TOOLTIPS

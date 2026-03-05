@@ -90,6 +90,10 @@ const BATTLE_LOSS_REVIVE_PCT: float = 0.3
 var _walk_queue: Array[String] = []
 var _dungeon_connections: Array[Dictionary] = []
 
+## Tutorial hint tracking (tutorial_01 only)
+var _tutorial_hints_shown: Dictionary = {}
+var _tutorial_label: Label = null
+
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -117,6 +121,10 @@ func start_rift(p_dungeon_state: DungeonState) -> void:
 	## Build initial floor
 	_rebuild_floor()
 	_state = UIState.EXPLORING
+
+	## Tutorial hint on first rift entry
+	if _is_tutorial_rift():
+		_show_tutorial_hint("explore", "Click adjacent rooms to move. Use Scan to reveal hidden room types.")
 
 
 func get_ui_state() -> UIState:
@@ -471,6 +479,24 @@ func _build_scene_tree() -> void:
 	result_vbox.add_child(_result_continue)
 
 
+	## Tutorial hint label (top center, overlays everything)
+	_tutorial_label = Label.new()
+	_tutorial_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_tutorial_label.offset_left = -300.0
+	_tutorial_label.offset_right = 300.0
+	_tutorial_label.offset_top = 50.0
+	_tutorial_label.offset_bottom = 100.0
+	_tutorial_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_tutorial_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_tutorial_label.add_theme_font_size_override("font_size", 13)
+	_tutorial_label.add_theme_color_override("font_color", Color("#88CCFF"))
+	_tutorial_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_tutorial_label.add_theme_constant_override("outline_size", 3)
+	_tutorial_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tutorial_label.visible = false
+	add_child(_tutorial_label)
+
+
 func _connect_internal_signals() -> void:
 	_floor_map.room_clicked.connect(_on_room_clicked)
 	_floor_map.room_hovered.connect(_on_room_hovered)
@@ -659,6 +685,18 @@ func _on_room_entered(room: Dictionary) -> void:
 	## Notify hidden room discovery for milestone tracking
 	if room_type == "hidden":
 		hidden_room_entered.emit()
+
+	## Tutorial hints for room types
+	if _is_tutorial_rift():
+		match room_type:
+			"enemy":
+				_show_tutorial_hint("enemy", "Wild glyphs! Defeat them in combat, then try to capture one for your squad.")
+			"hazard":
+				_show_tutorial_hint("hazard", "Hazards damage your crawler hull. Use Field Repair to heal, or Reinforce to halve damage.")
+			"exit":
+				_show_tutorial_hint("exit", "Floor exit! Descend to go deeper, or stay to explore more rooms.")
+			"cache", "hidden":
+				_show_tutorial_hint("cache", "Supply cache! Items give temporary bonuses like capture chance or status immunity.")
 
 	## Show popup for actionable rooms
 	if room_type in ["enemy", "cache", "hazard", "puzzle", "boss", "hidden"]:
@@ -992,6 +1030,8 @@ func _on_result_continue() -> void:
 
 func _show_capture(glyph: GlyphInstance) -> void:
 	_state = UIState.CAPTURE
+	if _is_tutorial_rift():
+		_show_tutorial_hint("capture", "Capture chance depends on battle speed. Finish faster for better odds!")
 	var breakdown: Dictionary = CaptureCalculator.get_breakdown(
 		_last_enemy_count, _last_turns, _capture_item_bonus
 	)
@@ -1425,3 +1465,27 @@ func _reveal_random_species() -> String:
 		var species: GlyphSpecies = data_loader.species[pick]
 		return species.name
 	return ""
+
+
+## --- Tutorial hint system (tutorial_01 only) ---
+
+func _is_tutorial_rift() -> bool:
+	if dungeon_state == null or dungeon_state.rift_template == null:
+		return false
+	return dungeon_state.rift_template.rift_id == "tutorial_01"
+
+
+func _show_tutorial_hint(hint_id: String, text: String) -> void:
+	if _tutorial_hints_shown.get(hint_id, false):
+		return
+	_tutorial_hints_shown[hint_id] = true
+	if _tutorial_label == null:
+		return
+	_tutorial_label.text = text
+	_tutorial_label.visible = true
+	_tutorial_label.modulate = Color.WHITE
+	if not instant_mode:
+		var tween: Tween = create_tween()
+		tween.tween_interval(4.0)
+		tween.tween_property(_tutorial_label, "modulate:a", 0.0, 1.0)
+		tween.tween_callback(_tutorial_label.set.bind("visible", false))
