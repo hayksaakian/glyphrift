@@ -37,7 +37,6 @@ var _status_row: HBoxContainer = null
 var _guard_border: Panel = null
 var _guard_label: Label = null
 var _affinity_rect: ColorRect = null
-var _affinity_label: Label = null
 var _art_initial_label: Label = null
 var _art_container: PanelContainer = null
 var _active_border: Panel = null
@@ -67,11 +66,10 @@ func refresh() -> void:
 	## Name
 	_name_label.text = glyph.species.name if glyph.species else "???"
 
-	## Affinity color + label + art placeholder
+	## Affinity color + art placeholder
 	var aff: String = glyph.species.affinity if glyph.species else "neutral"
 	var aff_color: Color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
 	_affinity_rect.color = aff_color
-	_affinity_label.text = "%s %s" % [Affinity.EMOJI.get(aff, ""), aff.to_upper()]
 	_art_initial_label.text = glyph.species.name[0].to_upper() if glyph.species else "?"
 	GlyphArt.apply_texture(_art_container, _affinity_rect, _art_initial_label, glyph.species.id if glyph.species else "", 60)
 
@@ -249,14 +247,6 @@ func _build_ui() -> void:
 	_vbox.mouse_filter = Control.MOUSE_FILTER_PASS
 	_hbox.add_child(_vbox)
 
-	## Affinity label (small, e.g. "ELECTRIC")
-	_affinity_label = Label.new()
-	_affinity_label.add_theme_font_size_override("font_size", 9)
-	_affinity_label.add_theme_color_override("font_color", Color("#AAAAAA"))
-	_affinity_label.text = ""
-	_affinity_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	_vbox.add_child(_affinity_label)
-
 	## Name + back-row badge on same line
 	var name_row: HBoxContainer = HBoxContainer.new()
 	name_row.add_theme_constant_override("separation", 4)
@@ -289,14 +279,9 @@ func _build_ui() -> void:
 	_row_badge.add_child(badge_label)
 	name_row.add_child(_row_badge)
 
-	## HP bar + label on same line
-	var hp_row: HBoxContainer = HBoxContainer.new()
-	hp_row.add_theme_constant_override("separation", 4)
-	hp_row.mouse_filter = Control.MOUSE_FILTER_PASS
-	_vbox.add_child(hp_row)
-
+	## HP bar with overlaid label
 	_hp_bar = ProgressBar.new()
-	_hp_bar.custom_minimum_size = Vector2(0, 16)
+	_hp_bar.custom_minimum_size = Vector2(0, 20)
 	_hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_hp_bar.show_percentage = false
 	_hp_bar.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -314,12 +299,18 @@ func _build_ui() -> void:
 	bg_style.corner_radius_bottom_left = 2
 	bg_style.corner_radius_bottom_right = 2
 	_hp_bar.add_theme_stylebox_override("background", bg_style)
-	hp_row.add_child(_hp_bar)
+	_vbox.add_child(_hp_bar)
 
 	_hp_label = Label.new()
+	_hp_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_hp_label.add_theme_font_size_override("font_size", 11)
-	_hp_label.mouse_filter = Control.MOUSE_FILTER_PASS
-	hp_row.add_child(_hp_label)
+	_hp_label.add_theme_color_override("font_color", Color.WHITE)
+	_hp_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_hp_label.add_theme_constant_override("outline_size", 2)
+	_hp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hp_bar.add_child(_hp_label)
 
 	## Status row
 	_status_row = HBoxContainer.new()

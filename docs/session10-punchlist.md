@@ -76,9 +76,9 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 - [ ] Position as thin bar, not a major screen element
 
 **HP bars:**
-- [ ] Larger, more readable HP bars
-- [ ] Color-coded thresholds: green (>50%) → yellow (25-50%) → red (<25%)
-- [ ] Show numeric HP overlaid on bar (not beside it)
+- [x] Larger, more readable HP bars — increased to 20px height
+- [x] Color-coded thresholds: green (>50%) → yellow (25-50%) → red (<25%)
+- [x] Show numeric HP overlaid on bar (not beside it)
 
 **Battle log:**
 - [x] Shrink to 2-3 most recent lines, not a scrolling 30% of screen
@@ -96,7 +96,7 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 - [x] Damage numbers could flash a "REDUCED" tag when back-row reduction applies
 
 **Information cleanup:**
-- [ ] Remove redundant affinity text — emoji + colored border is enough
+- [x] Remove redundant affinity text — emoji + colored border is enough
 - [ ] Drop "FRONT" / "BACK" text labels if spatial layout already conveys row position
 
 ## Animations
