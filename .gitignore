@@ -1,6 +1,9 @@
 # Godot 4 generated files
 .godot/
 
+# Godot runtime overrides (created by GRB)
+override.cfg
+
 # Godot export
 *.export
 export_presets.cfg
