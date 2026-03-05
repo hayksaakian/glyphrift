@@ -10,6 +10,7 @@ signal capture_requested(wild_glyph: GlyphInstance)
 signal rift_completed(won: bool)
 signal floor_changed(floor_number: int)
 signal squad_changed()
+signal hidden_room_entered()
 
 enum UIState {
 	EXPLORING,
@@ -654,6 +655,10 @@ func _on_room_entered(room: Dictionary) -> void:
 	## Skip popups for non-actionable rooms (start, empty on revisit)
 	if room_type in ["start", "empty"]:
 		return
+
+	## Notify hidden room discovery for milestone tracking
+	if room_type == "hidden":
+		hidden_room_entered.emit()
 
 	## Show popup for actionable rooms
 	if room_type in ["enemy", "cache", "hazard", "puzzle", "boss", "hidden"]:

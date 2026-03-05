@@ -39,6 +39,11 @@ func _ready() -> void:
 	var mastery_tracker: MasteryTracker = MasteryTracker.new()
 	mastery_tracker.connect_to_combat(combat_engine)
 
+	var milestone_tracker: MilestoneTracker = MilestoneTracker.new()
+	milestone_tracker.crawler_state = crawler_state
+	milestone_tracker.codex_state = codex_state
+	milestone_tracker.initialize(_data_loader)
+
 	var game_state: GameState = GameState.new()
 	game_state.name = "GameState"
 	game_state.data_loader = _data_loader
@@ -48,6 +53,7 @@ func _ready() -> void:
 	game_state.combat_engine = combat_engine
 	game_state.fusion_engine = fusion_engine
 	game_state.mastery_tracker = mastery_tracker
+	game_state.milestone_tracker = milestone_tracker
 	add_child(game_state)
 
 	## Create and wire MainScene

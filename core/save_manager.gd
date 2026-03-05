@@ -36,6 +36,7 @@ static func save_to_slot(
 		"roster_state": _serialize_roster_state(roster_state),
 		"codex_state": _serialize_codex_state(codex_state),
 		"crawler_state": _serialize_crawler_state(crawler_state),
+		"milestone_tracker": _serialize_milestone_tracker(game_state.milestone_tracker),
 	}
 
 	var path: String = _slot_path(slot)
@@ -83,6 +84,7 @@ static func load_from_slot(
 	_deserialize_roster_state(data.get("roster_state", {}), roster_state, data_loader)
 	_deserialize_codex_state(data.get("codex_state", {}), codex_state)
 	_deserialize_crawler_state(data.get("crawler_state", {}), crawler_state, data_loader)
+	_deserialize_milestone_tracker(data.get("milestone_tracker", {}), game_state.milestone_tracker)
 	return true
 
 
@@ -412,3 +414,27 @@ static func _deserialize_crawler_state(data: Dictionary, crs: CrawlerState, data
 		var item: ItemDef = data_loader.get_item(str(item_id))
 		if item != null:
 			crs.items.append(item)
+
+
+# --- MilestoneTracker ---
+
+
+static func _serialize_milestone_tracker(mt: MilestoneTracker) -> Dictionary:
+	if mt == null:
+		return {}
+	var milestones: Array[String] = []
+	for key: String in mt.completed_milestones:
+		milestones.append(key)
+	return {
+		"completed_milestones": milestones,
+		"hidden_rooms_found": mt.hidden_rooms_found,
+	}
+
+
+static func _deserialize_milestone_tracker(data: Dictionary, mt: MilestoneTracker) -> void:
+	if mt == null:
+		return
+	mt.completed_milestones.clear()
+	for mid: Variant in data.get("completed_milestones", []):
+		mt.completed_milestones[str(mid)] = true
+	mt.hidden_rooms_found = int(data.get("hidden_rooms_found", 0))

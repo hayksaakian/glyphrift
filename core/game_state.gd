@@ -9,6 +9,7 @@ enum State { TITLE, BASTION, RIFT, COMBAT, PUZZLE }
 signal state_changed(new_state: int)
 signal phase_advanced(new_phase: int)
 signal rift_completed(rift_id: String)
+signal milestone_awarded(upgrade_id: String, description: String)
 
 var current_state: int = State.TITLE
 var current_dungeon: DungeonState = null
@@ -23,6 +24,7 @@ var codex_state: CodexState = null
 var crawler_state: CrawlerState = null
 var combat_engine: Node = null
 var fusion_engine: FusionEngine = null
+var milestone_tracker: MilestoneTracker = null
 
 ## Rift availability by phase
 const PHASE_RIFTS: Dictionary = {
@@ -64,6 +66,10 @@ func start_new_game() -> void:
 	crawler_state.active_chassis = "standard"
 	crawler_state.unlocked_chassis = ["standard"]
 	npc_read_phase = {"kael": 0, "lira": 0, "maro": 0}
+	## Reset milestones
+	if milestone_tracker != null:
+		milestone_tracker.completed_milestones.clear()
+		milestone_tracker.hidden_rooms_found = 0
 	transition_to(State.BASTION)
 
 
@@ -82,15 +88,38 @@ func start_rift(template: RiftTemplate) -> void:
 	current_dungeon = DungeonState.new()
 	current_dungeon.crawler = crawler_state
 	current_dungeon.initialize(template)
+	if milestone_tracker != null:
+		milestone_tracker.begin_run()
 	transition_to(State.RIFT)
 
 
 func complete_rift(rift_id: String) -> void:
+	var is_first_clear: bool = not codex_state.is_rift_cleared(rift_id)
 	codex_state.mark_rift_cleared(rift_id)
+
+	## Check milestones before clearing dungeon reference
+	if milestone_tracker != null and current_dungeon != null:
+		milestone_tracker.on_rift_completed(current_dungeon.rift_template, is_first_clear)
+
 	rift_completed.emit(rift_id)
 	_check_phase_advancement()
 	current_dungeon = null
 	transition_to(State.BASTION)
+
+
+func notify_capture(glyph: GlyphInstance) -> void:
+	if milestone_tracker != null:
+		milestone_tracker.on_capture(glyph)
+
+
+func notify_hidden_room() -> void:
+	if milestone_tracker != null:
+		milestone_tracker.on_hidden_room_discovered()
+
+
+func notify_fusion() -> void:
+	if milestone_tracker != null:
+		milestone_tracker.on_fusion_performed()
 
 
 func _check_phase_advancement() -> void:

@@ -66,6 +66,10 @@ func setup(
 	_battle_scene.combat_engine = combat_engine
 	_battle_scene.mastery_tracker = mastery_tracker
 
+	## Wire milestone signals
+	if codex_state != null:
+		codex_state.fusion_logged.connect(_on_fusion_logged)
+
 
 func show_title() -> void:
 	if game_state == null:
@@ -157,6 +161,7 @@ func _connect_signals() -> void:
 	_dungeon_scene.capture_requested.connect(_on_capture_requested)
 	_dungeon_scene.rift_completed.connect(_on_rift_completed)
 	_dungeon_scene.squad_changed.connect(_on_squad_changed)
+	_dungeon_scene.hidden_room_entered.connect(_on_hidden_room_entered)
 	_battle_scene.battle_finished.connect(_on_battle_finished)
 	_squad_overlay.glyph_clicked.connect(_on_squad_overlay_glyph_clicked)
 
@@ -302,6 +307,10 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 	if mastery_tracker != null:
 		mastery_tracker.notify_capture(roster_state.active_squad)
 
+	## Notify milestone tracker about the capture
+	if game_state != null:
+		game_state.notify_capture(wild_glyph)
+
 	## Update popup to confirm where the glyph went
 	_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to cargo."
 
@@ -325,6 +334,10 @@ func _on_cargo_swap(keep_glyph: GlyphInstance, release_glyph: GlyphInstance) -> 
 	## Notify mastery tracker about the capture
 	if mastery_tracker != null:
 		mastery_tracker.notify_capture(roster_state.active_squad)
+
+	## Notify milestone tracker about the capture
+	if game_state != null:
+		game_state.notify_capture(keep_glyph)
 
 	_append_room_history("Captured %s (released %s)." % [keep_glyph.species.name, release_glyph.species.name])
 	_squad_overlay.refresh()
@@ -384,6 +397,16 @@ func _append_room_history(text: String) -> void:
 			else:
 				room["history"] = text
 			break
+
+
+func _on_hidden_room_entered() -> void:
+	if game_state != null:
+		game_state.notify_hidden_room()
+
+
+func _on_fusion_logged(_parent_a: String, _parent_b: String, _result: String) -> void:
+	if game_state != null:
+		game_state.notify_fusion()
 
 
 ## --- Save slot loaded ---

@@ -41,6 +41,10 @@ func get_boss(rift_id: String) -> BossDef:
 	return bosses[rift_id]
 
 
+func get_crawler_upgrades() -> Array[Dictionary]:
+	return crawler_upgrades
+
+
 func get_rift_template(rift_id: String) -> RiftTemplate:
 	for template: RiftTemplate in rift_templates:
 		if template.rift_id == rift_id:

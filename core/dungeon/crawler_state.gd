@@ -15,6 +15,7 @@ var hull_hp: int = 100
 var energy: int = 50
 var items: Array = []  ## Array of ItemDef
 var is_reinforced: bool = false
+var took_hull_damage_this_run: bool = false
 
 const MAX_ITEMS: int = 5
 
@@ -36,6 +37,7 @@ func begin_run(_hazard_damage: int = 0) -> void:
 	hull_hp = max_hull_hp
 	energy = max_energy
 	is_reinforced = false
+	took_hull_damage_this_run = false
 	## Chassis bonuses
 	match active_chassis:
 		"ironclad":
@@ -56,6 +58,8 @@ func get_ability_cost(ability: String) -> int:
 
 
 func take_hull_damage(amount: int) -> void:
+	if amount > 0:
+		took_hull_damage_this_run = true
 	hull_hp = maxi(0, hull_hp - amount)
 	hull_changed.emit(hull_hp, max_hull_hp)
 
