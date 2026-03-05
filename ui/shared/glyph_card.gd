@@ -38,6 +38,7 @@ var _mastery_count: Label = null
 var _mastery_row: HBoxContainer = null
 var _info_button: Button = null
 var _select_border: Panel = null
+var _mastery_border: Panel = null
 
 ## When true, show a small "i" info button on the card
 var show_info_button: bool = false:
@@ -114,9 +115,13 @@ func refresh() -> void:
 			_mastery_check.visible = true
 			_mastery_check.text = " \u2713"
 			_mastery_count.add_theme_color_override("font_color", Color("#4CAF50"))
+			if _mastery_border != null:
+				_mastery_border.visible = true
 		else:
 			_mastery_check.visible = false
 			_mastery_count.add_theme_color_override("font_color", Color("#888888"))
+			if _mastery_border != null:
+				_mastery_border.visible = false
 
 	_update_modulate()
 	_update_border()
@@ -312,6 +317,25 @@ func _build_ui() -> void:
 	sel_style.corner_radius_bottom_right = 6
 	_select_border.add_theme_stylebox_override("panel", sel_style)
 	add_child(_select_border)
+
+	## Golden mastery border (hidden by default)
+	_mastery_border = Panel.new()
+	_mastery_border.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_mastery_border.visible = false
+	_mastery_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mastery_style: StyleBoxFlat = StyleBoxFlat.new()
+	mastery_style.bg_color = Color(0, 0, 0, 0)
+	mastery_style.border_color = Color("#FFD700")
+	mastery_style.border_width_left = 2
+	mastery_style.border_width_right = 2
+	mastery_style.border_width_top = 2
+	mastery_style.border_width_bottom = 2
+	mastery_style.corner_radius_top_left = 6
+	mastery_style.corner_radius_top_right = 6
+	mastery_style.corner_radius_bottom_left = 6
+	mastery_style.corner_radius_bottom_right = 6
+	_mastery_border.add_theme_stylebox_override("panel", mastery_style)
+	add_child(_mastery_border)
 
 
 func _update_border() -> void:

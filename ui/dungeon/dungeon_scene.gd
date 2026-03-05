@@ -726,6 +726,33 @@ func _play_damage_shake() -> void:
 	tween.tween_property(self, "modulate", Color.WHITE, 0.15)
 
 
+func _play_scan_ripple() -> void:
+	## Expanding cyan ring from crawler position
+	var current_node: RoomNode = _floor_map.get_room_node(dungeon_state.current_room_id)
+	if current_node == null:
+		return
+	var center: Vector2 = current_node.position + current_node.size / 2.0
+
+	var ring: Control = Control.new()
+	ring.position = center
+	ring.z_index = 10
+	_floor_map.add_child(ring)
+
+	var circle: ColorRect = ColorRect.new()
+	circle.color = Color(0, 0.8, 1.0, 0.4)
+	circle.size = Vector2(10, 10)
+	circle.position = -circle.size / 2.0
+	circle.pivot_offset = circle.size / 2.0
+	ring.add_child(circle)
+
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(circle, "scale", Vector2(30, 30), 0.5).set_ease(Tween.EASE_OUT)
+	tween.tween_property(circle, "modulate", Color(0, 0.8, 1.0, 0), 0.5).set_ease(Tween.EASE_OUT)
+	tween.set_parallel(false)
+	tween.tween_callback(func() -> void: ring.queue_free())
+
+
 func _on_forced_extraction() -> void:
 	## Distinguish voluntary warp (hull > 0) from actual destruction (hull <= 0)
 	if dungeon_state != null and dungeon_state.crawler != null:
@@ -811,6 +838,9 @@ func _on_ability_pressed(ability_name: String) -> void:
 	dungeon_state.use_crawler_ability(ability_name)
 	_crawler_hud.refresh()
 	_floor_map.refresh_all()
+
+	if ability_name == "scan" and not instant_mode:
+		_play_scan_ripple()
 
 
 func _on_capture_attempted(glyph: GlyphInstance, success: bool) -> void:
@@ -905,15 +935,23 @@ func _play_floor_transition(floor_number: int) -> void:
 		_state = UIState.EXPLORING
 		return
 
-	## Fade to black
+	## Fade to black with downward slide on label
+	_floor_overlay_label.position.y = -20.0
+	_floor_overlay_label.modulate = Color(1, 1, 1, 0)
 	var tween: Tween = create_tween()
 	tween.tween_property(_floor_overlay, "color", Color(0, 0, 0, 1), 0.15)
+
+	## Slide label down into view
+	tween.set_parallel(true)
+	tween.tween_property(_floor_overlay_label, "position:y", 0.0, 0.25).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_floor_overlay_label, "modulate", Color.WHITE, 0.2)
+	tween.set_parallel(false)
 
 	## Hold on title
 	tween.tween_callback(func() -> void:
 		_rebuild_floor()
 	)
-	tween.tween_interval(0.25)
+	tween.tween_interval(0.2)
 
 	## Fade back in
 	tween.tween_property(_floor_overlay, "color", Color(0, 0, 0, 0), 0.15)

@@ -114,9 +114,9 @@ Almost everything is instant/static right now. Key areas where motion would brin
 **Dungeon (high impact):**
 - [x] Room movement: crawler token (cyan diamond) slides between rooms with tween
 - [x] Fog reveal: rooms fade/dissolve in when discovered (not instant appear)
-- [ ] Scan: ripple or wave effect emanating outward from current position
+- [x] Scan: expanding cyan ring ripple from crawler position
 - [x] Hazard damage: screen shake + red vignette flash
-- [ ] Floor transition: already has fade — could add a "descending" slide
+- [x] Floor transition: label slides down into view during fade
 
 **Capture (high impact):**
 - [x] Capture attempt: glyph shakes/struggles for a beat (tension moment)
@@ -125,7 +125,7 @@ Almost everything is instant/static right now. Key areas where motion would brin
 
 **Bastion (medium impact):**
 - [x] Fusion: parent cards slide together, fade out, result card materializes with scale-in
-- [ ] Mastery complete: golden star burst / shimmer on the glyph
+- [x] Mastery complete: golden border glow on mastered glyph cards
 - [x] Card hover: subtle lift (scale up ~5%) with shadow
 - [x] Screen transitions: sub-screens slide in/out rather than instant show/hide
 
