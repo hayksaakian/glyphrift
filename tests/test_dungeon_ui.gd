@@ -1625,10 +1625,10 @@ func _test_pause_menu_exists() -> void:
 	var ds: DungeonState = _make_dungeon_state()
 	scene.start_rift(ds)
 
-	_assert(scene._pause_overlay != null, "Pause overlay exists")
-	_assert(not scene._pause_overlay.visible, "Pause overlay hidden by default")
-	_assert(scene._pause_resume_btn != null, "Resume button exists")
-	_assert(scene._pause_save_quit_btn != null, "Save & Quit button exists")
+	_assert(scene._pause_menu != null, "Pause menu exists")
+	_assert(not scene._pause_menu.visible, "Pause menu hidden by default")
+	_assert(scene._pause_menu._resume_btn != null, "Resume button exists")
+	_assert(scene._pause_menu._save_quit_btn != null, "Save & Quit button exists")
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)
 
@@ -1645,18 +1645,18 @@ func _test_pause_save_and_quit_signal() -> void:
 	var sig: Dictionary = {"fired": false}
 	scene.save_and_quit_pressed.connect(func() -> void: sig["fired"] = true)
 
-	## Menu should only work in EXPLORING state
-	scene._on_menu_pressed()
-	_assert(scene._pause_overlay.visible, "Pause overlay shown after menu press")
+	## Toggle on
+	scene._pause_menu.toggle()
+	_assert(scene._pause_menu.visible, "Pause menu shown after toggle")
 
-	## Resume hides overlay
-	scene._on_pause_resume()
-	_assert(not scene._pause_overlay.visible, "Pause overlay hidden after resume")
+	## Resume hides it
+	scene._pause_menu._resume_btn.pressed.emit()
+	_assert(not scene._pause_menu.visible, "Pause menu hidden after resume")
 
 	## Save & quit emits signal
-	scene._on_menu_pressed()
-	scene._on_pause_save_quit()
-	_assert(not scene._pause_overlay.visible, "Pause overlay hidden after save & quit")
+	scene._pause_menu.toggle()
+	scene._pause_menu._save_quit_btn.pressed.emit()
+	_assert(not scene._pause_menu.visible, "Pause menu hidden after save & quit")
 	_assert(sig["fired"], "save_and_quit_pressed signal fired")
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)

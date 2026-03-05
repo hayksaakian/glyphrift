@@ -33,9 +33,8 @@ var _barracks_btn: Button = null
 var _fusion_btn: Button = null
 var _codex_btn: Button = null
 var _crawler_bay_btn: Button = null
-var _save_quit_btn: Button = null
-var _save_slots_btn: Button = null
-var _save_slots_popup: SaveSlotsPopup = null
+var _menu_btn: Button = null
+var _pause_menu: PauseMenu = null
 var _squad_preview: HBoxContainer = null
 var _squad_cards: Array[GlyphCard] = []
 var _notification_label: Label = null
@@ -83,7 +82,7 @@ func setup(
 	_codex_browser.setup(data_loader, codex_state, game_state, roster_state)
 	_crawler_bay.setup(crawler_state, game_state.milestone_tracker if game_state else null)
 	_npc_panel.setup(data_loader, game_state)
-	_save_slots_popup.setup(game_state, roster_state, codex_state, crawler_state, data_loader)
+	_pause_menu.setup_save_slots(game_state, roster_state, codex_state, crawler_state, data_loader)
 
 
 func refresh() -> void:
@@ -180,11 +179,8 @@ func _build_ui() -> void:
 	_crawler_bay_btn = _make_nav_button("Crawler Bay")
 	nav_row.add_child(_crawler_bay_btn)
 
-	_save_quit_btn = _make_nav_button("Save & Quit")
-	nav_row.add_child(_save_quit_btn)
-
-	_save_slots_btn = _make_nav_button("Save Slots")
-	nav_row.add_child(_save_slots_btn)
+	_menu_btn = _make_nav_button("Menu")
+	nav_row.add_child(_menu_btn)
 
 	## Status bar
 	_status_label = Label.new()
@@ -302,10 +298,13 @@ func _build_ui() -> void:
 	_npc_panel.name = "NpcPanel"
 	add_child(_npc_panel)
 
-	## Save slots popup (modal, above sub-screens)
-	_save_slots_popup = SaveSlotsPopup.new()
-	_save_slots_popup.name = "SaveSlotsPopup"
-	add_child(_save_slots_popup)
+	## Pause menu (reusable, above sub-screens)
+	_pause_menu = PauseMenu.new()
+	_pause_menu.name = "PauseMenu"
+	_pause_menu.show_save_slots = true
+	_pause_menu.save_and_quit_pressed.connect(func() -> void: save_and_quit_pressed.emit())
+	_pause_menu.save_slot_loaded.connect(func() -> void: save_slot_loaded.emit())
+	add_child(_pause_menu)
 
 	## Detail popup (above everything)
 	_detail_popup = GlyphDetailPopup.new()
@@ -318,9 +317,7 @@ func _connect_signals() -> void:
 	_barracks_btn.pressed.connect(_show_barracks)
 	_fusion_btn.pressed.connect(_show_fusion)
 	_codex_btn.pressed.connect(_show_codex)
-	_save_quit_btn.pressed.connect(func() -> void: save_and_quit_pressed.emit())
-	_save_slots_btn.pressed.connect(func() -> void: _save_slots_popup.show_popup())
-	_save_slots_popup.slot_loaded.connect(func() -> void: save_slot_loaded.emit())
+	_menu_btn.pressed.connect(func() -> void: _pause_menu.toggle())
 
 	_crawler_bay_btn.pressed.connect(_show_crawler_bay)
 	_barracks.done_pressed.connect(show_hub)
