@@ -60,10 +60,10 @@ Currently movement is one room at a time — click adjacent, wait, click next. S
 The current layout reads like a spreadsheet, not a battle. Needs a full spatial redesign:
 
 **Layout & spatial feel:**
-- [ ] Two-sided battlefield: enemies top-center, player bottom-center facing each other
-- [ ] Front/back rows conveyed spatially (front closer/larger, back further/smaller) not just text labels
-- [ ] Compact panels — remove full-width row stretching, size to content
-- [ ] KO'd glyphs visually minimized (shrunk or collapsed), not full-size greyed panels
+- [x] Two-sided battlefield: enemies top-center, player bottom-center facing each other
+- [x] Front/back rows conveyed spatially (front closer/larger, back further/smaller at 0.9x scale)
+- [x] Compact panels — center-aligned rows, no full-width stretching
+- [x] KO'd glyphs visually minimized (shrunk to 0.65x + collapsed height + very dim)
 
 **Active turn focus:**
 - [ ] Highlight the acting glyph (glow/scale/border pulse) so it's instantly obvious whose turn it is
@@ -97,7 +97,7 @@ The current layout reads like a spreadsheet, not a battle. Needs a full spatial 
 
 **Information cleanup:**
 - [x] Remove redundant affinity text — emoji + colored border is enough
-- [ ] Drop "FRONT" / "BACK" text labels if spatial layout already conveys row position
+- [x] Drop "FRONT" / "BACK" text labels — spatial layout and scale convey row position
 
 ## Animations
 Almost everything is instant/static right now. Key areas where motion would bring the game to life:

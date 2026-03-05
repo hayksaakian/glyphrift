@@ -216,88 +216,52 @@ func _build_scene_tree() -> void:
 func _build_battlefield() -> void:
 	## Battlefield layout: front rows face each other at the center line.
 	## Top to bottom: Enemy BACK → Enemy FRONT → center → Player FRONT → Player BACK
-	## Each row sits in a tinted lane (PanelContainer) with min height so empty rows are visible.
+	## Back rows are dimmer/smaller to convey depth. Rows center-aligned.
 	var field: VBoxContainer = VBoxContainer.new()
 	field.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	field.offset_left = 40.0
-	field.offset_top = 100.0
+	field.offset_top = 60.0
 	field.offset_right = -200.0
-	field.offset_bottom = -160.0
+	field.offset_bottom = -100.0
 	field.add_theme_constant_override("separation", 4)
 	_battlefield.add_child(field)
 
-	## Enemy label
-	var enemy_label: Label = Label.new()
-	enemy_label.text = "Enemy"
-	enemy_label.add_theme_font_size_override("font_size", 14)
-	enemy_label.add_theme_color_override("font_color", Color("#FF6666"))
-	field.add_child(enemy_label)
-
-	## Enemy BACK lane (top — furthest from center, dimmer)
-	var enemy_back_lane: PanelContainer = _make_row_lane(Color("#13151d"))
+	## Enemy BACK lane (top — furthest from center, dim + smaller)
+	var enemy_back_lane: PanelContainer = _make_row_lane(Color("#10121a"))
 	field.add_child(enemy_back_lane)
-	var enemy_back_inner: HBoxContainer = HBoxContainer.new()
-	enemy_back_inner.add_theme_constant_override("separation", 8)
-	enemy_back_lane.add_child(enemy_back_inner)
-	enemy_back_inner.add_child(_make_row_label("BACK", Color("#666666")))
 	_enemy_back_row = HBoxContainer.new()
 	_enemy_back_row.add_theme_constant_override("separation", 8)
-	enemy_back_inner.add_child(_enemy_back_row)
-
-	## Spacer between enemy back and front
-	var spacer1: Control = Control.new()
-	spacer1.custom_minimum_size = Vector2(0, 2)
-	field.add_child(spacer1)
+	_enemy_back_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	enemy_back_lane.add_child(_enemy_back_row)
 
 	## Enemy FRONT lane (closer to center, brighter)
 	var enemy_front_lane: PanelContainer = _make_row_lane(Color("#1e2235"))
 	field.add_child(enemy_front_lane)
-	var enemy_front_inner: HBoxContainer = HBoxContainer.new()
-	enemy_front_inner.add_theme_constant_override("separation", 8)
-	enemy_front_lane.add_child(enemy_front_inner)
-	enemy_front_inner.add_child(_make_row_label("FRONT", Color("#AAAAAA")))
 	_enemy_front_row = HBoxContainer.new()
 	_enemy_front_row.add_theme_constant_override("separation", 8)
-	enemy_front_inner.add_child(_enemy_front_row)
+	_enemy_front_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	enemy_front_lane.add_child(_enemy_front_row)
 
 	## Center divider
 	var center_sep: HSeparator = HSeparator.new()
-	center_sep.custom_minimum_size = Vector2(0, 10)
+	center_sep.custom_minimum_size = Vector2(0, 8)
 	field.add_child(center_sep)
-
-	## Player label
-	var player_label: Label = Label.new()
-	player_label.text = "Player"
-	player_label.add_theme_font_size_override("font_size", 14)
-	player_label.add_theme_color_override("font_color", Color("#6688FF"))
-	field.add_child(player_label)
 
 	## Player FRONT lane (closer to center, brighter)
 	var player_front_lane: PanelContainer = _make_row_lane(Color("#1e2235"))
 	field.add_child(player_front_lane)
-	var player_front_inner: HBoxContainer = HBoxContainer.new()
-	player_front_inner.add_theme_constant_override("separation", 8)
-	player_front_lane.add_child(player_front_inner)
-	player_front_inner.add_child(_make_row_label("FRONT", Color("#AAAAAA")))
 	_player_front_row = HBoxContainer.new()
 	_player_front_row.add_theme_constant_override("separation", 8)
-	player_front_inner.add_child(_player_front_row)
+	_player_front_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	player_front_lane.add_child(_player_front_row)
 
-	## Spacer between player front and back
-	var spacer2: Control = Control.new()
-	spacer2.custom_minimum_size = Vector2(0, 2)
-	field.add_child(spacer2)
-
-	## Player BACK lane (bottom — furthest from center, dimmer)
-	var player_back_lane: PanelContainer = _make_row_lane(Color("#13151d"))
+	## Player BACK lane (bottom — furthest from center, dim + smaller)
+	var player_back_lane: PanelContainer = _make_row_lane(Color("#10121a"))
 	field.add_child(player_back_lane)
-	var player_back_inner: HBoxContainer = HBoxContainer.new()
-	player_back_inner.add_theme_constant_override("separation", 8)
-	player_back_lane.add_child(player_back_inner)
-	player_back_inner.add_child(_make_row_label("BACK", Color("#666666")))
 	_player_back_row = HBoxContainer.new()
 	_player_back_row.add_theme_constant_override("separation", 8)
-	player_back_inner.add_child(_player_back_row)
+	_player_back_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	player_back_lane.add_child(_player_back_row)
 
 
 func _build_action_buttons() -> void:
@@ -340,14 +304,6 @@ func _make_row_lane(bg_color: Color) -> PanelContainer:
 	return lane
 
 
-func _make_row_label(p_text: String, color: Color) -> Label:
-	var label: Label = Label.new()
-	label.text = p_text
-	label.add_theme_font_size_override("font_size", 12)
-	label.add_theme_color_override("font_color", color)
-	label.custom_minimum_size = Vector2(44, 0)
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	return label
 
 
 # ==========================================================================
@@ -790,6 +746,7 @@ func _populate_battlefield() -> void:
 		if g.row_position == "front":
 			_player_front_row.add_child(panel)
 		else:
+			panel.scale = Vector2(0.9, 0.9)
 			_player_back_row.add_child(panel)
 
 	for g: GlyphInstance in _enemy_squad:
@@ -799,6 +756,7 @@ func _populate_battlefield() -> void:
 		if g.row_position == "front":
 			_enemy_front_row.add_child(panel)
 		else:
+			panel.scale = Vector2(0.9, 0.9)
 			_enemy_back_row.add_child(panel)
 
 
@@ -1066,14 +1024,16 @@ func _compute_next_round_preview() -> Array[GlyphInstance]:
 
 
 func _rebuild_row_panels() -> void:
-	## Move panels to correct rows after a swap
+	## Move panels to correct rows after a swap, apply depth scale
 	for g: GlyphInstance in _player_squad:
 		if _panels.has(g.instance_id):
 			var panel: GlyphPanel = _panels[g.instance_id] as GlyphPanel
 			panel.get_parent().remove_child(panel)
 			if g.row_position == "front":
+				panel.scale = Vector2(1.0, 1.0)
 				_player_front_row.add_child(panel)
 			else:
+				panel.scale = Vector2(0.9, 0.9)
 				_player_back_row.add_child(panel)
 
 	for g: GlyphInstance in _enemy_squad:
@@ -1081,8 +1041,10 @@ func _rebuild_row_panels() -> void:
 			var panel: GlyphPanel = _panels[g.instance_id] as GlyphPanel
 			panel.get_parent().remove_child(panel)
 			if g.row_position == "front":
+				panel.scale = Vector2(1.0, 1.0)
 				_enemy_front_row.add_child(panel)
 			else:
+				panel.scale = Vector2(0.9, 0.9)
 				_enemy_back_row.add_child(panel)
 
 

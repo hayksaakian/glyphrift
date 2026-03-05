@@ -137,8 +137,9 @@ func flash_heal() -> void:
 func play_ko() -> void:
 	var tween: Tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(self, "modulate", Color(0.4, 0.4, 0.4, 0.7), 0.5)
-	tween.tween_property(self, "scale", Vector2(0.85, 0.85), 0.5)
+	tween.tween_property(self, "modulate", Color(0.3, 0.3, 0.3, 0.5), 0.5)
+	tween.tween_property(self, "scale", Vector2(0.65, 0.65), 0.5)
+	tween.tween_property(self, "custom_minimum_size:y", 50.0, 0.5)
 
 
 func play_hit() -> void:
