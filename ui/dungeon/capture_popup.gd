@@ -305,37 +305,79 @@ func _on_capture_pressed() -> void:
 	var success: bool = roll <= capture_chance
 	_capture_button.disabled = true
 	_release_button.visible = false
+
+	## Play attempt shake animation, then show result
+	_play_attempt_shake(success)
+
+
+func _play_attempt_shake(success: bool) -> void:
+	## Shake the art container to build tension
+	if _art_container == null:
+		_show_capture_result(success)
+		return
+	var orig: Vector2 = _art_container.position
+	var tween: Tween = create_tween()
+	for i: int in range(4):
+		var offset: float = 6.0 - float(i)
+		tween.tween_property(_art_container, "position", orig + Vector2(offset, 0), 0.06)
+		tween.tween_property(_art_container, "position", orig + Vector2(-offset, 0), 0.06)
+	tween.tween_property(_art_container, "position", orig, 0.04)
+	tween.tween_callback(_show_capture_result.bind(success))
+
+
+func _show_capture_result(success: bool) -> void:
 	_result_label.visible = true
 	_continue_button.visible = true
 
 	if success:
 		_result_label.text = "CAPTURED!"
 		_result_label.add_theme_color_override("font_color", Color("#44FF44"))
+		_play_capture_success()
 	else:
 		_result_label.text = "ESCAPED!"
 		_result_label.add_theme_color_override("font_color", Color("#FF4444"))
+		_play_capture_failure()
 
 	capture_attempted.emit(wild_glyph, success)
 
 
-## Deterministic capture for testing
+func _play_capture_success() -> void:
+	## Bright flash + scale pop on the art container
+	if _art_container == null:
+		return
+	_art_container.modulate = Color(2.0, 2.0, 2.0)
+	_art_container.pivot_offset = _art_container.size / 2.0
+	_art_container.scale = Vector2(1.3, 1.3)
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_art_container, "modulate", Color.WHITE, 0.3)
+	tween.tween_property(_art_container, "scale", Vector2(1.0, 1.0), 0.3).set_ease(Tween.EASE_OUT)
+
+
+func _play_capture_failure() -> void:
+	## Quick dash to the right and fade
+	if _art_container == null:
+		return
+	var orig_pos: Vector2 = _art_container.position
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_art_container, "position", orig_pos + Vector2(80, 0), 0.2).set_ease(Tween.EASE_IN)
+	tween.tween_property(_art_container, "modulate", Color(1, 1, 1, 0.3), 0.2)
+	tween.chain().tween_callback(func() -> void:
+		## Reset for next use
+		_art_container.position = orig_pos
+		_art_container.modulate = Color.WHITE
+	)
+
+
+## Deterministic capture for testing (no animation)
 func attempt_capture_with_roll(roll: float) -> bool:
 	if wild_glyph == null:
 		return false
 	var success: bool = roll <= capture_chance
 	_capture_button.disabled = true
 	_release_button.visible = false
-	_result_label.visible = true
-	_continue_button.visible = true
-
-	if success:
-		_result_label.text = "CAPTURED!"
-		_result_label.add_theme_color_override("font_color", Color("#44FF44"))
-	else:
-		_result_label.text = "ESCAPED!"
-		_result_label.add_theme_color_override("font_color", Color("#FF4444"))
-
-	capture_attempted.emit(wild_glyph, success)
+	_show_capture_result(success)
 	return success
 
 

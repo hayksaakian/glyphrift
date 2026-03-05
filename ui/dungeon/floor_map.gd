@@ -83,6 +83,7 @@ func update_room(room_id: String) -> void:
 	if not _room_nodes.has(room_id):
 		return
 	var node: RoomNode = _room_nodes[room_id]
+	var old_state: RoomNode.RoomState = node.state
 	## Re-read room data from dungeon state
 	var floor_data: Dictionary = dungeon_state.floors[dungeon_state.current_floor]
 	for room: Dictionary in floor_data["rooms"]:
@@ -90,6 +91,9 @@ func update_room(room_id: String) -> void:
 			node.setup(room)
 			break
 	_update_adjacency()
+	## Animate reveal if newly visible
+	if not instant_mode and old_state == RoomNode.RoomState.UNREVEALED and node.state != RoomNode.RoomState.UNREVEALED:
+		node.reveal_animate()
 
 
 func set_current_room(room_id: String) -> void:
@@ -114,7 +118,11 @@ func refresh_all() -> void:
 	for room: Dictionary in floor_data["rooms"]:
 		var rid: String = room["id"]
 		if _room_nodes.has(rid):
-			_room_nodes[rid].setup(room)
+			var node: RoomNode = _room_nodes[rid]
+			var old_state: RoomNode.RoomState = node.state
+			node.setup(room)
+			if not instant_mode and old_state == RoomNode.RoomState.UNREVEALED and node.state != RoomNode.RoomState.UNREVEALED:
+				node.reveal_animate()
 	## Mark current room
 	if dungeon_state.current_room_id != "" and _room_nodes.has(dungeon_state.current_room_id):
 		_room_nodes[dungeon_state.current_room_id].set_state(RoomNode.RoomState.CURRENT)

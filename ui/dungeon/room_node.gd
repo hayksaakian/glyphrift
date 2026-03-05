@@ -301,6 +301,13 @@ func _update_scan_sprites() -> void:
 	_icon_label.visible = not _scan_container.visible
 
 
+func reveal_animate() -> void:
+	## Fade in when first revealed (from transparent to full)
+	modulate = Color(1, 1, 1, 0)
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate", Color.WHITE, 0.3).set_ease(Tween.EASE_OUT)
+
+
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb: InputEventMouseButton = event as InputEventMouseButton

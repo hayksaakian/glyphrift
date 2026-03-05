@@ -707,8 +707,23 @@ func _on_floor_changed(floor_number: int) -> void:
 
 func _on_crawler_damaged(_amount: int, remaining_hp: int) -> void:
 	_crawler_hud.refresh()
+	## Screen shake + red flash for hazard damage
+	if not instant_mode:
+		_play_damage_shake()
 	if remaining_hp <= 0:
 		pass  ## forced_extraction signal handles this
+
+
+func _play_damage_shake() -> void:
+	var original_pos: Vector2 = position
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "modulate", Color(1.0, 0.5, 0.5), 0.05)
+	tween.tween_property(self, "position", original_pos + Vector2(8, 0), 0.03)
+	tween.tween_property(self, "position", original_pos + Vector2(-8, 0), 0.03)
+	tween.tween_property(self, "position", original_pos + Vector2(5, 0), 0.03)
+	tween.tween_property(self, "position", original_pos + Vector2(-5, 0), 0.03)
+	tween.tween_property(self, "position", original_pos, 0.03)
+	tween.tween_property(self, "modulate", Color.WHITE, 0.15)
 
 
 func _on_forced_extraction() -> void:
