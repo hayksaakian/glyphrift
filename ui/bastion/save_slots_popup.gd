@@ -109,6 +109,7 @@ func _build_ui() -> void:
 
 	## Close button
 	_close_btn = Button.new()
+	_close_btn.name = "CloseButton"
 	_close_btn.text = "Close"
 	_close_btn.custom_minimum_size = Vector2(100, 32)
 	_close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -136,12 +137,14 @@ func _build_autosave_row() -> Dictionary:
 	hbox.add_child(info_lbl)
 
 	var load_btn: Button = Button.new()
+	load_btn.name = "LoadAutosaveButton"
 	load_btn.text = "Load"
 	load_btn.custom_minimum_size = Vector2(64, 30)
 	load_btn.pressed.connect(_on_load.bind(SaveManager.AUTOSAVE_SLOT))
 	hbox.add_child(load_btn)
 
 	var del_btn: Button = Button.new()
+	del_btn.name = "DeleteAutosaveButton"
 	del_btn.text = "Delete"
 	del_btn.custom_minimum_size = Vector2(64, 30)
 	del_btn.add_theme_color_override("font_color", Color("#FF6666"))
@@ -179,6 +182,7 @@ func _build_slot_row(slot_key: String, slot_label: String) -> Dictionary:
 
 	## Save button
 	var save_btn: Button = Button.new()
+	save_btn.name = "SaveButton_%s" % slot_key
 	save_btn.text = "Save"
 	save_btn.custom_minimum_size = Vector2(64, 30)
 	save_btn.pressed.connect(_on_save.bind(slot_key))
@@ -186,6 +190,7 @@ func _build_slot_row(slot_key: String, slot_label: String) -> Dictionary:
 
 	## Load button
 	var load_btn: Button = Button.new()
+	load_btn.name = "LoadButton_%s" % slot_key
 	load_btn.text = "Load"
 	load_btn.custom_minimum_size = Vector2(64, 30)
 	load_btn.pressed.connect(_on_load.bind(slot_key))
@@ -193,6 +198,7 @@ func _build_slot_row(slot_key: String, slot_label: String) -> Dictionary:
 
 	## Delete button
 	var del_btn: Button = Button.new()
+	del_btn.name = "DeleteButton_%s" % slot_key
 	del_btn.text = "Delete"
 	del_btn.custom_minimum_size = Vector2(64, 30)
 	del_btn.add_theme_color_override("font_color", Color("#FF6666"))

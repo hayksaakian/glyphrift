@@ -117,6 +117,7 @@ func _build_ui() -> void:
 
 	## Items button
 	_items_button = Button.new()
+	_items_button.name = "ItemsButton"
 	_items_button.text = "Items: 0/5"
 	_items_button.custom_minimum_size.x = 80.0
 	_items_button.pressed.connect(func() -> void: items_pressed.emit())

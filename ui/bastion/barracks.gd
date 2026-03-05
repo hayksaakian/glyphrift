@@ -64,6 +64,7 @@ func refresh() -> void:
 
 		## Small remove button
 		var remove_btn: Button = Button.new()
+		remove_btn.name = "RemoveButton_%s" % g.species.name.replace(" ", "")
 		remove_btn.text = "Move to Reserves"
 		remove_btn.custom_minimum_size = Vector2(80, 24)
 		remove_btn.add_theme_font_size_override("font_size", 11)

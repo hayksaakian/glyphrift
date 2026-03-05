@@ -62,6 +62,7 @@ func _build_ui() -> void:
 
 	## Continue button with save info subtitle
 	_continue_btn = Button.new()
+	_continue_btn.name = "ContinueButton"
 	_continue_btn.custom_minimum_size = Vector2(200, 50)
 	_continue_btn.disabled = true
 	_continue_btn.pressed.connect(func() -> void: continue_pressed.emit())
@@ -89,6 +90,7 @@ func _build_ui() -> void:
 
 	## New Game button
 	_new_game_btn = Button.new()
+	_new_game_btn.name = "NewGameButton"
 	_new_game_btn.text = "New Game"
 	_new_game_btn.custom_minimum_size = Vector2(200, 40)
 	_new_game_btn.pressed.connect(func() -> void: new_game_pressed.emit())
@@ -96,6 +98,7 @@ func _build_ui() -> void:
 
 	## Load Game button
 	_load_game_btn = Button.new()
+	_load_game_btn.name = "LoadGameButton"
 	_load_game_btn.text = "Load Game"
 	_load_game_btn.custom_minimum_size = Vector2(200, 40)
 	_load_game_btn.disabled = true
@@ -109,6 +112,7 @@ func _build_ui() -> void:
 
 	## Quit button
 	var quit_btn: Button = Button.new()
+	quit_btn.name = "QuitButton"
 	quit_btn.text = "Quit"
 	quit_btn.custom_minimum_size = Vector2(200, 34)
 	quit_btn.pressed.connect(func() -> void: get_tree().quit())

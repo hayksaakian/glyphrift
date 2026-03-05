@@ -121,6 +121,7 @@ func _refresh_chassis() -> void:
 		_chassis_vbox.add_child(row)
 
 		var btn: Button = Button.new()
+		btn.name = "ChassisButton_%s" % chassis_id.capitalize()
 		btn.custom_minimum_size = Vector2(160, 32)
 		if is_active:
 			btn.text = "%s (Active)" % chassis_id.capitalize()

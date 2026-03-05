@@ -110,18 +110,21 @@ func _build_ui() -> void:
 	vbox.add_child(title)
 
 	_resume_btn = Button.new()
+	_resume_btn.name = "ResumeButton"
 	_resume_btn.text = "Resume"
 	_resume_btn.custom_minimum_size = Vector2(200, 36)
 	_resume_btn.pressed.connect(close)
 	vbox.add_child(_resume_btn)
 
 	_save_slots_btn = Button.new()
+	_save_slots_btn.name = "SaveSlotsButton"
 	_save_slots_btn.text = "Save Slots"
 	_save_slots_btn.custom_minimum_size = Vector2(200, 36)
 	_save_slots_btn.pressed.connect(_on_save_slots)
 	vbox.add_child(_save_slots_btn)
 
 	_save_quit_btn = Button.new()
+	_save_quit_btn.name = "SaveQuitButton"
 	_save_quit_btn.text = "Save & Quit"
 	_save_quit_btn.custom_minimum_size = Vector2(200, 36)
 	_save_quit_btn.pressed.connect(_on_save_quit)

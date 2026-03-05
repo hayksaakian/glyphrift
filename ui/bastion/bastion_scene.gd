@@ -276,6 +276,7 @@ func _build_ui() -> void:
 	_back_bar.add_child(bar_content)
 
 	var back_btn: Button = Button.new()
+	back_btn.name = "BackToBastionButton"
 	back_btn.text = "\u2190 Bastion"
 	back_btn.custom_minimum_size = Vector2(100, 24)
 	back_btn.pressed.connect(show_hub)
@@ -480,6 +481,7 @@ func _show_hint_once(screen_name: String) -> void:
 
 func _make_nav_button(label_text: String) -> Button:
 	var btn: Button = Button.new()
+	btn.name = "%sButton" % label_text.replace(" ", "")
 	btn.text = label_text
 	btn.custom_minimum_size = Vector2(140, 44)
 	BattleScene._apply_button_fx(btn)
@@ -489,6 +491,7 @@ func _make_nav_button(label_text: String) -> Button:
 func _build_npc_card(parent: Control, npc_name: String, npc_title: String, npc_color: Color) -> Button:
 	## Build a portrait card: art square + name + title, all inside a clickable Button
 	var card: Button = Button.new()
+	card.name = "NpcCard_%s" % npc_name.replace(" ", "")
 	card.custom_minimum_size = Vector2(100, 110)
 	## Transparent flat style so the card contents show through
 	var flat_style: StyleBoxFlat = StyleBoxFlat.new()

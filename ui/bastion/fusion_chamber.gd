@@ -265,6 +265,7 @@ func _build_ui() -> void:
 
 	## Fuse button
 	_fuse_button = Button.new()
+	_fuse_button.name = "FuseButton"
 	_fuse_button.text = "Fuse!"
 	_fuse_button.custom_minimum_size = Vector2(200, 36)
 	_fuse_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -365,6 +366,7 @@ func _build_ui() -> void:
 	disc_center.add_child(_discovery_result_card)
 
 	var dismiss_btn: Button = Button.new()
+	dismiss_btn.name = "DismissDiscoveryButton"
 	dismiss_btn.text = "Continue"
 	dismiss_btn.custom_minimum_size = Vector2(120, 36)
 	dismiss_btn.pressed.connect(_hide_discovery)
@@ -500,6 +502,7 @@ func _show_preview(preview: Dictionary) -> void:
 
 	for tech: TechniqueDef in all_inheritable:
 		var btn: Button = Button.new()
+		btn.name = "TechniqueToggle_%s" % tech.id
 		btn.text = _format_technique_text(tech)
 		btn.custom_minimum_size = Vector2(200, 28)
 		btn.toggle_mode = true

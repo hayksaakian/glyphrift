@@ -124,6 +124,7 @@ func show_cargo_swap(new_glyph: GlyphInstance, cargo: Array[GlyphInstance]) -> v
 	## Add a release button for each cargo glyph
 	for cargo_glyph: GlyphInstance in cargo:
 		var btn: Button = Button.new()
+		btn.name = "ReleaseButton_%s" % cargo_glyph.species.name.replace(" ", "")
 		btn.text = "Release %s" % cargo_glyph.species.name
 		btn.custom_minimum_size = Vector2(200, 32)
 		btn.pressed.connect(_on_swap_release.bind(cargo_glyph))
@@ -251,12 +252,14 @@ func _build_ui() -> void:
 	vbox.add_child(_button_container)
 
 	_capture_button = Button.new()
+	_capture_button.name = "CaptureButton"
 	_capture_button.text = "Attempt Capture"
 	_capture_button.custom_minimum_size = Vector2(130, 36)
 	_capture_button.pressed.connect(_on_capture_pressed)
 	_button_container.add_child(_capture_button)
 
 	_release_button = Button.new()
+	_release_button.name = "ReleaseButton"
 	_release_button.text = "Release"
 	_release_button.custom_minimum_size = Vector2(90, 36)
 	_release_button.pressed.connect(_on_release_pressed)
@@ -271,6 +274,7 @@ func _build_ui() -> void:
 
 	## Continue button (shown after capture result)
 	_continue_button = Button.new()
+	_continue_button.name = "ContinueButton"
 	_continue_button.text = "Continue"
 	_continue_button.custom_minimum_size = Vector2(100, 36)
 	_continue_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -286,6 +290,7 @@ func _build_ui() -> void:
 
 	## Abandon button (hidden by default)
 	_abandon_btn = Button.new()
+	_abandon_btn.name = "AbandonButton"
 	_abandon_btn.text = "Abandon new capture"
 	_abandon_btn.custom_minimum_size = Vector2(200, 32)
 	_abandon_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

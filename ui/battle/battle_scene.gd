@@ -278,18 +278,21 @@ func _build_battlefield() -> void:
 func _build_action_buttons() -> void:
 	## Guard and Swap are created once, re-added dynamically in _show_action_menu
 	_guard_button = Button.new()
+	_guard_button.name = "GuardButton"
 	_guard_button.text = "Guard"
 	_guard_button.custom_minimum_size = Vector2(200, 34)
 	_guard_button.pressed.connect(_on_guard_pressed)
 	_apply_button_fx(_guard_button)
 
 	_swap_button = Button.new()
+	_swap_button.name = "MoveRowButton"
 	_swap_button.text = "Move Row"
 	_swap_button.custom_minimum_size = Vector2(200, 34)
 	_swap_button.pressed.connect(_on_swap_pressed)
 	_apply_button_fx(_swap_button)
 
 	_flee_button = Button.new()
+	_flee_button.name = "FleeButton"
 	_flee_button.text = "Flee"
 	_flee_button.custom_minimum_size = Vector2(200, 34)
 	_flee_button.pressed.connect(_on_flee_pressed)
@@ -297,6 +300,7 @@ func _build_action_buttons() -> void:
 
 	## Keep _attack_button non-null for backward compat (tests)
 	_attack_button = Button.new()
+	_attack_button.name = "AttackButton"
 	_attack_button.text = "Attack"
 	_attack_button.visible = false
 
@@ -858,6 +862,7 @@ func _rebuild_action_panel() -> void:
 				break
 
 		var btn: TechniqueButton = TechniqueButton.new()
+		btn.name = "TechniqueButton_%s" % tech.id
 		btn.setup_with_hint(tech, usable, has_advantage)
 		btn.technique_selected.connect(_on_technique_chosen)
 		_action_menu.add_child(btn)

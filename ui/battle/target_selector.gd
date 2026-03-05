@@ -21,6 +21,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	_cancel_button = Button.new()
+	_cancel_button.name = "CancelButton"
 	_cancel_button.text = "Cancel"
 	_cancel_button.custom_minimum_size = Vector2(100, 30)
 	_cancel_button.position = Vector2(10, 10)

@@ -63,6 +63,7 @@ func _build_ui() -> void:
 
 	## Toggle button (top-right corner)
 	_toggle_button = Button.new()
+	_toggle_button.name = "ToggleLogButton"
 	_toggle_button.text = "LOG \u25bc"
 	_toggle_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_toggle_button.offset_left = -52.0

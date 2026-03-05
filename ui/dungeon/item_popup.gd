@@ -78,6 +78,7 @@ func _build_ui() -> void:
 	vbox.add_child(_empty_label)
 
 	_close_button = Button.new()
+	_close_button.name = "CloseButton"
 	_close_button.text = "Close"
 	_close_button.custom_minimum_size = Vector2(100, 32)
 	_close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -120,6 +121,7 @@ func _rebuild_list() -> void:
 		info_col.add_child(desc_label)
 
 		var use_btn: Button = Button.new()
+		use_btn.name = "UseButton_%s" % item.name.replace(" ", "")
 		use_btn.text = "Use"
 		use_btn.custom_minimum_size = Vector2(60, 28)
 		use_btn.pressed.connect(_on_use_pressed.bind(item))

@@ -277,6 +277,14 @@ func _on_title_slot_loaded() -> void:
 	)
 
 
+## --- GRB helpers (for MCP automation) ---
+
+func grb_enter_first_rift() -> void:
+	var rifts: Array[RiftTemplate] = game_state.get_available_rifts()
+	if rifts.size() > 0:
+		_on_rift_selected(rifts[0])
+
+
 ## --- Signal handlers ---
 
 func _on_rift_selected(template: RiftTemplate) -> void:

@@ -89,16 +89,19 @@ func _build_ui() -> void:
 	main_vbox.add_child(_tab_row)
 
 	_glyph_tab_btn = Button.new()
+	_glyph_tab_btn.name = "GlyphTabButton"
 	_glyph_tab_btn.text = "Glyph Registry"
 	_glyph_tab_btn.custom_minimum_size = Vector2(140, 36)
 	_tab_row.add_child(_glyph_tab_btn)
 
 	_fusion_tab_btn = Button.new()
+	_fusion_tab_btn.name = "FusionTabButton"
 	_fusion_tab_btn.text = "Fusion Log"
 	_fusion_tab_btn.custom_minimum_size = Vector2(140, 36)
 	_tab_row.add_child(_fusion_tab_btn)
 
 	_rift_tab_btn = Button.new()
+	_rift_tab_btn.name = "RiftTabButton"
 	_rift_tab_btn.text = "Rift Atlas"
 	_rift_tab_btn.custom_minimum_size = Vector2(140, 36)
 	_tab_row.add_child(_rift_tab_btn)

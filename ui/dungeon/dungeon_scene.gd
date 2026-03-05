@@ -438,11 +438,13 @@ func _build_scene_tree() -> void:
 	exit_vbox.add_child(exit_btn_row)
 
 	_exit_descend_btn = Button.new()
+	_exit_descend_btn.name = "DescendButton"
 	_exit_descend_btn.text = "Descend"
 	_exit_descend_btn.custom_minimum_size = Vector2(100, 36)
 	exit_btn_row.add_child(_exit_descend_btn)
 
 	_exit_stay_btn = Button.new()
+	_exit_stay_btn.name = "StayButton"
 	_exit_stay_btn.text = "Stay"
 	_exit_stay_btn.custom_minimum_size = Vector2(100, 36)
 	exit_btn_row.add_child(_exit_stay_btn)
@@ -493,6 +495,7 @@ func _build_scene_tree() -> void:
 	result_vbox.add_child(_result_subtitle)
 
 	_result_continue = Button.new()
+	_result_continue.name = "ResultContinueButton"
 	_result_continue.text = "Continue"
 	_result_continue.custom_minimum_size = Vector2(140, 40)
 	_result_continue.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -1292,6 +1295,7 @@ func _show_repair_picker() -> void:
 			continue  ## Already full HP, skip
 		has_targets = true
 		var btn: Button = Button.new()
+		btn.name = "RepairButton_%s" % g.species.name.replace(" ", "")
 		var hp_pct: int = int(float(g.current_hp) / maxf(float(g.max_hp), 1.0) * 100)
 		var heal_amount: int = maxi(1, int(float(g.max_hp) * 0.5))
 		var status: String = "KO" if g.is_knocked_out else "%d/%d HP" % [g.current_hp, g.max_hp]
@@ -1310,6 +1314,7 @@ func _show_repair_picker() -> void:
 		_repair_vbox.add_child(no_targets)
 
 	var cancel_btn: Button = Button.new()
+	cancel_btn.name = "CancelRepairButton"
 	cancel_btn.text = "Cancel"
 	cancel_btn.custom_minimum_size = Vector2(80, 28)
 	cancel_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -1384,6 +1389,7 @@ func _show_swap_picker(new_item: ItemDef, source: String) -> void:
 
 	for item: ItemDef in dungeon_state.crawler.items:
 		var btn: Button = Button.new()
+		btn.name = "DropButton_%s" % item.name.replace(" ", "")
 		btn.text = "Drop: %s" % item.name
 		btn.custom_minimum_size = Vector2(0, 30)
 		var item_ref: ItemDef = item
@@ -1391,6 +1397,7 @@ func _show_swap_picker(new_item: ItemDef, source: String) -> void:
 		_swap_vbox.add_child(btn)
 
 	var leave_btn: Button = Button.new()
+	leave_btn.name = "LeaveItButton"
 	leave_btn.text = "Leave It"
 	leave_btn.custom_minimum_size = Vector2(100, 30)
 	leave_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -1541,5 +1548,44 @@ func _show_tutorial_hint(hint_id: String, text: String) -> void:
 		tween.tween_interval(4.0)
 		tween.tween_property(_tutorial_label, "modulate:a", 0.0, 1.0)
 		tween.tween_callback(_tutorial_label.set.bind("visible", false))
+
+
+## --- GRB helpers (for MCP automation) ---
+
+var grb_target_room: String = ""
+
+func grb_move_to_target() -> String:
+	if dungeon_state == null:
+		return "no dungeon"
+	if _state != UIState.EXPLORING:
+		return "busy: %d" % _state
+	var moved: bool = dungeon_state.move_to_room(grb_target_room)
+	if not moved:
+		return "cannot move to " + grb_target_room
+	return "moved to " + grb_target_room
+
+
+func grb_popup_action() -> String:
+	if _state != UIState.POPUP:
+		return "not in popup state: %d" % _state
+	var rt: String = _room_popup.room_data.get("type", "")
+	_on_popup_action(rt, _room_popup.room_data)
+	return "action: " + rt
+
+
+func grb_get_rooms() -> Array:
+	if dungeon_state == null:
+		return []
+	var result: Array = []
+	var floor_data: Dictionary = dungeon_state.floors[dungeon_state.current_floor]
+	for room: Dictionary in floor_data.get("rooms", []):
+		result.append({
+			"id": room.get("id", ""),
+			"type": room.get("type", "???") if room.get("revealed", false) else "???",
+			"revealed": room.get("revealed", false),
+			"cleared": room.get("cleared", false),
+			"current": room.get("id", "") == dungeon_state.current_room_id,
+		})
+	return result
 
 

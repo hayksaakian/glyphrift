@@ -392,6 +392,7 @@ func _build_ui() -> void:
 
 	## Close button
 	_close_button = Button.new()
+	_close_button.name = "CloseButton"
 	_close_button.text = "Close"
 	_close_button.custom_minimum_size = Vector2(120, 32)
 	_close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

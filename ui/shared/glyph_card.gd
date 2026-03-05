@@ -291,6 +291,7 @@ func _build_ui() -> void:
 
 	## Info button (hidden by default, used in Barracks)
 	_info_button = Button.new()
+	_info_button.name = "InfoButton"
 	_info_button.text = "i"
 	_info_button.custom_minimum_size = Vector2(22, 22)
 	_info_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)

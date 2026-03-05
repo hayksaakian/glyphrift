@@ -161,6 +161,7 @@ func _build_ui() -> void:
 	## Create 4 pillar buttons (start dimmed)
 	for i: int in range(4):
 		var btn: Button = Button.new()
+		btn.name = "PillarButton_%s" % PILLAR_NAMES[i]
 		btn.custom_minimum_size = Vector2(80, 80)
 		var style: StyleBoxFlat = StyleBoxFlat.new()
 		style.bg_color = PILLAR_DIM_COLORS[i]
@@ -203,6 +204,7 @@ func _build_ui() -> void:
 	vbox.add_child(_button_row)
 
 	_show_again_btn = Button.new()
+	_show_again_btn.name = "ShowAgainButton"
 	_show_again_btn.text = "Show Again"
 	_show_again_btn.custom_minimum_size = Vector2(120, 36)
 	_show_again_btn.visible = false
@@ -210,6 +212,7 @@ func _build_ui() -> void:
 	_button_row.add_child(_show_again_btn)
 
 	_give_up_btn = Button.new()
+	_give_up_btn.name = "GiveUpButton"
 	_give_up_btn.text = "Give Up"
 	_give_up_btn.custom_minimum_size = Vector2(120, 36)
 	_give_up_btn.pressed.connect(_on_give_up)
@@ -225,6 +228,7 @@ func _build_ui() -> void:
 
 	## Continue button (shown on success)
 	_continue_btn = Button.new()
+	_continue_btn.name = "ContinueButton"
 	_continue_btn.text = "Continue"
 	_continue_btn.custom_minimum_size = Vector2(140, 40)
 	_continue_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

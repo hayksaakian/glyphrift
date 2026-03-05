@@ -103,6 +103,7 @@ func _build_ui() -> void:
 
 	## Confirm button
 	_confirm_button = Button.new()
+	_confirm_button.name = "ConfirmFormationButton"
 	_confirm_button.text = "Confirm Formation"
 	_confirm_button.custom_minimum_size = Vector2(240, 48)
 	_confirm_button.pressed.connect(_on_confirm)

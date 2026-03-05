@@ -195,12 +195,14 @@ func _build_ui() -> void:
 
 	## Action button
 	_action_button = Button.new()
+	_action_button.name = "ActionButton"
 	_action_button.custom_minimum_size = Vector2(120, 36)
 	_action_button.pressed.connect(_on_action_pressed)
 	_button_row.add_child(_action_button)
 
 	## Adjust Formation button (hidden for non-combat rooms)
 	_formation_button = Button.new()
+	_formation_button.name = "FormationButton"
 	_formation_button.text = "Formation"
 	_formation_button.custom_minimum_size = Vector2(100, 36)
 	_formation_button.pressed.connect(_on_formation_pressed)

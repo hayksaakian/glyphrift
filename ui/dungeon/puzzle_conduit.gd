@@ -141,6 +141,7 @@ func _build_ui() -> void:
 		var emoji: String = Affinity.EMOJI.get(aff, "")
 
 		var btn: Button = Button.new()
+		btn.name = "ConduitNode_%s" % aff.capitalize()
 		btn.text = "%s %s" % [emoji, aff.capitalize()]
 		btn.custom_minimum_size = Vector2(100, 60)
 		var style: StyleBoxFlat = StyleBoxFlat.new()
@@ -190,6 +191,7 @@ func _build_ui() -> void:
 	vbox.add_child(_button_row)
 
 	_reset_btn = Button.new()
+	_reset_btn.name = "ResetButton"
 	_reset_btn.text = "Reset Connections"
 	_reset_btn.custom_minimum_size = Vector2(140, 36)
 	_reset_btn.visible = false
@@ -197,6 +199,7 @@ func _build_ui() -> void:
 	_button_row.add_child(_reset_btn)
 
 	_give_up_btn = Button.new()
+	_give_up_btn.name = "GiveUpButton"
 	_give_up_btn.text = "Give Up"
 	_give_up_btn.custom_minimum_size = Vector2(120, 36)
 	_give_up_btn.pressed.connect(_on_give_up)
@@ -212,6 +215,7 @@ func _build_ui() -> void:
 
 	## Continue button (shown on success)
 	_continue_btn = Button.new()
+	_continue_btn.name = "ContinueButton"
 	_continue_btn.text = "Continue"
 	_continue_btn.custom_minimum_size = Vector2(140, 40)
 	_continue_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

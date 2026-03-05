@@ -111,12 +111,14 @@ func _build_ui() -> void:
 	vbox.add_child(_button_row)
 
 	_challenge_btn = Button.new()
+	_challenge_btn.name = "ChallengeButton"
 	_challenge_btn.text = "Challenge"
 	_challenge_btn.custom_minimum_size = Vector2(120, 40)
 	_challenge_btn.pressed.connect(_on_challenge)
 	_button_row.add_child(_challenge_btn)
 
 	_walk_past_btn = Button.new()
+	_walk_past_btn.name = "WalkPastButton"
 	_walk_past_btn.text = "Walk Past"
 	_walk_past_btn.custom_minimum_size = Vector2(120, 40)
 	_walk_past_btn.pressed.connect(_on_walk_past)

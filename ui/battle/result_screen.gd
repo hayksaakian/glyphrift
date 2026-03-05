@@ -212,6 +212,7 @@ func _build_ui() -> void:
 
 	## Continue button — part of the group, not pinned separately
 	_continue_button = Button.new()
+	_continue_button.name = "ContinueButton"
 	_continue_button.text = "Continue"
 	_continue_button.custom_minimum_size = Vector2(200, 40)
 	_continue_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
