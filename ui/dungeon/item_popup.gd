@@ -78,7 +78,7 @@ func _build_ui() -> void:
 	vbox.add_child(_empty_label)
 
 	_close_button = Button.new()
-	_close_button.name = "CloseButton"
+	_close_button.name = "ItemCloseButton"
 	_close_button.text = "Close"
 	_close_button.custom_minimum_size = Vector2(100, 32)
 	_close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

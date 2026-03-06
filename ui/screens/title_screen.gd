@@ -62,7 +62,7 @@ func _build_ui() -> void:
 
 	## Continue button with save info subtitle
 	_continue_btn = Button.new()
-	_continue_btn.name = "ContinueButton"
+	_continue_btn.name = "TitleContinueButton"
 	_continue_btn.custom_minimum_size = Vector2(200, 50)
 	_continue_btn.disabled = true
 	_continue_btn.pressed.connect(func() -> void: continue_pressed.emit())

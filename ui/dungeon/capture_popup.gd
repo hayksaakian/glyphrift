@@ -274,7 +274,7 @@ func _build_ui() -> void:
 
 	## Continue button (shown after capture result)
 	_continue_button = Button.new()
-	_continue_button.name = "ContinueButton"
+	_continue_button.name = "CaptureContinueButton"
 	_continue_button.text = "Continue"
 	_continue_button.custom_minimum_size = Vector2(100, 36)
 	_continue_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

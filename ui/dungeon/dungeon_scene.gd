@@ -495,7 +495,7 @@ func _build_scene_tree() -> void:
 	result_vbox.add_child(_result_subtitle)
 
 	_result_continue = Button.new()
-	_result_continue.name = "ResultContinueButton"
+	_result_continue.name = "RiftResultContinueButton"
 	_result_continue.text = "Continue"
 	_result_continue.custom_minimum_size = Vector2(140, 40)
 	_result_continue.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

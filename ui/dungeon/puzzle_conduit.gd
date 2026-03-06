@@ -199,7 +199,7 @@ func _build_ui() -> void:
 	_button_row.add_child(_reset_btn)
 
 	_give_up_btn = Button.new()
-	_give_up_btn.name = "GiveUpButton"
+	_give_up_btn.name = "ConduitGiveUpButton"
 	_give_up_btn.text = "Give Up"
 	_give_up_btn.custom_minimum_size = Vector2(120, 36)
 	_give_up_btn.pressed.connect(_on_give_up)
@@ -215,7 +215,7 @@ func _build_ui() -> void:
 
 	## Continue button (shown on success)
 	_continue_btn = Button.new()
-	_continue_btn.name = "ContinueButton"
+	_continue_btn.name = "ConduitContinueButton"
 	_continue_btn.text = "Continue"
 	_continue_btn.custom_minimum_size = Vector2(140, 40)
 	_continue_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
