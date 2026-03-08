@@ -4,201 +4,199 @@ Based on user testing of the Initiation Rift (tutorial_01) with T1 starter squad
 
 ---
 
-## 1. Button Naming Fix (Bug)
+## A. Boss Encounter Design
 
-**Issue:** Fight and Challenge buttons on `room_popup.gd` don't have `.name` set, so `press_button` helper can't find them.
+*Combines: boss balance (#2), boss HP persistence (#3), boss flee/death loop (#5), boss hull damage (#9)*
 
-**Conclusion:** Set `.name = "FightButton"` and `.name = "ChallengeButton"` on the respective buttons. Additionally, record a CLAUDE.md or memory note: prefer `grb_click` over `press_button` in tests as it's more resilient to naming gaps.
+### The core problem
 
-**Priority:** Quick fix.
+Four separate playtest issues all stem from one root cause: **a failed boss attempt has no clean exit, and the numbers don't support recovery.** Thunderclaw (T2) is too strong for T1 starters, KO'd glyphs revive at 30% HP, the boss resets to full, hull takes -15 per loss, and the player can't leave. This creates a death spiral, not a difficulty challenge.
 
----
+### Design principles
 
-## 2. Boss Balance: Thunderclaw Unbeatable with T1 Squad
+1. **Boss tier should match the expected player squad tier for that rift.** The Initiation Rift is a tutorial — the player has T1 starters and may not have learned fusion yet. The boss must be beatable with T1s.
 
-**Issue:** Thunderclaw (T2, 24 HP effective, ATK 26+) consistently survives with ~4 HP remaining. T1 starters (HP 10-15, ATK 10-13) can deal ~20 damage before being wiped. Arc Fang does 100+ damage (massive overkill). Creates an unwinnable death loop since boss resets to full HP but squad accumulates penalty HP.
+2. **Boss loss ends the run.** Losing to a boss triggers automatic Emergency Warp (no energy cost). The player keeps all captures and mastery from the run, but the rift is not cleared. This mirrors the roguelike convention (Hades, Dead Cells, Slay the Spire) where boss death = run over. It eliminates the death loop entirely — there is no "retry" within a single run.
 
-**Current numbers:**
-- Thunderclaw: 24 HP, 26 ATK, 18 DEF (base 20/22/15 * 1.2x boss modifier)
-- T1 starters: 10-15 HP, 10-13 ATK, 8-13 DEF
-- Phase 2 adds +10% ATK, +10% SPD
+3. **Boss HP resets because there are no retries to persist across.** With auto-extraction on loss, the question of HP persistence is moot. For the record, full boss reset is also the universal standard in the genre (Pokemon, Temtem, Coromon, SMT, Nexomon). Only Pokemon GO retains boss damage, and only for passive multiplayer gyms.
 
-**Design questions resolved:**
+4. **Boss loss hull damage should be steep (-50) to make the commitment feel real.** Combined with the warning before entry, this creates a meaningful decision: "Is my squad healthy enough to attempt the boss, or should I extract voluntarily and try a fresh run?" Normal battle losses remain at -15.
 
-- **Should the player clear the first boss with T1s only?** Yes — the Initiation Rift is the tutorial. It should be clearable with the starter squad without requiring fusion. The first boss should teach the player how boss fights work, not gatekeep progression behind fusion (which the player may not have learned yet).
+### Proposed boss room flow
 
-- **Should the Initiation Rift boss be T1 instead of T2?** Yes. The tutorial boss should be T1 to match the player's squad tier. Later rift bosses can be T2+ to encourage fusion.
+```
+Enter boss room → Room popup with warning:
+  "Warning: Defeat means emergency extraction! (-50 hull)"
+  [Challenge Boss] [Back Out]
 
-- **Should we encourage the player to fuse a T2 to clear the first boss?** No — not for the Initiation Rift. The tutorial should be completable with T1s only. Fusion should become *expected* starting with the second rift (Rift 2 boss = T2, signaling "you need to fuse now"). This creates a natural progression: Rift 1 teaches combat basics → Rift 2 teaches fusion is necessary → Rift 3+ requires strategic fusion choices. The player "beat" sequence: (1) learn to fight, (2) learn to capture, (3) learn to fuse, (4) combine all three.
+If player challenges:
+  Boss battle plays out normally (phases, etc.)
 
-- **Should the boss stat modifier be reduced for tutorial?** Yes. Proposed change: reduce Thunderclaw to T1 stats or introduce a weaker T1 tutorial boss species. The 1.2x boss modifier can stay but applied to lower base stats.
+  WIN → Rift cleared, normal rewards
+  LOSE → Auto Emergency Warp, -50 hull, keep captures/mastery
+```
 
-**Proposed balance changes for Initiation Boss:**
-- Downgrade boss to T1 (or create a T1 boss variant)
-- Target boss HP: ~16-18 (clearable in 3-4 rounds by full T1 squad)
-- Target boss ATK: ~12-14 (dangerous but not one-shotting T1 glyphs)
-- Arc Fang damage needs to be proportional — should hit for roughly 60-70% of a T1's HP, not 100%+
-- Phase 2 bonus can remain as a tension mechanic
+### Initiation Rift boss rebalance
 
-**Tier scaling curve concern:** The T1-to-T2 stat jump may be too steep overall. Review whether the stat ranges in GDD Section 5.2 create a smooth power curve or a cliff. Current ranges:
+**Current (broken):** Thunderclaw T2 — 24 HP, 26 ATK, 18 DEF (base 20/22/15 × 1.2x boss modifier)
+
+**Proposed:** Downgrade to T1 stats with boss modifier:
+- Target HP: ~16-18 (clearable in 3-4 rounds by full T1 squad)
+- Target ATK: ~12-14 (dangerous but not one-shotting T1 glyphs)
+- Target DEF: ~8-10 (ensures T1 attackers at ATK 10-13 deal meaningful damage per hit — roughly 2-5 per attack, 6-15 per round with 3 attackers)
+- Arc Fang: should hit for ~60-70% of a T1's HP, not 100%+
+- Phase 2 bonus (+10% ATK/SPD) remains as a tension mechanic
+
+### Progression beats across rifts
+
+| Stage | Boss Tier | Player Expected Squad | What it teaches |
+|-------|-----------|----------------------|-----------------|
+| Rift 1 (Tutorial) | T1 | 3 T1 starters + captured T1s | Combat basics, boss phases |
+| Rift 2 (Early) | T2 | T1s + first T2 fusions | "You need to fuse to progress" |
+| Rift 3+ (Mid/Late) | T2-T3 | Mixed T2/T3 squad | Strategic fusion, team composition |
+
+### Tier scaling curve concern
+
+The T1→T2 stat jump may be too steep:
 - T1: HP 10-16, ATK 8-14
 - T2: HP 18-26, ATK 16-24 (nearly double)
 
-Consider compressing the T2 range slightly (e.g., HP 16-22, ATK 14-20) so fusion feels rewarding but T2 enemies aren't insurmountable walls.
+Consider compressing T2 slightly (HP 16-22, ATK 14-20) so fusion feels rewarding without creating an insurmountable wall. This needs playtesting once the Initiation boss is rebalanced.
+
+### Edge case: low hull + low energy at boss room
+
+If a player arrives at the boss room with low hull and insufficient energy for voluntary Emergency Warp (25 energy), they face a forced choice: attempt the boss (risking -50 hull → possible hull destruction) or be stuck. Two options:
+- **Accept it as roguelike tension** — the player made risky choices getting here, and the run may be lost regardless.
+- **Guarantee the player can always voluntarily warp before the boss** — e.g., place a cache room before every boss room (already the case in the tutorial template per GDD).
+
+The pre-boss cache room likely resolves this naturally. No code change needed, but rift templates should always include a supply room before the boss.
 
 ---
 
-## 3. Boss HP Persistence Between Attempts
+## B. Capture System
 
-**Issue:** Boss resets to full HP each retry while squad keeps penalty HP (-15 hull, revive at 30% max HP). Feels unfair on repeated attempts.
+*Combines: capture chance (#6), speed bonus (#7)*
 
-**Conclusion:** Boss HP should NOT persist between attempts.
+### The core problem
 
-**Genre research — what do similar games do?**
-- **Full reset (nearly universal):** Pokemon (gym leaders, Elite Four), Temtem (dojo leaders), Coromon (titans), Shin Megami Tensei (all bosses), Nexomon — every one of these fully resets boss HP on retry. You lose, go heal, fight them fresh.
-- **Retained damage (extremely rare):** Only Pokemon GO uses this, and only for gym defenders (not raid bosses). It works there because gyms are a passive multiplayer system, not a single-player skill check. In single-player, retained damage trivializes bosses — any player can win by attrition regardless of strategy.
-- **Roguelike pattern:** In roguelikes (Hades, Dead Cells, Slay the Spire), boss death typically ends the run entirely. You keep meta-progression currency but start a new run. This is closest to our "boss loss = emergency extraction" design.
+40% base capture chance with speed bonus as the only modifier feels punishing and uncontrollable. The speed system rewards fast play (+10% per turn under par, max +30%), but gives the player no way to invest effort toward a specific capture.
 
-The unfairness feeling comes from the death loop problem in #2 — if the boss is properly balanced for the player's tier, a single clean attempt should be winnable. The real fix is boss balance, not HP persistence.
+### Proposal: Recruit combat action
 
-However, the boss retry loop needs an escape valve — see #5.
+Add a **"Recruit"** action in combat that boosts post-battle capture chance for the target species.
 
----
-
-## 4. Puzzle Variety and Design
-
-**Issue:** Got 3 conduit puzzles and 1 echo encounter. No sequence puzzles appeared. Random selection leads to repetitive experiences.
-
-**Conclusions:**
-
-### Remove Sequence Lock (Simon) puzzle
-The Simon-style memorize-and-repeat puzzle doesn't feel connected to the game's world or monsters. It exists for its own sake. Remove it.
-
-### Make puzzle assignment map-driven, not random
-Each puzzle room in the rift template should specify which puzzle type to use. This ensures:
-- Good pacing (no repeats in a single run)
-- Intentional dungeon design
-- Tutorial rifts can introduce one puzzle type at a time
-
-### Keep Conduit Bridge and Echo Encounter
-Both feel thematically connected:
-- **Conduit Bridge** — tests player's knowledge of the affinity cycle (Electric > Water > Ground > Electric). Directly rewards game system mastery.
-- **Echo Encounter** — optional combat with guaranteed capture. Rewards skilled play with collection.
-
-### New puzzle type: Glyph Silhouette Quiz
-**"Who's That Glyph?"** — A multiple-choice identification puzzle:
-- Show a darkened/distorted silhouette of a glyph species
-- Present 4 answer choices (species names)
-- Correct answer grants a reward (cache item, mastery hint, or energy)
-- Wrong answer: no penalty, but puzzle completes (one shot)
-- Thematically fits: it's a field knowledge test, like a pokedex challenge
-- Implementation: reuse existing glyph sprite assets with a shader/modulate to create silhouettes
-- Difficulty scaling: T1 glyphs the player has seen (easy) vs. T3+ glyphs they haven't (hard)
-
-### Other puzzle ideas for future consideration:
-- **Affinity Match** — given a glyph species, identify its type weakness (tests combat knowledge)
-- **Fusion Preview** — show a fusion result silhouette, player guesses which two base glyphs combine to make it (tests fusion system knowledge)
-- **Resonance Tuning** — a slider/dial puzzle where you match a frequency pattern (thematic: glyphs resonate at certain frequencies)
-
----
-
-## 5. No Flee Option from Boss — Emergency Warp on Boss Loss
-
-**Issue:** Once in a boss room, the only options are fight or keep fighting. Combined with the death loop, there's no escape.
-
-**Conclusion:** Losing to a boss should trigger an automatic Emergency Warp (forced extraction). This is cleaner than adding a flee button mid-combat because:
-
-1. It preserves the "bosses are mandatory" tension — you commit when you enter
-2. It prevents the death loop — one failed attempt = extracted, keep your captures/mastery
-3. It mirrors roguelike conventions where boss death = run over
-
-**Implementation plan:**
-- On boss battle loss: trigger Emergency Warp automatically (no energy cost)
-- The room popup for boss rooms should add a warning line: "Warning: Defeat means emergency extraction!"
-- This warning sets expectations before the player commits
-- Hull damage on boss loss should be higher than normal (see #8) to make the extraction feel consequential
-- Player retains all captures and mastery from the run (same as current Emergency Warp behavior)
-
----
-
-## 6. Capture Chance — Recruit/Befriend Combat Action
-
-**Issue:** 40% base capture chance with only speed-based modifiers feels punishing. Failed 2 of 3 attempts.
-
-**Current formula:** 40% base + 10% per turn under par (max +30%) + item bonus (Echo Lure +25%), capped at 80%.
-
-**Conclusion:** Add a **"Recruit"** combat action that improves capture odds. Two potential designs:
-
-### Option A: Recruit as capture-chance booster (Recommended)
-- New combat action available on any turn: **"Recruit"**
-- Each use of Recruit on a target adds +15% to post-battle capture chance for that species
-- Costs the glyph's turn (opportunity cost: not attacking/healing)
+- Each use: +15% capture chance for that species
+- Costs the glyph's turn (can't attack that turn)
 - Stacks up to 3 times (+45% total)
-- Combined with base 40%: a player who spends 3 turns recruiting gets 85% (capped at 80%)
-- This means: casual play = 40% base, dedicated effort = near-guaranteed capture
 - Thematically: your glyph is befriending/persuading the wild glyph
 
-### Option B: In-combat capture attempt
-- Use Recruit to attempt capture mid-battle (like throwing a Pokeball)
-- Success = instant capture, battle ends
-- Failure = turn wasted, enemy gets free hit
-- Chance based on target's remaining HP% (lower HP = higher chance)
-- Risk/reward: try early (low chance, save HP) or weaken first (high chance, risk KO)
+### Recruit and speed bonus are deliberately opposed
 
-**Recommendation:** Option A is simpler and fits Glyphrift's post-battle capture flow better. Option B is more dramatic but requires significant combat flow changes.
+Recruiting costs turns, which works *against* the speed bonus. This is a feature, not a bug — it creates two distinct capture strategies:
 
----
+| Strategy | Turns | Speed bonus | Recruit bonus | Effective capture % |
+|----------|-------|-------------|---------------|-------------------|
+| Blitz (kill fast) | Under par | Up to +30% | +0% | 40-70% |
+| Befriend (recruit heavily) | Over par | +0% | Up to +45% | 40-80% (capped) |
+| Balanced (1 recruit) | Near par | ~+10% | +15% | ~65% |
 
-## 7. Speed Bonus
+The player chooses: speed (decent odds, save HP) vs. dedication (near-guaranteed, costs turns and HP). Most captures will use the balanced approach — one Recruit turn, then finish the fight.
 
-**Issue:** +10% capture chance for fast wins is a nice touch.
+### Full capture formula (revised)
 
-**Conclusion:** Keep as-is. Already well-implemented via the turn-under-par system.
+```
+capture_chance = clamp(
+    BASE (40%)
+    + speed_bonus (0-30%)
+    + recruit_bonus (0-45%)
+    + item_bonus (Echo Lure: +25%)
+, 0%, 80%)
+```
 
----
+### Scope note
 
-## 8. Field Repair Display
-
-**Issue:** Field Repair heals 50% of max HP for 10 energy. The healing amount is shown but not obvious/predictable.
-
-**Is it coded to be exactly 50%?** Yes. Confirmed in `dungeon_scene.gd:1276`: `maxi(1, int(float(target.max_hp) * 0.5))`. The GDD also specifies 50% (Section 4.2). The `maxi(1, ...)` ensures at least 1 HP healed.
-
-**Current behavior:** The picker button shows `"Stonepaw  8/15 HP  (+7 HP)"` — it displays the raw heal amount but not the percentage, so the player can't predict the heal for other glyphs without mental math.
-
-**Conclusion:** Update the Field Repair picker to show both the amount and the percentage. Example: `"Stonepaw  8/15 HP  (+7 HP, 50%)"` — this helps the player understand the system is percentage-based and predict outcomes for different glyphs.
+The Recruit action applies only to wild encounters. Echo Encounters (puzzle rooms) already grant guaranteed captures and bypass this system entirely. With map-driven puzzle placement (see Section C), designers can place echo encounters to guarantee at least 1 capture per run regardless of RNG.
 
 ---
 
-## 9. Hull Damage on Boss Loss
+## C. Puzzle Design
 
-**Issue:** -15 hull per battle loss ramps up quickly across repeated boss fails.
+*Combines: puzzle variety (#4)*
 
-**Conclusion:** With the Emergency Warp on boss loss fix (#5), the boss hull damage becomes a one-time extraction penalty rather than a repeating drain. Increase boss-specific hull damage to **-50** to make boss loss feel consequential and justify the "warning" message on the boss room popup.
+### Problem
 
-This means:
-- Normal battle loss: -15 hull (unchanged, manageable)
-- Boss battle loss: -50 hull + emergency extraction (significant, run-ending for damaged crawlers)
-- This creates a natural decision point: "Is my squad healthy enough to challenge the boss, or should I warp out voluntarily first?"
+Random puzzle selection led to 3 conduit puzzles and 1 echo encounter in a single run. No variety.
+
+### Changes
+
+**Remove Sequence Lock (Simon) puzzle.** It's a generic memory game with no connection to the game's world, glyphs, or combat systems. It exists for its own sake.
+
+**Make puzzle assignment map-driven, not random.** Each puzzle room in the rift template specifies its puzzle type. This ensures:
+- No repeats in a single run
+- Intentional pacing and difficulty progression
+- Tutorial rifts introduce one puzzle type at a time
+
+**Keep Conduit Bridge and Echo Encounter:**
+- **Conduit Bridge** — tests knowledge of the affinity cycle. Rewards system mastery.
+- **Echo Encounter** — 1v1 duel with guaranteed capture on win. Rewards collection and tactical play.
+
+### New puzzle type: Glyph Silhouette Quiz
+
+**"Who's That Glyph?"** — multiple-choice identification:
+- Show a darkened/distorted silhouette of a glyph species
+- Present 4 species name choices
+- Correct: reward (cache item, energy, or mastery hint)
+- Wrong: no penalty, puzzle completes (one shot)
+- Implementation: reuse glyph sprites with a silhouette shader/modulate
+- Scaling: show T1 species the player has seen (easy) vs. unseen T3+ species (hard)
+- Thematically fits: it's a field knowledge test — the Codex come to life
+
+### Future puzzle ideas
+- **Affinity Match** — identify a species' type weakness (tests combat knowledge)
+- **Fusion Preview** — guess which two base glyphs produce a shown fusion result
+- **Resonance Tuning** — match a frequency pattern with a slider/dial (thematic: glyphs resonate at certain frequencies)
 
 ---
 
-## Summary of Changes to Implement
+## D. Crawler UI and Information
+
+*Combines: Field Repair display (#8), button naming (#1)*
+
+### Field Repair display
+
+Field Repair heals exactly 50% of max HP (hardcoded in `dungeon_scene.gd:1276` as `maxi(1, int(float(target.max_hp) * 0.5))`). The current picker shows the raw heal amount but not the percentage:
+
+**Current:** `"Stonepaw  8/15 HP  (+7 HP)"`
+**Proposed:** `"Stonepaw  8/15 HP  (+7 HP, 50%)"`
+
+This helps the player understand the system is percentage-based and predict heals for different glyphs without mental math.
+
+### Button naming
+
+Set `.name = "FightButton"` and `.name = "ChallengeButton"` on the combat popup buttons in `room_popup.gd` so automated test helpers can find them.
+
+**Testing note:** Prefer `grb_click` over `press_button` in tests — it's more resilient to missing `.name` properties. Record this in CLAUDE.md.
+
+---
+
+## Summary of Changes
 
 | # | Change | Priority | Scope |
 |---|--------|----------|-------|
-| 1 | Name Fight/Challenge buttons | Quick fix | room_popup.gd |
-| 2 | Rebalance Initiation boss to T1 | High | rift_templates.json, glyphs.json, bosses.json |
-| 3 | No change (boss HP reset is correct) | — | — |
-| 4a | Remove Sequence Lock puzzle | Medium | dungeon_scene.gd, puzzle_sequence.gd |
-| 4b | Make puzzle assignment map-driven | Medium | rift_templates.json, dungeon_scene.gd |
-| 4c | Add Glyph Silhouette Quiz puzzle | Medium | New scene + script |
-| 5 | Auto Emergency Warp on boss loss | High | dungeon_scene.gd, battle_scene.gd |
-| 6 | Add Recruit combat action | Medium | combat_engine.gd, battle_scene.gd, capture_calculator.gd |
-| 7 | No change needed | — | — |
-| 8 | Show HP + % in Field Repair popup | Low | dungeon_scene.gd or field_repair UI |
-| 9 | Boss hull damage = -50 | Medium | dungeon_scene.gd |
+| A1 | Auto Emergency Warp on boss loss (-50 hull) | High | dungeon_scene.gd, battle_scene.gd |
+| A2 | Add boss room warning popup | High | room_popup.gd |
+| A3 | Rebalance Initiation boss to T1 (incl. DEF target) | High | rift_templates.json, glyphs.json, bosses.json |
+| A4 | Ensure pre-boss cache room in all rift templates | Medium | rift_templates.json |
+| B1 | Add Recruit combat action (+15%/use, max 3) | Medium | combat_engine.gd, battle_scene.gd, capture_calculator.gd |
+| C1 | Remove Sequence Lock puzzle | Medium | dungeon_scene.gd, puzzle_sequence.gd |
+| C2 | Make puzzle assignment map-driven | Medium | rift_templates.json, dungeon_scene.gd |
+| C3 | Add Glyph Silhouette Quiz puzzle | Medium | New scene + script |
+| D1 | Show HP + % in Field Repair picker | Low | dungeon_scene.gd |
+| D2 | Name Fight/Challenge buttons | Quick fix | room_popup.gd |
 
-### CLAUDE.md / Memory notes to add:
+### Design principles to record (CLAUDE.md / Memory):
+- Boss tier must match expected player squad tier for that rift
+- Boss loss = auto-extraction (no retry within a run)
+- Recruit and speed bonus are opposing capture strategies (by design)
+- Puzzle rooms are map-specified, not randomly selected
 - Prefer `grb_click` over `press_button` in tests
-- Boss balance principle: boss tier should match expected player squad tier for that rift
-- Puzzle rooms should be map-specified, not randomly selected
