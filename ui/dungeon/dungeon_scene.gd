@@ -37,6 +37,7 @@ var _squad_overlay: Variant = null  ## Set by MainScene — for ward charm glyph
 var _puzzle_sequence: PuzzleSequence = null
 var _puzzle_conduit: PuzzleConduit = null
 var _puzzle_echo: PuzzleEcho = null
+var _puzzle_quiz: PuzzleQuiz = null
 var _echo_battle_active: bool = false
 var _echo_glyph: GlyphInstance = null
 
@@ -57,6 +58,7 @@ var _ward_charm_active: bool = false
 ## Last combat stats (for capture calculation)
 var _last_enemy_count: int = 1
 var _last_turns: int = 3
+var _last_recruit_counts: Dictionary = {}  ## species_id → recruit uses
 var _boss_capture_pending: bool = false  ## Show rift result after boss capture dismissal
 
 var _background: ColorRect = null
@@ -144,10 +146,11 @@ func get_ui_state() -> UIState:
 	return _state
 
 
-func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3) -> void:
+func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3, recruit_counts: Dictionary = {}) -> void:
 	## Called by parent after combat ends
 	_last_enemy_count = maxi(1, enemies.size())
 	_last_turns = turns
+	_last_recruit_counts = recruit_counts
 
 	## Consume ward charm (single-use per battle)
 	if _ward_charm_active:
@@ -391,6 +394,10 @@ func _build_scene_tree() -> void:
 	_puzzle_echo.name = "PuzzleEcho"
 	add_child(_puzzle_echo)
 
+	_puzzle_quiz = PuzzleQuiz.new()
+	_puzzle_quiz.name = "PuzzleQuiz"
+	add_child(_puzzle_quiz)
+
 	## Exit overlay (stairs choice — Descend / Stay)
 	_exit_overlay = ColorRect.new()
 	_exit_overlay.name = "ExitOverlay"
@@ -566,6 +573,7 @@ func _connect_internal_signals() -> void:
 	_puzzle_conduit.success_reached.connect(_on_conduit_success)
 	_puzzle_echo.puzzle_completed.connect(_on_puzzle_completed)
 	_puzzle_echo.echo_combat_requested.connect(_on_echo_combat_requested)
+	_puzzle_quiz.puzzle_completed.connect(_on_puzzle_completed)
 
 
 func _connect_dungeon_signals() -> void:
@@ -1099,8 +1107,10 @@ func _show_capture(glyph: GlyphInstance) -> void:
 	_state = UIState.CAPTURE
 	if _is_tutorial_rift():
 		_show_tutorial_hint("capture", "Capture chance depends on battle speed. Finish faster for better odds!")
+	## Sum recruit uses for the glyph's species
+	var recruit_uses: int = _last_recruit_counts.get(glyph.species.id, 0) if glyph.species != null else 0
 	var breakdown: Dictionary = CaptureCalculator.get_breakdown(
-		_last_enemy_count, _last_turns, _capture_item_bonus
+		_last_enemy_count, _last_turns, _capture_item_bonus, recruit_uses
 	)
 	_capture_popup.show_capture(glyph, breakdown["total"], breakdown)
 	## Consume capture bonus after use (single-use per item description)
@@ -1333,7 +1343,7 @@ func _show_repair_picker() -> void:
 		var hp_pct: int = int(float(g.current_hp) / maxf(float(g.max_hp), 1.0) * 100)
 		var heal_amount: int = maxi(1, int(float(g.max_hp) * 0.5))
 		var status: String = "KO" if g.is_knocked_out else "%d/%d HP" % [g.current_hp, g.max_hp]
-		btn.text = "%s  %s  (+%d HP)" % [g.species.name, status, heal_amount]
+		btn.text = "%s  %s  (+%d HP, 50%%)" % [g.species.name, status, heal_amount]
 		btn.custom_minimum_size = Vector2(0, 32)
 		var glyph_ref: GlyphInstance = g
 		btn.pressed.connect(func() -> void: _on_repair_target_selected(glyph_ref))
@@ -1470,7 +1480,7 @@ func _on_swap_leave() -> void:
 
 ## --- Puzzle helpers ---
 
-const PUZZLE_TYPES: Array[String] = ["sequence", "conduit", "echo"]
+const PUZZLE_TYPES: Array[String] = ["conduit", "echo", "quiz"]
 
 func _launch_puzzle(room_data: Dictionary) -> void:
 	## Assign a random puzzle type to this room if not already set
@@ -1482,15 +1492,17 @@ func _launch_puzzle(room_data: Dictionary) -> void:
 
 	match puzzle_type:
 		"sequence":
-			_puzzle_sequence.start(instant_mode)
+			## Legacy — removed; fall through to conduit
+			_puzzle_conduit.start(instant_mode)
 		"conduit":
 			_puzzle_conduit.start(instant_mode)
 		"echo":
 			if dungeon_state != null and dungeon_state.rift_template != null:
 				_puzzle_echo.start(dungeon_state.rift_template, data_loader, roster_state)
 			else:
-				## Fallback to sequence if no rift data
-				_puzzle_sequence.start(instant_mode)
+				_puzzle_conduit.start(instant_mode)
+		"quiz":
+			_puzzle_quiz.start(data_loader, codex_state, instant_mode)
 
 
 func _on_puzzle_completed(success: bool, reward_type: String, _reward_data: Variant) -> void:
@@ -1498,6 +1510,7 @@ func _on_puzzle_completed(success: bool, reward_type: String, _reward_data: Vari
 	_puzzle_sequence.visible = false
 	_puzzle_conduit.visible = false
 	_puzzle_echo.visible = false
+	_puzzle_quiz.visible = false
 
 	if success:
 		match reward_type:

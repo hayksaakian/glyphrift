@@ -11,9 +11,9 @@
         "floor_number": 0,
         "rooms": [
           {"id": "f0_r0", "x": 1, "y": 1, "type": "start"},
-          {"id": "f0_r1", "x": 0, "y": 0, "type": "puzzle"},
-          {"id": "f0_r2", "x": 2, "y": 0, "type": "puzzle"},
-          {"id": "f0_r3", "x": 0, "y": 2, "type": "puzzle"},
+          {"id": "f0_r1", "x": 0, "y": 0, "type": "puzzle", "puzzle_type": "conduit"},
+          {"id": "f0_r2", "x": 2, "y": 0, "type": "puzzle", "puzzle_type": "echo"},
+          {"id": "f0_r3", "x": 0, "y": 2, "type": "puzzle", "puzzle_type": "quiz"},
           {"id": "f0_r4", "x": 2, "y": 1, "type": "enemy"},
           {"id": "f0_r5", "x": 2, "y": 2, "type": "exit"}
         ],
@@ -45,12 +45,14 @@
           {"id": "f2_r0", "x": 0, "y": 0, "type": "start"},
           {"id": "f2_r1", "x": 1, "y": 0, "type": "hazard"},
           {"id": "f2_r2", "x": 2, "y": 0, "type": "enemy"},
-          {"id": "f2_r3", "x": 2, "y": 1, "type": "boss"}
+          {"id": "f2_r3", "x": 2, "y": 1, "type": "cache"},
+          {"id": "f2_r4", "x": 2, "y": 2, "type": "boss"}
         ],
         "connections": [
           ["f2_r0", "f2_r1"],
           ["f2_r1", "f2_r2"],
-          ["f2_r2", "f2_r3"]
+          ["f2_r2", "f2_r3"],
+          ["f2_r3", "f2_r4"]
         ]
       }
     ],

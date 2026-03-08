@@ -11,6 +11,8 @@ extends RefCounted
 
 const BASE_CHANCE: float = 0.40
 const TURN_BONUS_PER: float = 0.10
+const RECRUIT_BONUS_PER: float = 0.15
+const MAX_RECRUIT_USES: int = 3
 const MAX_CHANCE: float = 0.80
 
 const PAR_TURNS: Dictionary = {
@@ -27,20 +29,24 @@ static func get_par_turns(enemy_count: int) -> int:
 	return enemy_count * 2
 
 
-static func calculate_chance(enemy_count: int, actual_turns: int, item_bonus: float = 0.0) -> float:
-	var bd: Dictionary = get_breakdown(enemy_count, actual_turns, item_bonus)
+static func calculate_chance(enemy_count: int, actual_turns: int, item_bonus: float = 0.0, recruit_uses: int = 0) -> float:
+	var bd: Dictionary = get_breakdown(enemy_count, actual_turns, item_bonus, recruit_uses)
 	return bd["total"]
 
 
 ## Returns a breakdown of all capture chance modifiers.
-static func get_breakdown(enemy_count: int, actual_turns: int, item_bonus: float = 0.0) -> Dictionary:
+static func get_breakdown(enemy_count: int, actual_turns: int, item_bonus: float = 0.0, recruit_uses: int = 0) -> Dictionary:
 	var par: int = get_par_turns(enemy_count)
 	var turn_bonus: float = maxf(0.0, float(par - actual_turns) * TURN_BONUS_PER)
-	var total: float = minf(MAX_CHANCE, BASE_CHANCE + turn_bonus + item_bonus)
+	var clamped_recruits: int = mini(recruit_uses, MAX_RECRUIT_USES)
+	var recruit_bonus: float = float(clamped_recruits) * RECRUIT_BONUS_PER
+	var raw_total: float = BASE_CHANCE + turn_bonus + item_bonus + recruit_bonus
+	var total: float = minf(MAX_CHANCE, raw_total)
 	return {
 		"base": BASE_CHANCE,
 		"turn_bonus": turn_bonus,
 		"item_bonus": item_bonus,
+		"recruit_bonus": recruit_bonus,
 		"total": total,
-		"capped": (BASE_CHANCE + turn_bonus + item_bonus) > MAX_CHANCE,
+		"capped": raw_total > MAX_CHANCE,
 	}

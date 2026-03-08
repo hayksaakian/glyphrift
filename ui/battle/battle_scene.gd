@@ -57,6 +57,7 @@ var _turn_portraits: Array[GlyphPortrait] = []
 var _attack_button: Button = null
 var _guard_button: Button = null
 var _swap_button: Button = null
+var _recruit_button: Button = null
 var _flee_button: Button = null
 
 ## Track squads
@@ -72,7 +73,7 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	## Free buttons that may be orphaned (removed from tree but not freed)
-	for btn: Button in [_guard_button, _swap_button, _attack_button, _flee_button]:
+	for btn: Button in [_guard_button, _swap_button, _recruit_button, _attack_button, _flee_button]:
 		if btn != null and btn.get_parent() == null:
 			btn.free()
 
@@ -290,6 +291,13 @@ func _build_action_buttons() -> void:
 	_swap_button.custom_minimum_size = Vector2(200, 34)
 	_swap_button.pressed.connect(_on_swap_pressed)
 	_apply_button_fx(_swap_button)
+
+	_recruit_button = Button.new()
+	_recruit_button.name = "RecruitButton"
+	_recruit_button.text = "Recruit"
+	_recruit_button.custom_minimum_size = Vector2(200, 34)
+	_recruit_button.pressed.connect(_on_recruit_pressed)
+	_apply_button_fx(_recruit_button)
 
 	_flee_button = Button.new()
 	_flee_button.name = "FleeButton"
@@ -887,6 +895,13 @@ func _rebuild_action_panel() -> void:
 	## Swap (move to other row)
 	_action_menu.add_child(_swap_button)
 
+	## Recruit (not available in boss battles, max 3 total uses)
+	if combat_engine != null and not combat_engine.is_boss_battle:
+		var total_recruits: int = combat_engine.get_total_recruit_uses()
+		_recruit_button.text = "Recruit (%d/3)" % total_recruits if total_recruits > 0 else "Recruit"
+		_recruit_button.disabled = total_recruits >= 3
+		_action_menu.add_child(_recruit_button)
+
 	## Flee (not available in boss battles)
 	if combat_engine != null and not combat_engine.is_boss_battle:
 		var sep2: HSeparator = HSeparator.new()
@@ -909,6 +924,20 @@ func _on_swap_pressed() -> void:
 	_action_menu.visible = false
 	_state = UIState.ANIMATING
 	combat_engine.submit_action({"action": "swap"})
+
+
+func _on_recruit_pressed() -> void:
+	if _state != UIState.ACTION_MENU:
+		return
+	_action_menu.visible = false
+	## Select an enemy target to recruit toward
+	_state = UIState.TARGET_SELECT
+	_selected_technique = null  ## No technique — recruit action
+	var enemies: Array[GlyphInstance] = []
+	for g: GlyphInstance in _enemy_squad:
+		if not g.is_knocked_out:
+			enemies.append(g)
+	_target_selector.show_targets(enemies, _panels)
 
 
 func _on_flee_pressed() -> void:
@@ -953,11 +982,18 @@ func _on_technique_chosen(technique: TechniqueDef) -> void:
 func _on_target_selected(target: GlyphInstance) -> void:
 	_state = UIState.ANIMATING
 
-	combat_engine.submit_action({
-		"action": "attack",
-		"technique": _selected_technique,
-		"target": target,
-	})
+	if _selected_technique == null:
+		## Recruit action (no technique selected)
+		combat_engine.submit_action({
+			"action": "recruit",
+			"target": target,
+		})
+	else:
+		combat_engine.submit_action({
+			"action": "attack",
+			"technique": _selected_technique,
+			"target": target,
+		})
 
 	_selected_technique = null
 
@@ -1129,7 +1165,7 @@ func _clear_action_menu() -> void:
 	## Remove dynamic children (technique buttons, separators) but keep guard/swap/flee alive
 	for child: Node in _action_menu.get_children():
 		_action_menu.remove_child(child)
-		if child != _guard_button and child != _swap_button and child != _flee_button:
+		if child != _guard_button and child != _swap_button and child != _recruit_button and child != _flee_button:
 			child.queue_free()
 
 

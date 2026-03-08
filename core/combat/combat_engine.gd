@@ -44,6 +44,9 @@ var _boss: GlyphInstance = null
 var _boss_def: BossDef = null
 var is_boss_battle: bool = false
 
+## Recruit action tracking: species_id → number of recruit uses
+var recruit_counts: Dictionary = {}
+
 
 func _ready() -> void:
 	if has_node("/root/DataLoader"):
@@ -56,6 +59,7 @@ func start_battle(p_squad: Array[GlyphInstance], e_squad: Array[GlyphInstance], 
 	turn_count = 0
 	round_number = 0
 	ko_list.clear()
+	recruit_counts.clear()
 	_boss = null
 	_boss_def = boss_def
 	is_boss_battle = boss_def != null
@@ -202,6 +206,8 @@ func _execute_action(actor: GlyphInstance, action: Dictionary) -> void:
 			_execute_guard(actor)
 		"swap":
 			_execute_swap(actor)
+		"recruit":
+			_execute_recruit(actor, action["target"])
 		_:
 			_execute_attack(actor, action["technique"], action["target"])
 
@@ -225,6 +231,25 @@ func _execute_guard(actor: GlyphInstance) -> void:
 func _execute_swap(actor: GlyphInstance) -> void:
 	actor.row_position = "back" if actor.row_position == "front" else "front"
 	swap_performed.emit(actor)
+
+
+func _execute_recruit(actor: GlyphInstance, target: GlyphInstance) -> void:
+	## Recruit action: +15% capture chance for target's species, costs the turn
+	var species_id: String = target.species.id if target.species != null else ""
+	if species_id != "":
+		var current: int = recruit_counts.get(species_id, 0)
+		recruit_counts[species_id] = mini(current + 1, 3)
+
+
+func get_recruit_count(species_id: String) -> int:
+	return recruit_counts.get(species_id, 0)
+
+
+func get_total_recruit_uses() -> int:
+	var total: int = 0
+	for count: int in recruit_counts.values():
+		total += count
+	return total
 
 
 func _execute_attack(actor: GlyphInstance, technique: TechniqueDef, target: GlyphInstance) -> void:

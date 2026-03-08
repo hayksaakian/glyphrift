@@ -83,6 +83,9 @@ func _format_breakdown(bd: Dictionary) -> String:
 		parts.append("Speed +%d%%" % int(turn_bonus * 100.0))
 	elif turn_bonus == 0.0:
 		pass  ## At par — no bonus or penalty to show
+	var recruit_bonus: float = bd.get("recruit_bonus", 0.0)
+	if recruit_bonus > 0:
+		parts.append("Recruit +%d%%" % int(recruit_bonus * 100.0))
 	var item_bonus: float = bd.get("item_bonus", 0.0)
 	if item_bonus > 0:
 		parts.append("Lure +%d%%" % int(item_bonus * 100.0))

@@ -313,14 +313,16 @@ func _on_battle_finished(won: bool) -> void:
 	## Get combat stats for capture calculation
 	var enemies: Array[GlyphInstance] = []
 	var turns: int = 3
+	var recruit_counts: Dictionary = {}
 	if combat_engine != null:
 		enemies = combat_engine.enemy_squad
 		turns = combat_engine.turn_count
+		recruit_counts = combat_engine.recruit_counts.duplicate()
 
 	_fade_to(func() -> void:
 		_show_dungeon()
 		_squad_overlay.refresh()
-		_dungeon_scene.on_combat_finished(won, enemies, turns)
+		_dungeon_scene.on_combat_finished(won, enemies, turns, recruit_counts)
 	)
 
 
