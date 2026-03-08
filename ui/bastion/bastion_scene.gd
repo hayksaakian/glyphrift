@@ -458,7 +458,10 @@ func _update_npc_indicators() -> void:
 		if indicator == null:
 			continue
 		var read_phase: int = game_state.npc_read_phase.get(npc_id, 0)
-		indicator.visible = phase > read_phase
+		var should_show: bool = phase > read_phase
+		indicator.visible = should_show
+		if should_show and indicator.is_inside_tree():
+			_start_bob_tween(indicator)
 
 
 const SCREEN_HINTS: Dictionary = {
@@ -486,6 +489,15 @@ func _make_nav_button(label_text: String) -> Button:
 	btn.custom_minimum_size = Vector2(140, 44)
 	BattleScene._apply_button_fx(btn)
 	return btn
+
+
+func _start_bob_tween(indicator: Label) -> void:
+	## Gentle up/down bob loop on the chat bubble indicator
+	var base_y: float = indicator.position.y
+	var tween: Tween = indicator.create_tween()
+	tween.set_loops()
+	tween.tween_property(indicator, "position:y", base_y - 4.0, 0.4).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(indicator, "position:y", base_y, 0.4).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
 
 
 func _build_npc_card(parent: Control, npc_name: String, npc_title: String, npc_color: Color) -> Button:

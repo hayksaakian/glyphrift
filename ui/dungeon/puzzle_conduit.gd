@@ -67,11 +67,17 @@ func start(p_instant_mode: bool = false) -> void:
 	_status_label.add_theme_color_override("font_color", Color("#AAAAAA"))
 	_connections_label.text = ""
 	_update_attempts_label()
+	## Restore give_up button (may have been repurposed as Continue)
+	_give_up_btn.text = "Give Up"
+	if not _give_up_btn.pressed.is_connected(_on_give_up):
+		_give_up_btn.pressed.connect(_on_give_up)
 	_give_up_btn.visible = true
 	_reset_btn.visible = false
 	_continue_btn.visible = false
-	_reward_label.visible = false
+	_reward_label.text = " "
 	_attempts_label.visible = true
+	_attempts_label.add_theme_font_size_override("font_size", 12)
+	_attempts_label.add_theme_color_override("font_color", Color("#888888"))
 	_reset_node_highlights()
 
 
@@ -205,12 +211,12 @@ func _build_ui() -> void:
 	_give_up_btn.pressed.connect(_on_give_up)
 	_button_row.add_child(_give_up_btn)
 
-	## Reward label (shown on success)
+	## Reward label (always visible with reserved space to avoid layout shift)
 	_reward_label = Label.new()
 	_reward_label.add_theme_font_size_override("font_size", 15)
 	_reward_label.add_theme_color_override("font_color", Color("#88DDFF"))
 	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_reward_label.visible = false
+	_reward_label.text = " "
 	vbox.add_child(_reward_label)
 
 	## Continue button (shown on success)
@@ -267,13 +273,14 @@ func _on_node_pressed(idx: int) -> void:
 				_status_label.add_theme_color_override("font_color", Color("#44FF44"))
 				_connections_label.add_theme_color_override("font_color", Color("#44FF44"))
 				_color_connection_lines(Color("#44FF44"))
-				_give_up_btn.visible = false
+				## Repurpose existing elements to avoid layout shift
 				_reset_btn.visible = false
-				_attempts_label.visible = false
+				_attempts_label.text = ""  ## Cleared; DungeonScene sets reward via set_reward_text
+				_give_up_btn.text = "Continue"
+				_give_up_btn.pressed.disconnect(_on_give_up)
+				_give_up_btn.pressed.connect(_on_continue, CONNECT_ONE_SHOT)
 				## Let DungeonScene do the reveal and set reward text
 				success_reached.emit()
-				_reward_label.visible = true
-				_continue_btn.visible = true
 				if instant_mode:
 					puzzle_completed.emit(true, "codex_reveal", null)
 			else:
@@ -423,7 +430,9 @@ func _on_reset() -> void:
 
 
 func set_reward_text(text: String) -> void:
-	_reward_label.text = text
+	_attempts_label.text = text
+	_attempts_label.add_theme_color_override("font_color", Color("#88DDFF"))
+	_attempts_label.add_theme_font_size_override("font_size", 15)
 
 
 func _on_continue() -> void:

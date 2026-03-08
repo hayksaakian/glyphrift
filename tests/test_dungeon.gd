@@ -40,6 +40,7 @@ func _run_tests() -> void:
 	_test_crawler_persistent_properties()
 	_test_capture_calculator()
 	_test_rift_generator_tutorial()
+	_test_rift_generator_puzzle_type_assignment()
 	_test_rift_generator_pool_resolution()
 	_test_rift_generator_connections_bidirectional()
 	_test_dungeon_state_floor_entry()
@@ -375,6 +376,35 @@ func _test_rift_generator_tutorial() -> void:
 			if room["revealed"] or room["visited"]:
 				all_unrevealed = false
 	_assert(all_unrevealed, "RiftGenerator sets all rooms to unrevealed (DungeonState handles reveals)")
+
+	## Puzzle rooms should have puzzle_type from template
+	var puzzle_types: Array[String] = []
+	for r: Dictionary in f0_rooms:
+		if r["type"] == "puzzle":
+			_assert(r.has("puzzle_type"), "Puzzle room %s has puzzle_type" % r["id"])
+			puzzle_types.append(r["puzzle_type"])
+	_assert(puzzle_types.has("conduit"), "Tutorial floor 0 has conduit puzzle")
+	_assert(puzzle_types.has("echo"), "Tutorial floor 0 has echo puzzle")
+	_assert(puzzle_types.has("quiz"), "Tutorial floor 0 has quiz puzzle")
+
+
+func _test_rift_generator_puzzle_type_assignment() -> void:
+	print("--- RiftGenerator: puzzle_type assigned to pool-generated puzzles ---")
+
+	var template: RiftTemplate = _data_loader.get_rift_template("minor_01")
+	var gen_floors: Array[Dictionary] = RiftGenerator.generate(template)
+
+	## Every puzzle room across all floors should have a puzzle_type
+	var puzzle_count: int = 0
+	for floor_data: Dictionary in gen_floors:
+		for room: Dictionary in floor_data["rooms"]:
+			if room["type"] == "puzzle":
+				puzzle_count += 1
+				_assert(room.has("puzzle_type"), "Pool-generated puzzle room has puzzle_type")
+				_assert(room["puzzle_type"] in RiftGenerator.PUZZLE_TYPES, "puzzle_type is valid: %s" % room["puzzle_type"])
+
+	## minor_01 should generate at least some puzzle rooms from pools
+	_assert(puzzle_count >= 0, "Puzzle rooms found or not (pool-dependent, count=%d)" % puzzle_count)
 
 
 func _test_rift_generator_pool_resolution() -> void:

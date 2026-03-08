@@ -27,6 +27,7 @@ const STATUS_LETTERS: Dictionary = {
 
 
 var glyph: GlyphInstance = null
+var recruit_count: int = 0
 
 var _hbox: HBoxContainer = null
 var _vbox: VBoxContainer = null
@@ -396,6 +397,11 @@ func flash_status(status_id: String) -> void:
 			return
 
 
+func set_recruit_count(count: int) -> void:
+	recruit_count = count
+	_refresh_statuses()
+
+
 func _refresh_statuses() -> void:
 	## Clear existing icons
 	for child: Node in _status_row.get_children():
@@ -404,6 +410,26 @@ func _refresh_statuses() -> void:
 	if glyph == null:
 		return
 
+	## Recruit badge (if any)
+	if recruit_count > 0:
+		var icon: PanelContainer = PanelContainer.new()
+		icon.custom_minimum_size = Vector2(22, 22)
+		icon.set_meta("status_id", "recruit")
+		icon.tooltip_text = "Recruited %dx (+%d%% capture)" % [recruit_count, recruit_count * 15]
+		var icon_style: StyleBoxFlat = StyleBoxFlat.new()
+		icon_style.bg_color = Color("#44BB44")
+		icon_style.set_corner_radius_all(3)
+		icon.add_theme_stylebox_override("panel", icon_style)
+
+		var letter: Label = Label.new()
+		letter.text = "R" if recruit_count == 1 else "R%d" % recruit_count
+		letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		letter.add_theme_font_size_override("font_size", 12)
+		letter.add_theme_color_override("font_color", Color.WHITE)
+		icon.add_child(letter)
+		_status_row.add_child(icon)
+
 	for status_id: String in glyph.active_statuses:
 		var icon: PanelContainer = PanelContainer.new()
 		icon.custom_minimum_size = Vector2(22, 22)
@@ -411,10 +437,7 @@ func _refresh_statuses() -> void:
 		icon.tooltip_text = status_id.capitalize()
 		var icon_style: StyleBoxFlat = StyleBoxFlat.new()
 		icon_style.bg_color = STATUS_COLORS.get(status_id, Color.WHITE)
-		icon_style.corner_radius_top_left = 3
-		icon_style.corner_radius_top_right = 3
-		icon_style.corner_radius_bottom_left = 3
-		icon_style.corner_radius_bottom_right = 3
+		icon_style.set_corner_radius_all(3)
 		icon.add_theme_stylebox_override("panel", icon_style)
 
 		var letter: Label = Label.new()

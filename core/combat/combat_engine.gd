@@ -20,6 +20,7 @@ signal turn_queue_updated(queue: Array[GlyphInstance])
 signal phase_transition(boss: GlyphInstance, changes: Dictionary)
 signal burn_damage(glyph: GlyphInstance, damage: int)
 signal round_started(round_number: int)
+signal recruit_performed(actor: GlyphInstance, target: GlyphInstance, count: int)
 
 enum BattlePhase { INACTIVE, FORMATION, TURN_ACTIVE, ANIMATING, VICTORY, DEFEAT }
 
@@ -239,6 +240,7 @@ func _execute_recruit(actor: GlyphInstance, target: GlyphInstance) -> void:
 	if species_id != "":
 		var current: int = recruit_counts.get(species_id, 0)
 		recruit_counts[species_id] = mini(current + 1, 3)
+		recruit_performed.emit(actor, target, recruit_counts[species_id])
 
 
 func get_recruit_count(species_id: String) -> int:

@@ -17,9 +17,9 @@ var _bg: ColorRect = null
 var _title_label: Label = null
 var _instruction_label: Label = null
 var _silhouette_container: PanelContainer = null
-var _silhouette_rect: ColorRect = null
-var _silhouette_hint: Label = null  ## Faint first-letter hint
-var _question_label: Label = null
+var _art_container: Control = null  ## Holds affinity_rect + initial_label for GlyphArt
+var _affinity_rect: ColorRect = null
+var _initial_label: Label = null
 var _choice_vbox: VBoxContainer = null
 var _choice_buttons: Array[Button] = []
 var _result_label: Label = null
@@ -99,12 +99,11 @@ func get_correct_species() -> GlyphSpecies:
 
 
 func _update_display() -> void:
-	## Silhouette: fully dark with a faint letter hint
-	_silhouette_rect.color = Color(0.08, 0.08, 0.1)
+	## Show silhouette art
 	if _correct_species != null:
-		_silhouette_hint.text = _correct_species.name[0].to_upper()
-	_silhouette_hint.visible = true
-	_question_label.visible = true
+		_affinity_rect.color = Color(0.55, 0.55, 0.6)  ## Light gray background for silhouette contrast
+		_initial_label.text = _correct_species.name[0].to_upper()
+		GlyphArt.apply_texture(_art_container, _affinity_rect, _initial_label, _correct_species.id, 128, true)
 
 	## Update choice buttons
 	for btn: Button in _choice_buttons:
@@ -148,50 +147,43 @@ func _build_ui() -> void:
 	_instruction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_instruction_label)
 
-	## Silhouette display — centered dark box
+	## Silhouette display — centered art box
 	var silhouette_center: HBoxContainer = HBoxContainer.new()
 	silhouette_center.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(silhouette_center)
 
 	_silhouette_container = PanelContainer.new()
-	_silhouette_container.custom_minimum_size = Vector2(96, 96)
+	_silhouette_container.custom_minimum_size = Vector2(128, 128)
 	var sil_style: StyleBoxFlat = StyleBoxFlat.new()
-	sil_style.bg_color = Color(0.05, 0.05, 0.08)
+	sil_style.bg_color = Color(0.55, 0.55, 0.6)
 	sil_style.set_corner_radius_all(8)
-	sil_style.border_color = Color(0.25, 0.25, 0.3)
+	sil_style.border_color = Color(0.7, 0.7, 0.75)
 	sil_style.set_border_width_all(2)
 	_silhouette_container.add_theme_stylebox_override("panel", sil_style)
 	silhouette_center.add_child(_silhouette_container)
 
-	## Dark background fill
-	_silhouette_rect = ColorRect.new()
-	_silhouette_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_silhouette_rect.color = Color(0.08, 0.08, 0.1)
-	_silhouette_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_silhouette_container.add_child(_silhouette_rect)
+	## Art container (GlyphArt pattern: affinity_rect + initial_label)
+	_art_container = Control.new()
+	_art_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_art_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_silhouette_container.add_child(_art_container)
 
-	## Faint species initial as a shadow hint (barely visible)
-	_silhouette_hint = Label.new()
-	_silhouette_hint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_silhouette_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_silhouette_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_silhouette_hint.add_theme_font_size_override("font_size", 52)
-	_silhouette_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.12))
-	_silhouette_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_silhouette_container.add_child(_silhouette_hint)
+	_affinity_rect = ColorRect.new()
+	_affinity_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_affinity_rect.color = Color(0.55, 0.55, 0.6)
+	_affinity_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_art_container.add_child(_affinity_rect)
 
-	## "?" overlay
-	_question_label = Label.new()
-	_question_label.text = "?"
-	_question_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_question_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_question_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_question_label.add_theme_font_size_override("font_size", 36)
-	_question_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
-	_question_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	_question_label.add_theme_constant_override("outline_size", 3)
-	_question_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_silhouette_container.add_child(_question_label)
+	_initial_label = Label.new()
+	_initial_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_initial_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_initial_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_initial_label.add_theme_font_size_override("font_size", 40)
+	_initial_label.add_theme_color_override("font_color", Color.WHITE)
+	_initial_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_initial_label.add_theme_constant_override("outline_size", 3)
+	_initial_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_art_container.add_child(_initial_label)
 
 	## Choice buttons
 	_choice_vbox = VBoxContainer.new()
@@ -238,19 +230,15 @@ func _on_choice_pressed(idx: int) -> void:
 	for btn: Button in _choice_buttons:
 		btn.disabled = true
 
-	## Reveal the silhouette — show full affinity color + letter
+	## Reveal — show full portrait with affinity color background
 	if _correct_species != null:
 		var aff_color: Color = Affinity.COLORS.get(_correct_species.affinity, Color.GRAY)
-		_silhouette_rect.color = aff_color
-		_silhouette_hint.text = _correct_species.name[0].to_upper()
-		_silhouette_hint.add_theme_font_size_override("font_size", 52)
-		_silhouette_hint.add_theme_color_override("font_color", Color.WHITE)
-		_silhouette_hint.add_theme_color_override("font_outline_color", Color.BLACK)
-		_silhouette_hint.add_theme_constant_override("outline_size", 3)
-	_question_label.visible = false
+		_affinity_rect.color = aff_color
+		_initial_label.text = _correct_species.name[0].to_upper()
+		GlyphArt.apply_texture(_art_container, _affinity_rect, _initial_label, _correct_species.id, 128, false)
 
 	if correct:
-		_result_label.text = "Correct! It's %s!" % _correct_species.name
+		_result_label.text = "Correct! It's %s!\nYou found supplies!" % _correct_species.name
 		_result_label.add_theme_color_override("font_color", Color("#44FF44"))
 	else:
 		_result_label.text = "Wrong! It was %s." % _correct_species.name

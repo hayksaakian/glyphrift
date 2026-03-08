@@ -12,6 +12,7 @@ func _init() -> void:
 
 	_test_capture_recruit_bonus()
 	_test_combat_engine_recruit()
+	_test_dungeon_scene_recruit_to_capture()
 	_test_puzzle_quiz()
 	_test_tutorial_boss_floor_cache()
 	_test_tutorial_puzzle_types()
@@ -118,6 +119,66 @@ func _test_combat_engine_recruit() -> void:
 	_assert(engine.get_total_recruit_uses() == 1, "Total recruit uses = 1")
 
 	engine.queue_free()
+
+
+# ==========================================================
+#  DUNGEON SCENE — Recruit counts flow to capture popup
+# ==========================================================
+
+func _test_dungeon_scene_recruit_to_capture() -> void:
+	print("--- DungeonScene: Recruit → Capture Breakdown ---")
+
+	## Build a dungeon with an enemy room
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "enemy", "visited": false, "revealed": true},
+		],
+		"connections": [["r0", "r1"]],
+	}
+	var ds: DungeonState = DungeonState.new()
+	var crawler: CrawlerState = load("res://core/dungeon/crawler_state.gd").new() as CrawlerState
+	crawler.name = "TestCrawler_recruit"
+	root.add_child(crawler)
+	ds.crawler = crawler
+	var template: RiftTemplate = _data_loader.get_rift_template("tutorial_01")
+	ds.initialize_with_floors(template, [floor_data])
+
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	scene.instant_mode = true
+	root.add_child(scene)
+	scene.start_rift(ds)
+
+	## Create a wild enemy glyph
+	var wild: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("sparkfin"), _data_loader)
+	wild.calculate_stats()
+	wild.side = "enemy"
+	var enemies: Array[GlyphInstance] = [wild]
+
+	## Simulate combat finished WITH recruit counts for sparkfin
+	var recruit_counts: Dictionary = {"sparkfin": 2}
+	scene.on_combat_finished(true, enemies, 3, recruit_counts)
+
+	## Should be in CAPTURE state
+	_assert(scene.get_ui_state() == DungeonScene.UIState.CAPTURE, "UI state is CAPTURE after winning with capturable enemy")
+	_assert(scene._capture_popup.visible, "Capture popup is visible")
+
+	## Verify the breakdown label includes recruit bonus
+	var breakdown_text: String = scene._capture_popup._breakdown_label.text
+	_assert("Recruit" in breakdown_text, "Capture breakdown includes 'Recruit' (got: '%s')" % breakdown_text)
+
+	## Verify the actual chance includes recruit bonus: 40% base + 30% recruit = 70%
+	_assert("70%" in scene._capture_popup._chance_label.text, "Capture chance is 70%% with 2 recruits (got: '%s')" % scene._capture_popup._chance_label.text)
+
+	## Now test WITHOUT recruit counts — should be 40% base only
+	scene.on_combat_finished(true, enemies, 3, {})
+	var breakdown_no_recruit: String = scene._capture_popup._breakdown_label.text
+	_assert("Recruit" not in breakdown_no_recruit, "No recruit text without recruit counts (got: '%s')" % breakdown_no_recruit)
+
+	crawler.queue_free()
+	scene.queue_free()
 
 
 # ==========================================================

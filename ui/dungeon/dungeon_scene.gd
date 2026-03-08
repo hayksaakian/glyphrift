@@ -1480,12 +1480,10 @@ func _on_swap_leave() -> void:
 
 ## --- Puzzle helpers ---
 
-const PUZZLE_TYPES: Array[String] = ["conduit", "echo", "quiz"]
-
 func _launch_puzzle(room_data: Dictionary) -> void:
-	## Assign a random puzzle type to this room if not already set
+	## puzzle_type is pre-assigned by RiftGenerator; fallback to conduit if missing
 	if not room_data.has("puzzle_type"):
-		room_data["puzzle_type"] = PUZZLE_TYPES[randi() % PUZZLE_TYPES.size()]
+		room_data["puzzle_type"] = "conduit"
 
 	_state = UIState.PUZZLE
 	var puzzle_type: String = room_data["puzzle_type"]
@@ -1498,15 +1496,53 @@ func _launch_puzzle(room_data: Dictionary) -> void:
 			_puzzle_conduit.start(instant_mode)
 		"echo":
 			if dungeon_state != null and dungeon_state.rift_template != null:
-				_puzzle_echo.start(dungeon_state.rift_template, data_loader, roster_state)
+				## Persist the echo species so revisits show the same glyph
+				if room_data.has("echo_species_id") and data_loader != null:
+					var sp: GlyphSpecies = data_loader.get_species(room_data["echo_species_id"])
+					if sp != null:
+						var g: GlyphInstance = GlyphInstance.create_from_species(sp, data_loader)
+						g.side = "enemy"
+						_puzzle_echo.start_with_glyph(g)
+					else:
+						_puzzle_echo.start(dungeon_state.rift_template, data_loader, roster_state)
+				else:
+					_puzzle_echo.start(dungeon_state.rift_template, data_loader, roster_state)
+				## Save the chosen species for future revisits
+				if _puzzle_echo.get_echo_glyph() != null and _puzzle_echo.get_echo_glyph().species != null:
+					room_data["echo_species_id"] = _puzzle_echo.get_echo_glyph().species.id
 			else:
 				_puzzle_conduit.start(instant_mode)
 		"quiz":
-			var glyph_pool: Array[String] = []
-			if dungeon_state != null and dungeon_state.rift_template != null:
-				for sid: String in dungeon_state.rift_template.wild_glyph_pool:
-					glyph_pool.append(sid)
-			_puzzle_quiz.start(data_loader, codex_state, instant_mode, glyph_pool)
+			## Persist quiz species so revisits show the same question
+			if room_data.has("quiz_correct_id") and room_data.has("quiz_choice_ids") and data_loader != null:
+				var correct_sp: GlyphSpecies = data_loader.get_species(room_data["quiz_correct_id"])
+				var choices: Array[GlyphSpecies] = []
+				for cid: String in room_data["quiz_choice_ids"]:
+					var sp: GlyphSpecies = data_loader.get_species(cid)
+					if sp != null:
+						choices.append(sp)
+				if correct_sp != null and choices.size() >= 4:
+					_puzzle_quiz.start_with_species(correct_sp, choices, instant_mode)
+				else:
+					_start_quiz_fresh(room_data)
+			else:
+				_start_quiz_fresh(room_data)
+
+
+func _start_quiz_fresh(room_data: Dictionary) -> void:
+	var glyph_pool: Array[String] = []
+	if dungeon_state != null and dungeon_state.rift_template != null:
+		for sid: String in dungeon_state.rift_template.wild_glyph_pool:
+			glyph_pool.append(sid)
+	_puzzle_quiz.start(data_loader, codex_state, instant_mode, glyph_pool)
+	## Save the chosen species/choices for future revisits
+	var correct: GlyphSpecies = _puzzle_quiz.get_correct_species()
+	if correct != null:
+		room_data["quiz_correct_id"] = correct.id
+		var choice_ids: Array[String] = []
+		for sp: GlyphSpecies in _puzzle_quiz._choices:
+			choice_ids.append(sp.id)
+		room_data["quiz_choice_ids"] = choice_ids
 
 
 func _on_puzzle_completed(success: bool, reward_type: String, _reward_data: Variant) -> void:

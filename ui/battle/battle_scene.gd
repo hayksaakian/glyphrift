@@ -363,6 +363,7 @@ func _connect_engine_signals() -> void:
 		["phase_transition", _on_phase_transition],
 		["burn_damage", _on_burn_damage],
 		["round_started", _on_round_started],
+		["recruit_performed", _on_recruit_performed],
 	]
 
 	for conn: Array in connections:
@@ -549,6 +550,10 @@ func _on_swap_performed(glyph: GlyphInstance) -> void:
 	_animation_queue.enqueue("swap", {"glyph": glyph}, 0.3)
 
 
+func _on_recruit_performed(actor: GlyphInstance, target: GlyphInstance, count: int) -> void:
+	_animation_queue.enqueue("recruit", {"actor": actor, "target": target, "count": count}, 0.5)
+
+
 func _on_battle_won(p_squad: Array[GlyphInstance], turns_taken: int, ko_list: Array[GlyphInstance]) -> void:
 	_animation_queue.enqueue("battle_won", {
 		"squad": p_squad, "turns": turns_taken, "kos": ko_list
@@ -613,6 +618,8 @@ func _process_queued_event(event: Dictionary) -> void:
 			_handle_interrupt_visual(data["defender"], data["technique"])
 		"swap":
 			_handle_swap_visual(data["glyph"])
+		"recruit":
+			_handle_recruit_visual(data["actor"], data["target"], data["count"])
 		"phase_transition":
 			_handle_phase_transition_visual(data["boss"], data.get("changes", {}))
 		"battle_won":
@@ -704,6 +711,16 @@ func _handle_swap_visual(glyph: GlyphInstance) -> void:
 	_combat_log.add_entry("%s moves to %s row." % [g_name, row_name], Color("#AAAAFF"))
 	## Rebuild row assignments
 	_rebuild_row_panels()
+
+
+func _handle_recruit_visual(actor: GlyphInstance, target: GlyphInstance, count: int) -> void:
+	var actor_name: String = actor.species.name if actor.species else "???"
+	var target_name: String = target.species.name if target.species else "???"
+	_combat_log.add_entry("%s calls out to %s! (Recruit %d/3)" % [actor_name, target_name, count], Color("#44BB44"))
+	if _panels.has(target.instance_id):
+		var panel: GlyphPanel = _panels[target.instance_id] as GlyphPanel
+		panel.set_recruit_count(count)
+		panel.play_status_bounce("recruit")
 
 
 func _handle_phase_transition_visual(boss: GlyphInstance, changes: Dictionary = {}) -> void:
