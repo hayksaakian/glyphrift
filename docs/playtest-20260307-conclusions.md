@@ -29,6 +29,8 @@ Based on user testing of the Initiation Rift (tutorial_01) with T1 starter squad
 
 - **Should the Initiation Rift boss be T1 instead of T2?** Yes. The tutorial boss should be T1 to match the player's squad tier. Later rift bosses can be T2+ to encourage fusion.
 
+- **Should we encourage the player to fuse a T2 to clear the first boss?** No — not for the Initiation Rift. The tutorial should be completable with T1s only. Fusion should become *expected* starting with the second rift (Rift 2 boss = T2, signaling "you need to fuse now"). This creates a natural progression: Rift 1 teaches combat basics → Rift 2 teaches fusion is necessary → Rift 3+ requires strategic fusion choices. The player "beat" sequence: (1) learn to fight, (2) learn to capture, (3) learn to fuse, (4) combine all three.
+
 - **Should the boss stat modifier be reduced for tutorial?** Yes. Proposed change: reduce Thunderclaw to T1 stats or introduce a weaker T1 tutorial boss species. The 1.2x boss modifier can stay but applied to lower base stats.
 
 **Proposed balance changes for Initiation Boss:**
@@ -50,7 +52,14 @@ Consider compressing the T2 range slightly (e.g., HP 16-22, ATK 14-20) so fusion
 
 **Issue:** Boss resets to full HP each retry while squad keeps penalty HP (-15 hull, revive at 30% max HP). Feels unfair on repeated attempts.
 
-**Conclusion:** Boss HP should NOT persist between attempts. This is the standard pattern in monster-collecting games (Pokemon gym leaders, Temtem dojo leaders, Coromon titans all reset). The unfairness feeling comes from the death loop problem in #2 — if the boss is properly balanced for the player's tier, a single clean attempt should be winnable. The real fix is boss balance, not HP persistence.
+**Conclusion:** Boss HP should NOT persist between attempts.
+
+**Genre research — what do similar games do?**
+- **Full reset (nearly universal):** Pokemon (gym leaders, Elite Four), Temtem (dojo leaders), Coromon (titans), Shin Megami Tensei (all bosses), Nexomon — every one of these fully resets boss HP on retry. You lose, go heal, fight them fresh.
+- **Retained damage (extremely rare):** Only Pokemon GO uses this, and only for gym defenders (not raid bosses). It works there because gyms are a passive multiplayer system, not a single-player skill check. In single-player, retained damage trivializes bosses — any player can win by attrition regardless of strategy.
+- **Roguelike pattern:** In roguelikes (Hades, Dead Cells, Slay the Spire), boss death typically ends the run entirely. You keep meta-progression currency but start a new run. This is closest to our "boss loss = emergency extraction" design.
+
+The unfairness feeling comes from the death loop problem in #2 — if the boss is properly balanced for the player's tier, a single clean attempt should be winnable. The real fix is boss balance, not HP persistence.
 
 However, the boss retry loop needs an escape valve — see #5.
 
@@ -152,9 +161,11 @@ Both feel thematically connected:
 
 **Issue:** Field Repair heals 50% of max HP for 10 energy. The healing amount is shown but not obvious/predictable.
 
-**Current behavior:** Shows the raw HP amount but not the percentage.
+**Is it coded to be exactly 50%?** Yes. Confirmed in `dungeon_scene.gd:1276`: `maxi(1, int(float(target.max_hp) * 0.5))`. The GDD also specifies 50% (Section 4.2). The `maxi(1, ...)` ensures at least 1 HP healed.
 
-**Conclusion:** Update the Field Repair popup/tooltip to show both the amount and the percentage. Example: "Heal Stonepaw for 7 HP (50% of max)" — this helps the player understand the system and predict outcomes for different glyphs.
+**Current behavior:** The picker button shows `"Stonepaw  8/15 HP  (+7 HP)"` — it displays the raw heal amount but not the percentage, so the player can't predict the heal for other glyphs without mental math.
+
+**Conclusion:** Update the Field Repair picker to show both the amount and the percentage. Example: `"Stonepaw  8/15 HP  (+7 HP, 50%)"` — this helps the player understand the system is percentage-based and predict outcomes for different glyphs.
 
 ---
 
