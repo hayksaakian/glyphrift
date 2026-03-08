@@ -6,6 +6,7 @@ extends Control
 
 signal action_pressed(room_type: String, room_data: Dictionary)
 signal formation_requested(room_type: String, room_data: Dictionary)
+signal back_out_pressed()
 
 const POPUP_SIZE: Vector2 = Vector2(320, 280)
 
@@ -26,7 +27,7 @@ const ACTION_LABELS: Dictionary = {
 	"cache": "Open",
 	"hazard": "Continue",
 	"puzzle": "Attempt",
-	"boss": "Challenge",
+	"boss": "Challenge Boss",
 	"empty": "Continue",
 	"exit": "Descend",
 	"hidden": "Open",
@@ -43,6 +44,7 @@ var _action_button: Button = null
 var _formation_button: Button = null
 var _formation_preview: HBoxContainer = null
 var _button_row: HBoxContainer = null
+var _back_out_button: Button = null
 var _vbox: VBoxContainer = null
 var _enemy_preview: HBoxContainer = null
 
@@ -79,6 +81,7 @@ func show_room(p_room_data: Dictionary, extra_info: String = "") -> void:
 	## Show formation preview + adjust button for combat rooms
 	var is_combat: bool = room_type in ["enemy", "boss"]
 	_formation_button.visible = is_combat
+	_back_out_button.visible = room_type == "boss"
 	_refresh_formation_preview(is_combat)
 
 	visible = true
@@ -92,6 +95,7 @@ func show_result(title: String, description: String) -> void:
 	_clear_enemy_preview()
 	_action_button.text = "Continue"
 	_formation_button.visible = false
+	_back_out_button.visible = false
 	_formation_preview.visible = false
 	visible = true
 	_animate_show()
@@ -209,6 +213,15 @@ func _build_ui() -> void:
 	_formation_button.visible = false
 	_button_row.add_child(_formation_button)
 
+	## Back Out button (boss rooms only)
+	_back_out_button = Button.new()
+	_back_out_button.name = "BackOutButton"
+	_back_out_button.text = "Back Out"
+	_back_out_button.custom_minimum_size = Vector2(100, 36)
+	_back_out_button.pressed.connect(_on_back_out_pressed)
+	_back_out_button.visible = false
+	_button_row.add_child(_back_out_button)
+
 
 func _show_enemy_preview(species_ids: Array, is_boss: bool) -> void:
 	for sid: Variant in species_ids:
@@ -306,9 +319,10 @@ func _get_description(room_type: String, extra_info: String) -> String:
 		"puzzle":
 			return "A mysterious mechanism awaits."
 		"boss":
+			var warning: String = "\n[Defeat means emergency extraction!]"
 			if scan_info != "":
-				return "Scouted: %s guards this floor." % scan_info
-			return "A powerful guardian defends this floor."
+				return "Scouted: %s guards this floor.%s" % [scan_info, warning]
+			return "A powerful guardian defends this floor.%s" % warning
 		"empty":
 			return "An empty chamber. Nothing of interest."
 		"exit":
@@ -329,6 +343,10 @@ func _on_action_pressed() -> void:
 func _on_formation_pressed() -> void:
 	var room_type: String = room_data.get("type", "empty")
 	formation_requested.emit(room_type, room_data)
+
+
+func _on_back_out_pressed() -> void:
+	back_out_pressed.emit()
 
 
 func _refresh_formation_preview(show: bool) -> void:

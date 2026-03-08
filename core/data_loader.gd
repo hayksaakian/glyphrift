@@ -244,6 +244,12 @@ func _load_bosses() -> void:
 		boss.phase2_technique_ids = p2_ids
 
 		boss.phase2_stat_bonus = entry.get("phase2_stat_bonus", {})
+
+		var squad_data: Array[Dictionary] = []
+		for s: Dictionary in entry.get("squad", []):
+			squad_data.append(s)
+		boss.squad = squad_data
+
 		bosses[entry["rift_id"]] = boss
 
 

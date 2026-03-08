@@ -1,11 +1,25 @@
 [
   {
     "rift_id": "tutorial_01",
-    "species_id": "thunderclaw",
-    "stat_modifier": 1.2,
-    "phase1_technique_ids": ["arc_fang", "static_snap"],
+    "species_id": "sparkfin",
+    "stat_modifier": 1.0,
+    "phase1_technique_ids": ["static_snap", "spark_shower"],
     "phase2_technique_ids": ["chain_bolt"],
-    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1},
+    "squad": [
+      {
+        "species_id": "mossling",
+        "mastered": true,
+        "technique_ids": ["vine_lash", "root_hold"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "sparkfin",
+        "mastered": true,
+        "technique_ids": ["static_snap", "spark_shower"],
+        "row_position": "back"
+      }
+    ]
   },
   {
     "rift_id": "minor_01",

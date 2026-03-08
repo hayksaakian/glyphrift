@@ -171,20 +171,26 @@ func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3
 		_echo_glyph = null
 		return
 
-	if not won:
-		_room_popup.hide_popup()
-		_apply_battle_loss_penalty()
-		return
-
-	## Mark current room as cleared so it doesn't retrigger
-	_clear_current_room("Defeated wild glyphs.")
-
-	## Check if this was a boss fight — winning means rift complete
+	## Check if this was a boss fight
 	var was_boss: bool = false
 	for enemy: GlyphInstance in enemies:
 		if enemy.is_boss:
 			was_boss = true
 			break
+
+	if not won:
+		_room_popup.hide_popup()
+		if was_boss:
+			## Boss loss → auto Emergency Warp (no retry within a run)
+			_clear_current_room("Guardian stands.")
+			_warped_out = true
+			_show_result(false)
+		else:
+			_apply_battle_loss_penalty()
+		return
+
+	## Mark current room as cleared so it doesn't retrigger
+	_clear_current_room("Defeated wild glyphs.")
 
 	if was_boss:
 		## On re-runs (rift already cleared), offer boss capture before result
@@ -532,6 +538,7 @@ func _connect_internal_signals() -> void:
 	_floor_map.room_hover_exited.connect(_on_room_hover_exited)
 	_room_popup.action_pressed.connect(_on_popup_action)
 	_room_popup.formation_requested.connect(_on_formation_requested)
+	_room_popup.back_out_pressed.connect(_on_boss_back_out)
 	_crawler_hud.ability_pressed.connect(_on_ability_pressed)
 	_crawler_hud.items_pressed.connect(_on_items_pressed)
 	_crawler_hud.menu_pressed.connect(func() -> void: _pause_menu.toggle())
@@ -849,6 +856,11 @@ func _on_exit_descend() -> void:
 
 func _on_exit_stay() -> void:
 	_exit_overlay.visible = false
+	_state = UIState.EXPLORING
+
+
+func _on_boss_back_out() -> void:
+	_room_popup.hide_popup()
 	_state = UIState.EXPLORING
 
 
@@ -1206,6 +1218,28 @@ func _generate_boss(boss_def: BossDef) -> Array[GlyphInstance]:
 	if boss_def == null or data_loader == null:
 		return squad
 
+	## Multi-glyph boss squad
+	if not boss_def.squad.is_empty():
+		for entry: Dictionary in boss_def.squad:
+			var sp: GlyphSpecies = data_loader.get_species(entry.get("species_id", ""))
+			if sp == null:
+				continue
+			var g: GlyphInstance = GlyphInstance.new()
+			g.species = sp
+			g.is_boss = true
+			g.side = "enemy"
+			g.row_position = entry.get("row_position", "front")
+			for tid: String in entry.get("technique_ids", []):
+				var tech: TechniqueDef = data_loader.get_technique(tid)
+				if tech != null:
+					g.techniques.append(tech)
+			if entry.get("mastered", false):
+				g.mastery_bonus_applied = true
+			g.calculate_stats()
+			squad.append(g)
+		return squad
+
+	## Legacy single-species boss
 	var boss_species: GlyphSpecies = data_loader.get_species(boss_def.species_id)
 	if boss_species == null:
 		return squad

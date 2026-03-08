@@ -627,7 +627,7 @@ func _test_room_popup_types() -> void:
 		"cache": {"title": "Supply Cache Found!", "action": "Open"},
 		"hazard": {"title": "Hazard Zone!", "action": "Continue"},
 		"puzzle": {"title": "Puzzle Room", "action": "Attempt"},
-		"boss": {"title": "RIFT GUARDIAN", "action": "Challenge"},
+		"boss": {"title": "RIFT GUARDIAN", "action": "Challenge Boss"},
 		"empty": {"title": "Nothing here.", "action": "Continue"},
 		"exit": {"title": "Stairs Down", "action": "Descend"},
 		"hidden": {"title": "Hidden Cache Found!", "action": "Open"},
