@@ -1502,7 +1502,11 @@ func _launch_puzzle(room_data: Dictionary) -> void:
 			else:
 				_puzzle_conduit.start(instant_mode)
 		"quiz":
-			_puzzle_quiz.start(data_loader, codex_state, instant_mode)
+			var glyph_pool: Array[String] = []
+			if dungeon_state != null and dungeon_state.rift_template != null:
+				for sid: String in dungeon_state.rift_template.wild_glyph_pool:
+					glyph_pool.append(sid)
+			_puzzle_quiz.start(data_loader, codex_state, instant_mode, glyph_pool)
 
 
 func _on_puzzle_completed(success: bool, reward_type: String, _reward_data: Variant) -> void:
