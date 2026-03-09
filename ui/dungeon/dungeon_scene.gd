@@ -1264,15 +1264,28 @@ func _generate_boss(boss_def: BossDef) -> Array[GlyphInstance]:
 		if tech != null:
 			boss.techniques.append(tech)
 
-	boss.max_hp = int(boss_species.base_hp * boss_def.stat_modifier)
-	boss.atk = int(boss_species.base_atk * boss_def.stat_modifier)
-	boss.def_stat = int(boss_species.base_def * boss_def.stat_modifier)
-	boss.spd = int(boss_species.base_spd * boss_def.stat_modifier)
-	boss.res = int(boss_species.base_res * boss_def.stat_modifier)
-	boss.current_hp = boss.max_hp
+	## Apply mastery-based stat scaling: each star = +2 all stats via bonus_*
+	var stars: int = boss_def.mastery_stars
+	if stars > 0:
+		boss.bonus_hp = stars * 2
+		boss.bonus_atk = stars * 2
+		boss.bonus_def = stars * 2
+		boss.bonus_spd = stars * 2
+		boss.bonus_res = stars * 2
+	boss.mastery_objectives = _build_boss_mastery(stars)
+	boss.calculate_stats()
 	squad.append(boss)
 
 	return squad
+
+
+func _build_boss_mastery(stars: int) -> Array[Dictionary]:
+	## Build 3 dummy mastery objectives with the first N marked completed.
+	## Used for boss display (star icons) without affecting real mastery logic.
+	var objectives: Array[Dictionary] = []
+	for i: int in range(3):
+		objectives.append({"type": "boss_mastery", "completed": i < stars})
+	return objectives
 
 
 func _clear_current_room(history: String = "") -> void:

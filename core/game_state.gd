@@ -29,7 +29,7 @@ var milestone_tracker: MilestoneTracker = null
 ## Rift availability by phase
 const PHASE_RIFTS: Dictionary = {
 	1: ["tutorial_01"],
-	2: ["minor_01", "minor_02"],
+	2: ["minor_01", "minor_02", "minor_03"],
 	3: ["standard_01", "standard_02"],
 	4: ["major_01"],
 	5: ["apex_01"],

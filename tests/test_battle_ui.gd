@@ -817,12 +817,14 @@ func _test_boss_battle() -> void:
 		var tech: TechniqueDef = _data_loader.get_technique(tid)
 		if tech != null:
 			boss.techniques.append(tech)
-	## Apply boss stat modifier
-	boss.bonus_hp = int(float(boss_species.base_hp) * boss_def.stat_modifier) - boss_species.base_hp
-	boss.bonus_atk = int(float(boss_species.base_atk) * boss_def.stat_modifier) - boss_species.base_atk
-	boss.bonus_def = int(float(boss_species.base_def) * boss_def.stat_modifier) - boss_species.base_def
-	boss.bonus_spd = int(float(boss_species.base_spd) * boss_def.stat_modifier) - boss_species.base_spd
-	boss.bonus_res = int(float(boss_species.base_res) * boss_def.stat_modifier) - boss_species.base_res
+	## Apply boss mastery stars
+	var stars: int = boss_def.mastery_stars
+	if stars > 0:
+		boss.bonus_hp = stars * 2
+		boss.bonus_atk = stars * 2
+		boss.bonus_def = stars * 2
+		boss.bonus_spd = stars * 2
+		boss.bonus_res = stars * 2
 	boss.calculate_stats()
 	var e_squad: Array[GlyphInstance] = [boss]
 

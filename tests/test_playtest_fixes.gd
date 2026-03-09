@@ -17,6 +17,9 @@ func _init() -> void:
 	_test_tutorial_boss_floor_cache()
 	_test_tutorial_puzzle_types()
 	_test_field_repair_display()
+	_test_minor_03_loads()
+	_test_boss_mastery_stats()
+	_test_boss_mastery_display()
 
 	print("\n========================================")
 	print("  RESULTS: %d passed, %d failed" % [_pass_count, _fail_count])
@@ -323,3 +326,113 @@ func _test_field_repair_display() -> void:
 
 	crawler.queue_free()
 	scene.queue_free()
+
+
+# ==========================================================
+#  MINOR_03 RIFT — Loads correctly
+# ==========================================================
+
+func _test_minor_03_loads() -> void:
+	print("--- Minor 03: Voltaic Fissure ---")
+
+	var template: RiftTemplate = _data_loader.get_rift_template("minor_03")
+	_assert(template != null, "minor_03 template loaded")
+	_assert(template.name == "Voltaic Fissure", "minor_03 name is 'Voltaic Fissure'")
+	_assert(template.tier == "minor", "minor_03 tier is minor")
+	_assert(template.floors.size() == 4, "minor_03 has 4 floors (got %d)" % template.floors.size())
+
+	## Boss floor has boss room
+	var boss_floor: Dictionary = template.floors[3]
+	var has_boss: bool = false
+	var has_cache: bool = false
+	for r: Dictionary in boss_floor["rooms"]:
+		if r.get("type", "") == "boss":
+			has_boss = true
+		if r.get("type", "") == "cache":
+			has_cache = true
+	_assert(has_boss, "minor_03 boss floor has boss room")
+	_assert(has_cache, "minor_03 boss floor has cache room")
+
+	## Boss def exists
+	var boss_def: BossDef = _data_loader.get_boss("minor_03")
+	_assert(boss_def != null, "minor_03 boss def loaded")
+	_assert(boss_def.species_id == "thunderclaw", "minor_03 boss is thunderclaw")
+	_assert(boss_def.mastery_stars == 2, "minor_03 boss has 2 mastery stars")
+
+	## Phase 2 includes minor_03
+	var gs: GameState = GameState.new()
+	gs.game_phase = 2
+	gs.data_loader = _data_loader
+	gs.codex_state = CodexState.new()
+	var rifts: Array[RiftTemplate] = gs.get_available_rifts()
+	var has_minor_03: bool = false
+	for t: RiftTemplate in rifts:
+		if t.rift_id == "minor_03":
+			has_minor_03 = true
+	_assert(has_minor_03, "Phase 2 includes minor_03 rift")
+
+	## Total rift count: 8 templates, 8 bosses
+	_assert(_data_loader.rift_templates.size() == 8, "8 rift templates loaded (got %d)" % _data_loader.rift_templates.size())
+	_assert(_data_loader.bosses.size() == 8, "8 boss defs loaded (got %d)" % _data_loader.bosses.size())
+
+
+# ==========================================================
+#  BOSS MASTERY STATS — calculate_stats with bonus_*
+# ==========================================================
+
+func _test_boss_mastery_stats() -> void:
+	print("--- Boss Mastery Stats ---")
+
+	var sp: GlyphSpecies = _data_loader.get_species("thunderclaw")
+	_assert(sp != null, "thunderclaw species loaded")
+
+	## Create boss with 2 mastery stars → +4 all stats
+	var boss: GlyphInstance = GlyphInstance.new()
+	boss.species = sp
+	boss.is_boss = true
+	boss.bonus_hp = 2 * 2
+	boss.bonus_atk = 2 * 2
+	boss.bonus_def = 2 * 2
+	boss.bonus_spd = 2 * 2
+	boss.bonus_res = 2 * 2
+	boss.calculate_stats()
+
+	_assert(boss.max_hp == sp.base_hp + 4, "Boss HP = base + 4 (got %d, expected %d)" % [boss.max_hp, sp.base_hp + 4])
+	_assert(boss.atk == sp.base_atk + 4, "Boss ATK = base + 4 (got %d, expected %d)" % [boss.atk, sp.base_atk + 4])
+	_assert(boss.def_stat == sp.base_def + 4, "Boss DEF = base + 4 (got %d, expected %d)" % [boss.def_stat, sp.base_def + 4])
+	_assert(boss.spd == sp.base_spd + 4, "Boss SPD = base + 4 (got %d, expected %d)" % [boss.spd, sp.base_spd + 4])
+	_assert(boss.res == sp.base_res + 4, "Boss RES = base + 4 (got %d, expected %d)" % [boss.res, sp.base_res + 4])
+	_assert(boss.current_hp == boss.max_hp, "Boss current_hp = max_hp")
+
+	## Zero stars → base stats only
+	var boss0: GlyphInstance = GlyphInstance.new()
+	boss0.species = sp
+	boss0.is_boss = true
+	boss0.calculate_stats()
+	_assert(boss0.max_hp == sp.base_hp, "0-star boss HP = base (got %d)" % boss0.max_hp)
+	_assert(boss0.atk == sp.base_atk, "0-star boss ATK = base (got %d)" % boss0.atk)
+
+
+# ==========================================================
+#  BOSS MASTERY DISPLAY — Stars text
+# ==========================================================
+
+func _test_boss_mastery_display() -> void:
+	print("--- Boss Mastery Display ---")
+
+	var sp: GlyphSpecies = _data_loader.get_species("ironbark")
+	var boss: GlyphInstance = GlyphInstance.new()
+	boss.species = sp
+	boss.is_boss = true
+
+	## Build mastery objectives: 2 of 3 completed
+	var objectives: Array[Dictionary] = []
+	objectives.append({"type": "boss_mastery", "completed": true})
+	objectives.append({"type": "boss_mastery", "completed": true})
+	objectives.append({"type": "boss_mastery", "completed": false})
+	boss.mastery_objectives = objectives
+
+	_assert(boss.get_completed_objective_count() == 2, "2 completed objectives")
+	var stars_text: String = boss.get_mastery_stars_text()
+	_assert(stars_text.length() == 2, "Stars text has 2 chars (got %d: '%s')" % [stars_text.length(), stars_text])
+	_assert("\u2605" in stars_text, "Stars text contains filled star")

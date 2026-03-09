@@ -231,7 +231,8 @@ func _load_bosses() -> void:
 	for entry: Dictionary in data:
 		var boss: BossDef = BossDef.new()
 		boss.species_id = entry["species_id"]
-		boss.stat_modifier = float(entry["stat_modifier"])
+		boss.stat_modifier = float(entry.get("stat_modifier", 1.0))
+		boss.mastery_stars = int(entry.get("mastery_stars", 0))
 
 		var p1_ids: Array[String] = []
 		for tid: String in entry["phase1_technique_ids"]:

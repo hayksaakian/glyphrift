@@ -274,6 +274,109 @@
     }
   },
   {
+    "rift_id": "minor_03",
+    "name": "Voltaic Fissure",
+    "tier": "minor",
+    "hazard_damage": 10,
+    "enemy_tier_pool": [1],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit"],
+    "floors": [
+      {
+        "floor_number": 0,
+        "rooms": [
+          {"id": "f0_r0", "x": 0, "y": 1, "type": "start"},
+          {"id": "f0_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f0_r2", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f0_r3", "x": 1, "y": 2, "pool": "pool_a"},
+          {"id": "f0_r4", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f0_r5", "x": 2, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f0_r0", "f0_r1"],
+          ["f0_r0", "f0_r2"],
+          ["f0_r0", "f0_r3"],
+          ["f0_r1", "f0_r4"],
+          ["f0_r3", "f0_r5"],
+          ["f0_r2", "f0_r5"]
+        ]
+      },
+      {
+        "floor_number": 1,
+        "rooms": [
+          {"id": "f1_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f1_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f1_r2", "x": 2, "y": 0, "pool": "pool_c"},
+          {"id": "f1_r3", "x": 0, "y": 1, "pool": "pool_b"},
+          {"id": "f1_r4", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r5", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f1_r6", "x": 0, "y": 2, "pool": "pool_a"},
+          {"id": "f1_r7", "x": 1, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f1_r0", "f1_r1"],
+          ["f1_r1", "f1_r2"],
+          ["f1_r0", "f1_r3"],
+          ["f1_r1", "f1_r4"],
+          ["f1_r2", "f1_r5"],
+          ["f1_r3", "f1_r6"],
+          ["f1_r4", "f1_r7"],
+          ["f1_r6", "f1_r7"]
+        ]
+      },
+      {
+        "floor_number": 2,
+        "rooms": [
+          {"id": "f2_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f2_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f2_r2", "x": 0, "y": 1, "pool": "pool_c"},
+          {"id": "f2_r3", "x": 1, "y": 1, "pool": "pool_b"},
+          {"id": "f2_r4", "x": 2, "y": 1, "pool": "pool_a"},
+          {"id": "f2_r5", "x": 0, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r6", "x": 1, "y": 2, "pool": "pool_a"},
+          {"id": "f2_r7", "x": 2, "y": 2, "type": "exit"}
+        ],
+        "connections": [
+          ["f2_r0", "f2_r1"],
+          ["f2_r0", "f2_r2"],
+          ["f2_r1", "f2_r3"],
+          ["f2_r2", "f2_r5"],
+          ["f2_r3", "f2_r4"],
+          ["f2_r5", "f2_r6"],
+          ["f2_r6", "f2_r7"]
+        ]
+      },
+      {
+        "floor_number": 3,
+        "rooms": [
+          {"id": "f3_r0", "x": 0, "y": 0, "type": "start"},
+          {"id": "f3_r1", "x": 1, "y": 0, "pool": "pool_a"},
+          {"id": "f3_r2", "x": 0, "y": 1, "type": "cache"},
+          {"id": "f3_r3", "x": 1, "y": 1, "pool": "pool_a"},
+          {"id": "f3_r4", "x": 1, "y": 2, "type": "boss"}
+        ],
+        "connections": [
+          ["f3_r0", "f3_r1"],
+          ["f3_r0", "f3_r2"],
+          ["f3_r1", "f3_r3"],
+          ["f3_r2", "f3_r3"],
+          ["f3_r3", "f3_r4"]
+        ]
+      }
+    ],
+    "content_pools": {
+      "pool_a": {"enemy": 0.60, "empty": 0.25, "hazard": 0.15},
+      "pool_b": {"cache": 0.50, "puzzle": 0.30, "enemy": 0.20},
+      "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
+    },
+    "boss": {
+      "species_id": "thunderclaw",
+      "mastery_stars": 2,
+      "phase1_technique_ids": ["arc_fang", "static_snap"],
+      "phase2_technique_ids": ["chain_bolt"],
+      "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    }
+  },
+  {
     "rift_id": "standard_01",
     "name": "The Crackling Abyss",
     "tier": "standard",

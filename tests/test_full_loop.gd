@@ -363,13 +363,15 @@ func _create_boss(boss_def: BossDef) -> GlyphInstance:
 	var boss: GlyphInstance = GlyphInstance.new()
 	boss.species = sp
 	boss.is_boss = true
-	## Apply stat_modifier to base stats
-	boss.max_hp = int(float(sp.base_hp) * boss_def.stat_modifier)
-	boss.current_hp = boss.max_hp
-	boss.atk = int(float(sp.base_atk) * boss_def.stat_modifier)
-	boss.def_stat = int(float(sp.base_def) * boss_def.stat_modifier)
-	boss.spd = int(float(sp.base_spd) * boss_def.stat_modifier)
-	boss.res = int(float(sp.base_res) * boss_def.stat_modifier)
+	## Apply mastery stars: each star = +2 all stats
+	var stars: int = boss_def.mastery_stars
+	if stars > 0:
+		boss.bonus_hp = stars * 2
+		boss.bonus_atk = stars * 2
+		boss.bonus_def = stars * 2
+		boss.bonus_spd = stars * 2
+		boss.bonus_res = stars * 2
+	boss.calculate_stats()
 	## Phase 1 techniques
 	for tid: String in boss_def.phase1_technique_ids:
 		var tech: TechniqueDef = _dl.get_technique(tid)
