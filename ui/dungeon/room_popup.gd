@@ -43,7 +43,7 @@ var _description_label: Label = null
 var _action_button: Button = null
 var _formation_button: Button = null
 var _formation_preview: HBoxContainer = null
-var _button_row: HBoxContainer = null
+var _button_row: VBoxContainer = null
 var _back_out_button: Button = null
 var _vbox: VBoxContainer = null
 var _enemy_preview: HBoxContainer = null
@@ -191,16 +191,16 @@ func _build_ui() -> void:
 	_formation_preview.visible = false
 	_vbox.add_child(_formation_preview)
 
-	## Button row (Fight + Adjust Formation side by side for combat rooms)
-	_button_row = HBoxContainer.new()
-	_button_row.add_theme_constant_override("separation", 12)
-	_button_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	## Button stack (vertical to avoid overflow on boss rooms with 3 buttons)
+	_button_row = VBoxContainer.new()
+	_button_row.add_theme_constant_override("separation", 6)
 	_vbox.add_child(_button_row)
 
 	## Action button
 	_action_button = Button.new()
 	_action_button.name = "ActionButton"
-	_action_button.custom_minimum_size = Vector2(120, 36)
+	_action_button.custom_minimum_size = Vector2(0, 36)
+	_action_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_action_button.pressed.connect(_on_action_pressed)
 	_button_row.add_child(_action_button)
 
@@ -208,7 +208,8 @@ func _build_ui() -> void:
 	_formation_button = Button.new()
 	_formation_button.name = "FormationButton"
 	_formation_button.text = "Formation"
-	_formation_button.custom_minimum_size = Vector2(100, 36)
+	_formation_button.custom_minimum_size = Vector2(0, 36)
+	_formation_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_formation_button.pressed.connect(_on_formation_pressed)
 	_formation_button.visible = false
 	_button_row.add_child(_formation_button)
@@ -217,7 +218,8 @@ func _build_ui() -> void:
 	_back_out_button = Button.new()
 	_back_out_button.name = "BackOutButton"
 	_back_out_button.text = "Back Out"
-	_back_out_button.custom_minimum_size = Vector2(100, 36)
+	_back_out_button.custom_minimum_size = Vector2(0, 36)
+	_back_out_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_back_out_button.pressed.connect(_on_back_out_pressed)
 	_back_out_button.visible = false
 	_button_row.add_child(_back_out_button)
