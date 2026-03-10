@@ -164,6 +164,8 @@ func _make_rift_panel(template: RiftTemplate) -> PanelContainer:
 	var name_label: Label = Label.new()
 	name_label.text = template.name
 	name_label.add_theme_font_size_override("font_size", 16)
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(name_label)
 
@@ -215,6 +217,8 @@ func _make_rift_panel(template: RiftTemplate) -> PanelContainer:
 		boss_label.text = "Boss: %s" % boss_species_name
 		boss_label.add_theme_font_size_override("font_size", 12)
 		boss_label.add_theme_color_override("font_color", Color("#FF8800"))
+		boss_label.clip_text = true
+		boss_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		boss_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		vbox.add_child(boss_label)
 

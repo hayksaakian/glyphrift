@@ -288,6 +288,8 @@ func _show_enemy_preview(species_ids: Array, is_boss: bool) -> void:
 		name_label.text = species.name
 		name_label.add_theme_font_size_override("font_size", 11)
 		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.clip_text = true
+		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(name_label)
 

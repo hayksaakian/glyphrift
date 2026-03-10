@@ -572,6 +572,9 @@ func _refresh_rift_atlas() -> void:
 		var name_label: Label = Label.new()
 		name_label.add_theme_font_size_override("font_size", 14)
 		name_label.text = template.name
+		name_label.clip_text = true
+		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		name_label.custom_minimum_size = Vector2(160, 0)
 		row.add_child(name_label)
 
 		var tier_label: Label = Label.new()

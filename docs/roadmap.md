@@ -77,7 +77,7 @@ Important but not urgent. Do these as the game stabilizes.
 - [x] **Tutorial completeness** — GDD 12.1 specifies guided overlays; verify all tutorial elements present _(tutorial hints system implemented)_
 - [x] **Formation UX** — strategic impact of front/back row isn't communicated well to new players _(skip mandatory formation, Fight+Formation buttons on combat popup)_
 - [x] **Rift info button in dungeon** — add an (i) button next to the rift name in the dungeon HUD that opens a summary popup with the same info shown on the rift selection screen (boss name/species, rift tier, floor count, hazard type, etc.). Players forget what they're up against mid-rift. _(implemented: (i) button in dungeon header, popup shows tier/floors/hazard/boss/pool size)_
-- [ ] **Text overflow** — various popups and labels may clip on different resolutions
+- [x] **Text overflow** — various popups and labels may clip on different resolutions _(Added clip_text + text_overrun_behavior to: RiftGate rift/boss name labels, RoomPopup enemy preview names, CodexBrowser rift atlas names)_
 - [x] **Difficulty curve validation** — play through full 7-rift arc and verify pacing, resource pressure, enemy scaling _(balance pass done in session 10)_
 - [x] **Balance pass** — technique power, status durations, capture rates, energy economy _(verified in session 10)_
 - [ ] **Rift re-entry variation** — GDD says boss reshuffles content; verify it feels different on repeat
