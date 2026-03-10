@@ -12,7 +12,7 @@
     "type": "chassis",
     "chassis_id": "ironclad",
     "value": 0,
-    "description": "Unlock Ironclad chassis (+25 Hull HP, -5 Energy)"
+    "description": "Unlock Ironclad chassis (+25 Hull HP)"
   },
   {
     "id": "hidden_room_3",
@@ -28,7 +28,7 @@
     "type": "chassis",
     "chassis_id": "hauler",
     "value": 0,
-    "description": "Unlock Hauler chassis (+1 Bench slot, -10 Hull HP)"
+    "description": "Unlock Hauler chassis (+1 Bench slot)"
   },
   {
     "id": "all_affinities",

@@ -121,13 +121,13 @@ func _test_crawler_ability_costs() -> void:
 func _test_crawler_chassis_bonuses() -> void:
 	print("--- CrawlerState: chassis bonuses ---")
 
-	## Ironclad: +25 hull, -5 energy
+	## Ironclad: +25 hull (no penalty)
 	_crawler.max_hull_hp = 100
 	_crawler.max_energy = 50
 	_crawler.active_chassis = "ironclad"
 	_crawler.begin_run()
 	_assert(_crawler.hull_hp == 125, "Ironclad gives +25 hull (got %d)" % _crawler.hull_hp)
-	_assert(_crawler.energy == 45, "Ironclad gives -5 energy (got %d)" % _crawler.energy)
+	_assert(_crawler.energy == 50, "Ironclad has normal energy (got %d)" % _crawler.energy)
 
 	## Scout: scan costs 3 instead of 5
 	_crawler.active_chassis = "scout"
@@ -136,11 +136,12 @@ func _test_crawler_chassis_bonuses() -> void:
 	_assert(_crawler.get_ability_cost("scan") == 3, "Scout reduces scan to 3")
 	_assert(_crawler.get_ability_cost("reinforce") == 8, "Scout doesn't affect reinforce")
 
-	## Hauler: -10 hull HP
+	## Hauler: +1 bench slot (passive, no per-run stat change)
 	_crawler.active_chassis = "hauler"
 	_crawler.begin_run()
-	_assert(_crawler.hull_hp == 90, "Hauler gives -10 hull (got %d)" % _crawler.hull_hp)
+	_assert(_crawler.hull_hp == 100, "Hauler has normal hull (got %d)" % _crawler.hull_hp)
 	_assert(_crawler.energy == 50, "Hauler has normal energy (got %d)" % _crawler.energy)
+	_assert(_crawler.get_effective_bench_slots() == _crawler.bench_slots + 1, "Hauler gives +1 bench slot")
 
 	## Reset to standard
 	_crawler.active_chassis = "standard"

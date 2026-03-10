@@ -1394,14 +1394,13 @@ func _show_repair_picker() -> void:
 
 	var has_targets: bool = false
 	for g: GlyphInstance in roster_state.active_squad:
-		if g.current_hp >= g.max_hp and not g.is_knocked_out:
+		if g.current_hp >= g.max_hp:
 			continue  ## Already full HP, skip
 		has_targets = true
 		var btn: Button = Button.new()
 		btn.name = "RepairButton_%s" % g.species.name.replace(" ", "")
-		var hp_pct: int = int(float(g.current_hp) / maxf(float(g.max_hp), 1.0) * 100)
 		var heal_amount: int = maxi(1, int(float(g.max_hp) * 0.5))
-		var status: String = "KO" if g.is_knocked_out else "%d/%d HP" % [g.current_hp, g.max_hp]
+		var status: String = "KO" if g.current_hp <= 0 else "%d/%d HP" % [g.current_hp, g.max_hp]
 		btn.text = "%s  %s  (+%d HP, 50%%)" % [g.species.name, status, heal_amount]
 		btn.custom_minimum_size = Vector2(0, 32)
 		var glyph_ref: GlyphInstance = g
@@ -1435,8 +1434,8 @@ func _on_repair_target_selected(target: GlyphInstance) -> void:
 	## Heal 50% max HP
 	var heal: int = maxi(1, int(float(target.max_hp) * 0.5))
 	target.current_hp = mini(target.current_hp + heal, target.max_hp)
-	if target.is_knocked_out:
-		target.is_knocked_out = false
+	## Always sync KO flag with HP
+	target.is_knocked_out = target.current_hp <= 0
 
 	_hide_repair_picker()
 	_crawler_hud.refresh()

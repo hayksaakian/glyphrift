@@ -1101,9 +1101,13 @@ func _refresh_turn_order(queue: Array[GlyphInstance]) -> void:
 	for i: int in range(count):
 		var portrait: GlyphPortrait = GlyphPortrait.new()
 		portrait.glyph = alive_queue[i]
+		_configure_turn_portrait(portrait, alive_queue[i])
 		_turn_order_bar.add_child(portrait)
 		_turn_portraits.append(portrait)
 		portrait.set_highlighted(i == 0)
+		## Show SPD tooltip on current actor
+		if i == 0:
+			portrait.show_spd_tooltip = true
 		## Dim upcoming turns
 		if i > 0:
 			portrait.modulate = Color(0.7, 0.7, 0.7, 0.9)
@@ -1113,11 +1117,14 @@ func _refresh_turn_order(queue: Array[GlyphInstance]) -> void:
 	if next_round.is_empty():
 		return
 
-	## Round separator
+	## Round separator with round number
+	var next_round_num: int = combat_engine.round_number + 1 if combat_engine else 2
 	var sep_label: Label = Label.new()
-	sep_label.text = "|"
-	sep_label.add_theme_font_size_override("font_size", 20)
-	sep_label.add_theme_color_override("font_color", Color("#555555"))
+	sep_label.text = "R%d" % next_round_num
+	sep_label.add_theme_font_size_override("font_size", 12)
+	sep_label.add_theme_color_override("font_color", Color("#888888"))
+	sep_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	sep_label.add_theme_constant_override("outline_size", 2)
 	sep_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_turn_order_bar.add_child(sep_label)
 
@@ -1126,6 +1133,7 @@ func _refresh_turn_order(queue: Array[GlyphInstance]) -> void:
 	for i: int in range(next_slots):
 		var portrait: GlyphPortrait = GlyphPortrait.new()
 		portrait.glyph = next_round[i]
+		_configure_turn_portrait(portrait, next_round[i])
 		portrait.modulate = Color(0.4, 0.4, 0.4, 0.6)
 		_turn_order_bar.add_child(portrait)
 
@@ -1141,6 +1149,14 @@ func _compute_next_round_preview() -> Array[GlyphInstance]:
 			alive.append(g)
 	alive.sort_custom(TurnQueue.compare_spd)
 	return alive
+
+
+func _configure_turn_portrait(portrait: GlyphPortrait, g: GlyphInstance) -> void:
+	## SPD info
+	portrait.spd_value = int(g.get_effective_spd())
+	portrait.spd_modified = StatusManager.has_status(g, "slow")
+	## Stun skip
+	portrait.show_stun_skip = StatusManager.is_stunned(g)
 
 
 func _rebuild_row_panels() -> void:

@@ -166,7 +166,7 @@ func _refresh() -> void:
 	var squad_size: int = roster_state.active_squad.size() if roster_state else 0
 	var max_slots: int = crawler_state.slots if crawler_state else 3
 	var bench_size: int = _get_bench_glyphs().size()
-	var max_bench: int = crawler_state.bench_slots if crawler_state else 2
+	var max_bench: int = crawler_state.get_effective_bench_slots() if crawler_state else 2
 	_status_label.text = "Slots: %d/%d  |  GP: %d/%d  |  Bench: %d/%d" % [squad_size, max_slots, squad_gp, max_gp, bench_size, max_bench]
 
 	## Show direct swap hint when both sides are at capacity
@@ -298,7 +298,7 @@ func _bench_glyph(g: GlyphInstance) -> void:
 
 	## Check bench capacity
 	var bench_size: int = _get_bench_glyphs().size()
-	var max_bench: int = crawler_state.bench_slots if crawler_state else 2
+	var max_bench: int = crawler_state.get_effective_bench_slots() if crawler_state else 2
 	if bench_size >= max_bench:
 		## Bench full — enter direct swap mode (select this squad glyph, then click a bench glyph)
 		_swap_source = g

@@ -294,8 +294,8 @@ func _on_rift_selected(template: RiftTemplate) -> void:
 	_dungeon_scene.instant_mode = instant_mode
 
 	_fade_to(func() -> void:
-		_show_dungeon()
 		_dungeon_scene.start_rift(game_state.current_dungeon)
+		_show_dungeon()
 	)
 
 
@@ -341,7 +341,7 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 
 	## Check bench capacity (non-squad glyphs in rift pool)
 	var bench_count: int = _dungeon_scene.rift_pool.size() - roster_state.active_squad.size()
-	if bench_count >= crawler_state.bench_slots:
+	if bench_count >= crawler_state.get_effective_bench_slots():
 		## Bench full — show swap UI (release a bench glyph to make room)
 		var bench_glyphs: Array[GlyphInstance] = _get_bench_glyphs()
 		var popup: CapturePopup = _dungeon_scene._capture_popup

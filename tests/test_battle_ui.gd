@@ -38,6 +38,11 @@ func _run_tests() -> void:
 	_test_glyph_panel()
 	_test_glyph_portrait()
 	_test_portrait_highlight()
+	_test_portrait_spd_badge()
+	_test_portrait_stun_skip()
+	_test_portrait_arrow_marker()
+	_test_turn_bar_round_separator()
+	_test_turn_bar_stun_skip()
 	_test_technique_button()
 	_test_technique_button_hint()
 	_test_status_icons_letters()
@@ -334,6 +339,168 @@ func _test_portrait_highlight() -> void:
 		"GlyphPortrait highlight border hidden when unhighlighted")
 
 	portrait.queue_free()
+	print("")
+
+
+# ==========================================================================
+# Turn Queue Clarity Tests
+# ==========================================================================
+
+func _test_portrait_spd_badge() -> void:
+	print("--- GlyphPortrait SPD Badge ---")
+
+	var sp: GlyphSpecies = _data_loader.get_species("stonepaw")
+	var g: GlyphInstance = GlyphInstance.create_from_species(sp, _data_loader)
+	g.side = "player"
+
+	var portrait: GlyphPortrait = GlyphPortrait.new()
+	portrait.glyph = g
+	root.add_child(portrait)
+	portrait.refresh()
+
+	## SPD badge hidden by default (no slow status)
+	_assert(not portrait._spd_badge.visible, "SPD badge hidden when no speed modifier")
+
+	## Set slow status and mark as modified
+	portrait.spd_modified = true
+	portrait.spd_value = int(g.get_effective_spd())
+	portrait.refresh()
+	_assert(portrait._spd_badge.visible, "SPD badge visible when speed modified")
+	_assert(portrait._spd_badge.text == "\u25bc", "SPD badge shows down arrow")
+
+	## SPD tooltip hidden by default
+	_assert(not portrait._spd_tooltip.visible, "SPD tooltip hidden by default")
+
+	## Show tooltip
+	portrait.show_spd_tooltip = true
+	_assert(portrait._spd_tooltip.visible, "SPD tooltip visible when enabled")
+	_assert("SPD" in portrait._spd_tooltip.text, "SPD tooltip shows SPD text")
+
+	portrait.queue_free()
+	print("")
+
+
+func _test_portrait_stun_skip() -> void:
+	print("--- GlyphPortrait Stun Skip ---")
+
+	var sp: GlyphSpecies = _data_loader.get_species("zapplet")
+	var g: GlyphInstance = GlyphInstance.create_from_species(sp, _data_loader)
+	g.side = "enemy"
+
+	var portrait: GlyphPortrait = GlyphPortrait.new()
+	portrait.glyph = g
+	root.add_child(portrait)
+
+	## Skip label hidden by default
+	_assert(not portrait._skip_label.visible, "SKIP label hidden by default")
+
+	## Show stun skip
+	portrait.show_stun_skip = true
+	_assert(portrait._skip_label.visible, "SKIP label visible when stun skip set")
+	_assert(portrait._skip_label.text == "SKIP", "SKIP label says SKIP")
+
+	## Hide stun skip
+	portrait.show_stun_skip = false
+	_assert(not portrait._skip_label.visible, "SKIP label hidden when stun skip cleared")
+
+	portrait.queue_free()
+	print("")
+
+
+func _test_portrait_arrow_marker() -> void:
+	print("--- GlyphPortrait Arrow Marker ---")
+
+	var sp: GlyphSpecies = _data_loader.get_species("stonepaw")
+	var g: GlyphInstance = GlyphInstance.create_from_species(sp, _data_loader)
+	g.side = "player"
+
+	var portrait: GlyphPortrait = GlyphPortrait.new()
+	portrait.glyph = g
+	root.add_child(portrait)
+
+	## Arrow hidden by default
+	_assert(not portrait._arrow_label.visible, "Arrow hidden by default")
+
+	## Arrow visible when highlighted
+	portrait.set_highlighted(true)
+	_assert(portrait._arrow_label.visible, "Arrow visible when highlighted")
+	_assert(portrait._arrow_label.text == "\u25b6", "Arrow shows correct character")
+
+	## Arrow hidden when unhighlighted
+	portrait.set_highlighted(false)
+	_assert(not portrait._arrow_label.visible, "Arrow hidden when unhighlighted")
+
+	portrait.queue_free()
+	print("")
+
+
+func _test_turn_bar_round_separator() -> void:
+	print("--- Turn Bar Round Separator ---")
+
+	var scene: BattleScene = _create_battle_scene()
+	## Set up squads so _compute_next_round_preview works
+	var player_squad: Array[GlyphInstance] = _make_squad(["stonepaw", "zapplet"] as Array[String])
+	var enemy_squad: Array[GlyphInstance] = _make_squad(["sparkfin"] as Array[String])
+	for g: GlyphInstance in player_squad:
+		g.side = "player"
+	for g: GlyphInstance in enemy_squad:
+		g.side = "enemy"
+	scene._player_squad = player_squad
+	scene._enemy_squad = enemy_squad
+
+	## Manually call _refresh_turn_order with a queue
+	var queue: Array[GlyphInstance] = player_squad + enemy_squad
+	scene._refresh_turn_order(queue)
+
+	## Find round separator label (not "TURN:" and not a portrait)
+	var found_separator: bool = false
+	var sep_text: String = ""
+	for i: int in range(scene._turn_order_bar.get_child_count()):
+		var child: Node = scene._turn_order_bar.get_child(i)
+		if child is Label and not (child is GlyphPortrait):
+			var lbl: Label = child as Label
+			if lbl.text != "TURN:" and "R" in lbl.text:
+				found_separator = true
+				sep_text = lbl.text
+				break
+	_assert(found_separator, "Turn bar has round separator with R prefix")
+	_assert("R" in sep_text, "Round separator contains round number (got: %s)" % sep_text)
+
+	scene.queue_free()
+	_scene = null
+	print("")
+
+
+func _test_turn_bar_stun_skip() -> void:
+	print("--- Turn Bar Stun Skip on Stunned Glyph ---")
+
+	var scene: BattleScene = _create_battle_scene()
+	var player_squad: Array[GlyphInstance] = _make_squad(["stonepaw", "zapplet"] as Array[String])
+	var enemy_squad: Array[GlyphInstance] = _make_squad(["sparkfin"] as Array[String])
+	for g: GlyphInstance in player_squad:
+		g.side = "player"
+	for g: GlyphInstance in enemy_squad:
+		g.side = "enemy"
+	scene._player_squad = player_squad
+	scene._enemy_squad = enemy_squad
+
+	## Apply stun to enemy
+	StatusManager.apply(enemy_squad[0], "stun")
+
+	## Manually call _refresh_turn_order with queue containing stunned glyph
+	var queue: Array[GlyphInstance] = [player_squad[0], enemy_squad[0], player_squad[1]]
+	scene._refresh_turn_order(queue)
+
+	## Check that a portrait with show_stun_skip exists in turn bar
+	var found_skip: bool = false
+	for portrait: GlyphPortrait in scene._turn_portraits:
+		if portrait.show_stun_skip:
+			found_skip = true
+			break
+	_assert(found_skip, "Turn bar shows SKIP on stunned glyph portrait")
+
+	scene.queue_free()
+	_scene = null
 	print("")
 
 

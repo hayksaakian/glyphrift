@@ -42,9 +42,25 @@ func begin_run(_hazard_damage: int = 0) -> void:
 	match active_chassis:
 		"ironclad":
 			hull_hp += 25
-			energy -= 5
 		"hauler":
-			hull_hp -= 10
+			pass  ## Hauler bonus (bench slot) is passive, no per-run stat change
+
+
+func get_effective_hull_hp() -> int:
+	## Base + chassis bonus (for display in Crawler Bay)
+	if active_chassis == "ironclad":
+		return max_hull_hp + 25
+	return max_hull_hp
+
+
+func get_effective_energy() -> int:
+	return max_energy
+
+
+func get_effective_bench_slots() -> int:
+	if active_chassis == "hauler":
+		return bench_slots + 1
+	return bench_slots
 
 
 func get_ability_cost(ability: String) -> int:

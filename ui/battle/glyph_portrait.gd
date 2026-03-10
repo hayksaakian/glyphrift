@@ -11,12 +11,30 @@ var glyph: GlyphInstance = null
 var _highlighted: bool = false
 var portrait_size: int = 32  ## Set before adding to tree for custom size
 
+## Turn queue clarity: SPD + stun skip + arrow
+var show_stun_skip: bool = false:
+	set(value):
+		show_stun_skip = value
+		if _skip_label:
+			_skip_label.visible = value
+var spd_value: int = 0  ## Effective SPD for tooltip
+var spd_modified: bool = false  ## True when slow status active
+var show_spd_tooltip: bool = false:
+	set(value):
+		show_spd_tooltip = value
+		if _spd_tooltip:
+			_spd_tooltip.visible = value
+
 var _color_rect: ColorRect = null
 var _initial_label: Label = null
 var _name_label: Label = null
 var _border: Panel = null
 var _square: PanelContainer = null
 var _highlight_border: Panel = null
+var _spd_badge: Label = null
+var _spd_tooltip: Label = null
+var _skip_label: Label = null
+var _arrow_label: Label = null
 
 
 func _ready() -> void:
@@ -58,6 +76,13 @@ func refresh() -> void:
 	else:
 		modulate = Color.WHITE
 
+	## SPD badge: show only when speed is modified (slow status)
+	if _spd_badge:
+		_spd_badge.visible = spd_modified
+	if _spd_tooltip:
+		_spd_tooltip.text = "SPD %d" % spd_value
+		_spd_tooltip.visible = show_spd_tooltip
+
 
 func set_highlighted(active: bool) -> void:
 	_highlighted = active
@@ -70,9 +95,24 @@ func set_highlighted(active: bool) -> void:
 	else:
 		_square.custom_minimum_size = Vector2(portrait_size, portrait_size)
 		_highlight_border.visible = false
+	if _arrow_label:
+		_arrow_label.visible = active
 
 
 func _build_ui() -> void:
+	## Arrow marker: "▶" above portrait for active turn (in VBoxContainer, before square)
+	_arrow_label = Label.new()
+	_arrow_label.text = "\u25b6"
+	_arrow_label.add_theme_font_size_override("font_size", maxi(8, int(portrait_size * 0.35)))
+	_arrow_label.add_theme_color_override("font_color", Color("#FFDD44"))
+	_arrow_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_arrow_label.add_theme_constant_override("outline_size", 2)
+	_arrow_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_arrow_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_arrow_label.visible = false
+	_arrow_label.custom_minimum_size = Vector2(0, maxi(10, int(portrait_size * 0.4)))
+	add_child(_arrow_label)
+
 	## Colored square container
 	_square = PanelContainer.new()
 	_square.custom_minimum_size = Vector2(portrait_size, portrait_size)
@@ -130,6 +170,33 @@ func _build_ui() -> void:
 	_highlight_border.add_theme_stylebox_override("panel", hl_style)
 	_square.add_child(_highlight_border)
 
+	## SPD badge: small "▼" shown when slow status active
+	_spd_badge = Label.new()
+	_spd_badge.text = "\u25bc"
+	_spd_badge.add_theme_font_size_override("font_size", maxi(8, int(portrait_size * 0.3)))
+	_spd_badge.add_theme_color_override("font_color", Color("#FF4444"))
+	_spd_badge.add_theme_color_override("font_outline_color", Color.BLACK)
+	_spd_badge.add_theme_constant_override("outline_size", 2)
+	_spd_badge.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_spd_badge.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_spd_badge.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_spd_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_spd_badge.visible = false
+	_square.add_child(_spd_badge)
+
+	## Stun skip overlay: "SKIP" centered in red
+	_skip_label = Label.new()
+	_skip_label.text = "SKIP"
+	_skip_label.add_theme_font_size_override("font_size", maxi(8, int(portrait_size * 0.35)))
+	_skip_label.add_theme_color_override("font_color", Color("#FF4444"))
+	_skip_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_skip_label.add_theme_constant_override("outline_size", 3)
+	_skip_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_skip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_skip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skip_label.visible = false
+	_square.add_child(_skip_label)
+
 	## Name label below the square
 	_name_label = Label.new()
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -141,6 +208,18 @@ func _build_ui() -> void:
 	_name_label.add_theme_font_size_override("font_size", maxi(9, int(portrait_size * 0.3)))
 	_name_label.add_theme_color_override("font_color", Color("#CCCCCC"))
 	add_child(_name_label)
+
+	## SPD tooltip: "SPD 12" shown below name on highlight
+	_spd_tooltip = Label.new()
+	_spd_tooltip.text = "SPD 0"
+	_spd_tooltip.add_theme_font_size_override("font_size", maxi(8, int(portrait_size * 0.28)))
+	_spd_tooltip.add_theme_color_override("font_color", Color("#AACCFF"))
+	_spd_tooltip.add_theme_color_override("font_outline_color", Color.BLACK)
+	_spd_tooltip.add_theme_constant_override("outline_size", 2)
+	_spd_tooltip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_spd_tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_spd_tooltip.visible = false
+	add_child(_spd_tooltip)
 
 
 func _gui_input(event: InputEvent) -> void:

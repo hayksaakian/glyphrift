@@ -72,15 +72,21 @@ func setup(squad: Array[GlyphInstance], p_roster_state: RosterState = null, p_ri
 
 
 func refresh() -> void:
-	## Update squad HP bars
+	## Update squad HP bars and mastery stars
 	for entry: Dictionary in _entries:
 		var g: GlyphInstance = entry["glyph"]
 		var hp_bar: ProgressBar = entry["hp_bar"]
 		var hp_label: Label = entry["hp_label"]
+		var name_label: Label = entry["name_label"]
 
 		hp_bar.max_value = g.max_hp
 		hp_bar.value = g.current_hp
 		hp_label.text = str(g.current_hp)
+
+		## Refresh name + stars (mastery may complete mid-rift via capture)
+		var sp_name: String = g.species.name if g.species else "???"
+		var stars: String = g.get_mastery_stars_text()
+		name_label.text = "%s %s" % [sp_name, stars] if stars != "" else sp_name
 
 		## Color thresholds (same as CrawlerHUD)
 		var pct: float = float(g.current_hp) / maxf(float(g.max_hp), 1.0)
@@ -114,7 +120,7 @@ func _refresh_reserves() -> void:
 			reserves.append(g)
 
 	if _reserve_header != null:
-		var bench_limit: int = _crawler_state.bench_slots if _crawler_state else 0
+		var bench_limit: int = _crawler_state.get_effective_bench_slots() if _crawler_state else 0
 		_reserve_header.visible = not reserves.is_empty() or bench_limit > 0
 		_reserve_header.text = "Bench %d/%d" % [reserves.size(), bench_limit] if bench_limit > 0 else "Bench"
 

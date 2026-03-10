@@ -18,7 +18,16 @@ These make the biggest difference in player experience.
 
 - **Echo encounters as mini-stories** — echoes are compelling 1v1 duels; give them flavor text, unique movesets, or "memory fragment" lore drops that build a side narrative.
 
-- **Crawler upgrades feel good** — lean into chassis identity; more meaningful chassis-specific abilities or passives beyond stat bonuses.
+- **Crawler upgrades feel good** — lean into chassis identity; more meaningful chassis-specific abilities or passives beyond stat bonuses. Future direction: **parts slots** on each chassis (e.g. 2-3 slots) where you equip modular components before entering a rift:
+  - **Hull Plating** — +15 Hull HP
+  - **Capacitor Cell** — +10 Energy
+  - **Cargo Rack** — +1 Bench slot
+  - **Scan Amplifier** — Scan reveals full room contents (not just type)
+  - **Repair Drone** — Auto-heal 5 Hull HP per floor transition
+  - **Energy Recycler** — Refund 2 Energy when an ability finds nothing useful
+  - **Affinity Filter** — Bias wild encounters toward a chosen affinity
+  - **Trophy Mount** — +10% capture chance
+  - Parts found as rare cache drops or milestone rewards. Chassis identity comes from which slots they offer (Ironclad: 2 hull slots + 1 utility; Scout: 2 utility + 1 energy; Hauler: 2 cargo + 1 hull). This gives pre-rift loadout decisions without adding combat complexity.
 
 - **Status effect clarity** — 6 status types with single-letter icons; tooltip on hover works but in-battle readability could improve (color-coded borders, persistent effect descriptions).
 
