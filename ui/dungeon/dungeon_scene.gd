@@ -70,6 +70,8 @@ var _room_popup: RoomPopup = null
 var _capture_popup: CapturePopup = null
 var _item_popup: ItemPopup = null
 var _rift_name_label: Label = null
+var _rift_info_btn: Button = null
+var _rift_info_popup: PanelContainer = null
 var _floor_label: Label = null
 var _floor_overlay: ColorRect = null
 var _floor_overlay_label: Label = null
@@ -260,17 +262,33 @@ func _build_scene_tree() -> void:
 	_crawler_hud.custom_minimum_size.y = 44.0
 	add_child(_crawler_hud)
 
-	## Rift name label (top center, below HUD)
+	## Rift name + info button (top center, below HUD)
+	var rift_header: HBoxContainer = HBoxContainer.new()
+	rift_header.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	rift_header.offset_top = 48.0
+	rift_header.offset_bottom = 70.0
+	rift_header.alignment = BoxContainer.ALIGNMENT_CENTER
+	rift_header.add_theme_constant_override("separation", 6)
+	rift_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(rift_header)
+
 	_rift_name_label = Label.new()
 	_rift_name_label.name = "RiftNameLabel"
-	_rift_name_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_rift_name_label.offset_top = 48.0
-	_rift_name_label.offset_bottom = 70.0
 	_rift_name_label.add_theme_font_size_override("font_size", 16)
 	_rift_name_label.add_theme_color_override("font_color", Color("#FFD700"))
-	_rift_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_rift_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_rift_name_label)
+	rift_header.add_child(_rift_name_label)
+
+	_rift_info_btn = Button.new()
+	_rift_info_btn.name = "RiftInfoButton"
+	_rift_info_btn.text = "(i)"
+	_rift_info_btn.custom_minimum_size = Vector2(28, 22)
+	_rift_info_btn.add_theme_font_size_override("font_size", 12)
+	_rift_info_btn.pressed.connect(_toggle_rift_info)
+	rift_header.add_child(_rift_info_btn)
+
+	_rift_info_popup = _build_rift_info_popup()
+	add_child(_rift_info_popup)
 
 	## Floor label (bottom left)
 	_floor_label = Label.new()
@@ -554,6 +572,97 @@ func _build_scene_tree() -> void:
 	_tutorial_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tutorial_label.visible = false
 	add_child(_tutorial_label)
+
+
+func _build_rift_info_popup() -> PanelContainer:
+	var popup: PanelContainer = PanelContainer.new()
+	popup.name = "RiftInfoPopup"
+	popup.set_anchors_preset(Control.PRESET_CENTER)
+	popup.offset_left = -160.0
+	popup.offset_right = 160.0
+	popup.offset_top = -100.0
+	popup.offset_bottom = 100.0
+	popup.visible = false
+	popup.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.1, 0.14, 0.95)
+	style.border_color = Color(0.5, 0.5, 0.6)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 16.0
+	style.content_margin_right = 16.0
+	style.content_margin_top = 12.0
+	style.content_margin_bottom = 12.0
+	popup.add_theme_stylebox_override("panel", style)
+
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	popup.add_child(vbox)
+
+	var title: Label = Label.new()
+	title.name = "InfoTitle"
+	title.text = "Rift Info"
+	title.add_theme_font_size_override("font_size", 16)
+	title.add_theme_color_override("font_color", Color("#FFD700"))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var details: Label = Label.new()
+	details.name = "InfoDetails"
+	details.add_theme_font_size_override("font_size", 12)
+	details.add_theme_color_override("font_color", Color("#CCCCCC"))
+	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(details)
+
+	var close_btn: Button = Button.new()
+	close_btn.text = "Close"
+	close_btn.custom_minimum_size = Vector2(80, 28)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.pressed.connect(func() -> void: popup.visible = false)
+	vbox.add_child(close_btn)
+
+	return popup
+
+
+func _toggle_rift_info() -> void:
+	if _rift_info_popup == null or dungeon_state == null:
+		return
+	if _rift_info_popup.visible:
+		_rift_info_popup.visible = false
+		return
+
+	var template: RiftTemplate = dungeon_state.rift_template
+	if template == null:
+		return
+
+	## Build info text
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append(template.name)
+	lines.append("Tier: %s" % template.tier.capitalize())
+	lines.append("Floors: %d" % template.floors.size())
+	lines.append("Hazard Damage: %d" % template.hazard_damage)
+
+	## Boss info
+	if data_loader != null:
+		var boss_def: BossDef = data_loader.get_boss(template.rift_id)
+		if boss_def != null:
+			var boss_species: GlyphSpecies = data_loader.get_species(boss_def.species_id)
+			if boss_species != null:
+				var emoji: String = Affinity.EMOJI.get(boss_species.affinity, "")
+				lines.append("Boss: %s %s" % [boss_species.name, emoji])
+
+	## Wild pool summary
+	if not template.wild_glyph_pool.is_empty():
+		lines.append("Wild Species: %d types" % template.wild_glyph_pool.size())
+
+	var title_label: Label = _rift_info_popup.get_child(0).get_child(0) as Label
+	title_label.text = template.name
+
+	var details_label: Label = _rift_info_popup.get_child(0).get_child(1) as Label
+	details_label.text = "\n".join(lines).substr(lines[0].length() + 1)
+
+	_rift_info_popup.visible = true
 
 
 func _connect_internal_signals() -> void:

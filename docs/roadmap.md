@@ -18,16 +18,22 @@ These make the biggest difference in player experience.
 
 - [ ] **Echo encounters as mini-stories** — echoes are compelling 1v1 duels; give them flavor text, unique movesets, or "memory fragment" lore drops that build a side narrative.
 
-- [x] **Crawler upgrades feel good** — lean into chassis identity; more meaningful chassis-specific abilities or passives beyond stat bonuses. _(Milestones, chassis selection, upgrade notifications, status panel — all done)_ Future direction: **parts slots** on each chassis (e.g. 2-3 slots) where you equip modular components before entering a rift:
-  - **Hull Plating** — +15 Hull HP
-  - **Capacitor Cell** — +10 Energy
-  - **Cargo Rack** — +1 Bench slot
-  - **Scan Amplifier** — Scan reveals full room contents (not just type)
-  - **Repair Drone** — Auto-heal 5 Hull HP per floor transition
-  - **Energy Recycler** — Refund 2 Energy when an ability finds nothing useful
-  - **Affinity Filter** — Bias wild encounters toward a chosen affinity
-  - **Trophy Mount** — +10% capture chance
-  - Parts found as rare cache drops or milestone rewards. Chassis identity comes from which slots they offer (Ironclad: 2 hull slots + 1 utility; Scout: 2 utility + 1 energy; Hauler: 2 cargo + 1 hull). This gives pre-rift loadout decisions without adding combat complexity.
+- [x] **Crawler upgrades feel good** — lean into chassis identity; more meaningful chassis-specific abilities or passives beyond stat bonuses. _(Milestones, chassis selection, upgrade notifications, status panel — all done)_ Future direction: **3 equipment slots** on each crawler, equipped before entering a rift:
+
+  **Crawler Bay UI layout:** `[Chassis] [Computer] [Accessory] [Crawler Stats]`
+
+  - **Chassis** — (already implemented) defines base identity, stat profile, passive bonus
+  - **Computer** — the crawler's onboard intelligence (scanning, energy management, filtering). Examples:
+    - Scan Amplifier — Scan reveals full room contents (not just type)
+    - Energy Recycler — Refund 2 Energy when an ability finds nothing useful
+    - Affinity Filter — Bias wild encounters toward a chosen affinity
+    - Capacitor Cell — +10 Energy
+  - **Accessory** — bolted-on external hardware (durability, cargo, utility). Examples:
+    - Hull Plating — +15 Hull HP
+    - Cargo Rack — +1 Bench slot
+    - Repair Drone — Auto-heal 5 Hull HP per floor transition
+    - Trophy Mount — +10% capture chance
+  - Parts found as rare cache drops or milestone rewards. Chassis identity could come from bonuses to certain part types (e.g. Ironclad: +50% from Accessories, Scout: +50% from Computers) or unique part unlocks per chassis. This gives pre-rift loadout decisions without adding combat complexity.
 
 - [ ] **Status effect clarity** — 6 status types with single-letter icons; tooltip on hover works but in-battle readability could improve (color-coded borders, persistent effect descriptions).
 
@@ -70,6 +76,7 @@ Important but not urgent. Do these as the game stabilizes.
 - [ ] **Capture screen flow** — recruit→capture connection isn't obvious to players; add "Recruited!" callout
 - [x] **Tutorial completeness** — GDD 12.1 specifies guided overlays; verify all tutorial elements present _(tutorial hints system implemented)_
 - [x] **Formation UX** — strategic impact of front/back row isn't communicated well to new players _(skip mandatory formation, Fight+Formation buttons on combat popup)_
+- [ ] **Rift info button in dungeon** — add an (i) button next to the rift name in the dungeon HUD that opens a summary popup with the same info shown on the rift selection screen (boss name/species, rift tier, floor count, hazard type, etc.). Players forget what they're up against mid-rift.
 - [ ] **Text overflow** — various popups and labels may clip on different resolutions
 - [x] **Difficulty curve validation** — play through full 7-rift arc and verify pacing, resource pressure, enemy scaling _(balance pass done in session 10)_
 - [x] **Balance pass** — technique power, status durations, capture rates, energy economy _(verified in session 10)_
