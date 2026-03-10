@@ -68,10 +68,9 @@ func _build_ui() -> void:
 	vbox.add_child(_title_label)
 
 	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 0)
+	scroll.custom_minimum_size = Vector2(0, 60)
+	scroll.custom_maximum_size = Vector2(0, 340)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	## Cap height so popup doesn't overflow screen
-	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox.add_child(scroll)
 
 	_item_list = VBoxContainer.new()
@@ -109,6 +108,7 @@ func _rebuild_list() -> void:
 	for item: ItemDef in crawler.items:
 		var row: HBoxContainer = HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
+		row.custom_minimum_size = Vector2(0, 56)
 		_item_list.add_child(row)
 		_item_rows.append(row)
 
@@ -128,7 +128,9 @@ func _rebuild_list() -> void:
 		desc_label.text = item.description
 		desc_label.add_theme_font_size_override("font_size", 10)
 		desc_label.add_theme_color_override("font_color", Color("#AAAAAA"))
+		desc_label.max_lines = 2
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		info_col.add_child(desc_label)
 
 		var use_btn: Button = Button.new()

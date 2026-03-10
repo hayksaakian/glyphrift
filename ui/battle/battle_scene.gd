@@ -151,7 +151,7 @@ func _build_scene_tree() -> void:
 	turn_bar_bg.offset_left = 0.0
 	turn_bar_bg.offset_top = 0.0
 	turn_bar_bg.offset_right = 0.0
-	turn_bar_bg.offset_bottom = 42.0
+	turn_bar_bg.offset_bottom = 72.0
 	var turn_style: StyleBoxFlat = StyleBoxFlat.new()
 	turn_style.bg_color = Color(0.04, 0.04, 0.08, 0.8)
 	turn_style.content_margin_left = 12
@@ -232,7 +232,7 @@ func _build_battlefield() -> void:
 	var field: VBoxContainer = VBoxContainer.new()
 	field.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	field.offset_left = 40.0
-	field.offset_top = 60.0
+	field.offset_top = 80.0
 	field.offset_right = -200.0
 	field.offset_bottom = -100.0
 	field.add_theme_constant_override("separation", 4)
