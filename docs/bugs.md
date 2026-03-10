@@ -34,6 +34,18 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 - **Fix:** Set `custom_maximum_size.y = 340` on the ScrollContainer to cap item list height. Items scroll when there are many, and Close/Leave It button stays visible.
 - **Files:** `ui/dungeon/item_popup.gd`
 
+### BUG-008: Invalid `custom_maximum_size` property on ScrollContainer in ItemPopup
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Fix:** Removed invalid `custom_maximum_size` (doesn't exist in Godot 4.6). Instead, set `clip_contents = true` on the PanelContainer and removed the 300px min height so the anchor-positioned popup (440px) constrains the scroll naturally. ScrollContainer with `SIZE_EXPAND_FILL` fills remaining space after title and close button.
+- **Files:** `ui/dungeon/item_popup.gd`
+
+### BUG-007: Capture-to-active-squad bypasses GP capacity check
+- **Priority:** P1
+- **Status:** 🟢 Fixed
+- **Fix:** Option 2 (allow mid-rift overflow with warning). Capture still adds to squad mid-rift, but shows yellow "GP: X/Y — over cap!" warning on CAPTURED result. Barracks `_on_done_pressed` now blocks exit with red GP label and feedback message when GP exceeds capacity. Forces resolution before next rift.
+- **Files:** `ui/main_scene.gd`, `ui/bastion/barracks.gd`
+
 ### BUG-003: Enemy back row overlaps turn queue bar
 - **Priority:** P2
 - **Status:** 🟢 Fixed

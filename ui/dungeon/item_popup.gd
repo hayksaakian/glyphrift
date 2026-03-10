@@ -28,7 +28,8 @@ var _item_rows: Array[HBoxContainer] = []
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(360, 300)
+	custom_minimum_size = Vector2(360, 0)
+	clip_contents = true
 	visible = false
 	_build_ui()
 
@@ -69,7 +70,6 @@ func _build_ui() -> void:
 
 	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.custom_minimum_size = Vector2(0, 60)
-	scroll.custom_maximum_size = Vector2(0, 340)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(scroll)
 

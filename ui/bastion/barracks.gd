@@ -262,6 +262,10 @@ func _on_done_pressed() -> void:
 	if roster_state == null or roster_state.active_squad.is_empty():
 		_show_feedback("Squad must have at least 1 glyph!")
 		return
+	var gp: int = _get_squad_gp()
+	if gp > crawler_state.capacity:
+		_show_feedback("GP over cap! (%d/%d) — remove a glyph before departing." % [gp, crawler_state.capacity])
+		return
 	_clear_feedback()
 	done_pressed.emit()
 
@@ -301,6 +305,10 @@ func _get_squad_gp() -> int:
 func _update_counters() -> void:
 	var gp: int = _get_squad_gp()
 	_gp_label.text = "GP: %d/%d" % [gp, crawler_state.capacity]
+	if gp > crawler_state.capacity:
+		_gp_label.add_theme_color_override("font_color", Color("#FF4444"))
+	else:
+		_gp_label.add_theme_color_override("font_color", Color("#CCCCCC"))
 
 	var reserves: Array[GlyphInstance] = _get_reserves()
 	_squad_counter.text = "Squad: %d/%d  |  Reserves: %d/%d" % [

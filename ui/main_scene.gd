@@ -375,7 +375,12 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 
 	## Update popup to confirm where the glyph went
 	if added_to_squad:
-		_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to squad."
+		var squad_gp: int = _get_squad_gp()
+		if squad_gp > crawler_state.capacity:
+			_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to squad. (GP: %d/%d — over cap!)" % [squad_gp, crawler_state.capacity]
+			_dungeon_scene._capture_popup._result_label.add_theme_color_override("font_color", Color("#FFCC00"))
+		else:
+			_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to squad."
 		_dungeon_scene.emit_signal("squad_changed")
 	else:
 		_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to bench."
@@ -385,6 +390,13 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 
 	## Refresh squad overlay to show new reserve
 	_squad_overlay.refresh()
+
+
+func _get_squad_gp() -> int:
+	var total: int = 0
+	for g: GlyphInstance in roster_state.active_squad:
+		total += g.get_gp_cost()
+	return total
 
 
 func _get_bench_glyphs() -> Array[GlyphInstance]:
