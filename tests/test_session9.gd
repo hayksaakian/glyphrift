@@ -60,6 +60,13 @@ func _run_tests() -> void:
 	_test_bastion_npc_unread_indicator()
 	_test_bastion_all_screens_hide_codex()
 
+	## NPC Quests
+	_test_quest_data_loaded()
+	_test_quest_locked_before_phase()
+	_test_quest_active_state()
+	_test_quest_complete_and_reward()
+	_test_quest_panel_display()
+
 	## PuzzleSequence
 	_test_puzzle_sequence_construction()
 	_test_puzzle_sequence_correct_order()
@@ -1328,4 +1335,115 @@ func _test_dungeon_reveal_random_species() -> void:
 	_assert(cx.get_discovery_count() == 1, "one species discovered")
 
 	_cleanup_node(ds_scene)
+	_cleanup_node(cx)
+
+
+# ==========================================================================
+# NPC Quest Tests
+# ==========================================================================
+
+
+func _test_quest_data_loaded() -> void:
+	print("--- Quests: Data loaded ---")
+	_assert(_data_loader.npc_quests.has("lira"), "Lira quest loaded")
+	_assert(_data_loader.npc_quests.has("kael"), "Kael quest loaded")
+	_assert(_data_loader.npc_quests.has("maro"), "Maro quest loaded")
+	var lira_q: Dictionary = _data_loader.npc_quests["lira"]
+	_assert(lira_q.get("id", "") == "lira_codex_quest", "Lira quest ID correct")
+	_assert(lira_q.get("condition", "") == "codex_discoveries_8", "Lira quest condition correct")
+
+
+func _test_quest_locked_before_phase() -> void:
+	print("--- Quests: Locked before min phase ---")
+	var gs: GameState = _make_game_state()
+	var cx: CodexState = _make_codex_state()
+	gs.data_loader = _data_loader
+	gs.codex_state = cx
+	gs.game_phase = 1  ## Quests require phase 2
+
+	var status: Dictionary = gs.check_quest_status("lira")
+	_assert(status.get("state", "") == "locked", "Lira quest locked at phase 1")
+
+	_cleanup_node(gs)
+	_cleanup_node(cx)
+
+
+func _test_quest_active_state() -> void:
+	print("--- Quests: Active with progress ---")
+	var gs: GameState = _make_game_state()
+	var cx: CodexState = _make_codex_state()
+	gs.data_loader = _data_loader
+	gs.codex_state = cx
+	gs.game_phase = 2
+
+	## Discover 3 species (need 8 for Lira's quest)
+	cx.discover_species("zapplet")
+	cx.discover_species("sparkfin")
+	cx.discover_species("stonepaw")
+
+	var status: Dictionary = gs.check_quest_status("lira")
+	_assert(status.get("state", "") == "active", "Lira quest active")
+	_assert(status.get("progress", 0) == 3, "progress is 3")
+	_assert(status.get("total", 0) == 8, "total is 8")
+
+	_cleanup_node(gs)
+	_cleanup_node(cx)
+
+
+func _test_quest_complete_and_reward() -> void:
+	print("--- Quests: Complete and claim reward ---")
+	var gs: GameState = _make_game_state()
+	var cx: CodexState = _make_codex_state()
+	var cs: CrawlerState = _make_crawler_state()
+	gs.data_loader = _data_loader
+	gs.codex_state = cx
+	gs.crawler_state = cs
+	gs.game_phase = 2
+
+	## Discover 8 species for Lira's quest
+	for sp_id: String in ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "thunderclaw", "ironbark"]:
+		cx.discover_species(sp_id)
+
+	var status: Dictionary = gs.check_quest_status("lira")
+	_assert(status.get("state", "") == "complete", "Lira quest completable")
+
+	## Claim reward (codex reveal)
+	var initial_count: int = cx.discovered_species.size()
+	var reward_text: String = gs.complete_quest("lira")
+	_assert(reward_text != "", "reward text returned")
+	_assert(cx.discovered_species.size() > initial_count, "new species revealed")
+	_assert(gs.completed_quests.has("lira_codex_quest"), "quest marked completed")
+
+	## Can't complete again
+	var status2: Dictionary = gs.check_quest_status("lira")
+	_assert(status2.get("state", "") == "done", "quest shows done after completion")
+
+	_cleanup_node(gs)
+	_cleanup_node(cx)
+	_cleanup_node(cs)
+
+
+func _test_quest_panel_display() -> void:
+	print("--- Quests: NPC panel shows quest ---")
+	var gs: GameState = _make_game_state()
+	var cx: CodexState = _make_codex_state()
+	gs.data_loader = _data_loader
+	gs.codex_state = cx
+	gs.game_phase = 2
+
+	cx.discover_species("zapplet")
+	cx.discover_species("sparkfin")
+
+	var panel: NpcPanel = NpcPanel.new()
+	root.add_child(panel)
+	panel.setup(_data_loader, gs)
+	panel.show_npc("lira")
+
+	_assert(panel._quest_label.visible, "quest label visible")
+	_assert(panel._quest_label.text.contains("Field Research"), "quest name shown")
+	_assert(panel._quest_label.text.contains("2/8"), "progress shown")
+	_assert(not panel._quest_btn.visible, "claim button hidden (not complete)")
+
+	_cleanup_node(panel)
+	_cleanup_node(gs)
 	_cleanup_node(cx)

@@ -16,6 +16,7 @@ var current_dungeon: DungeonState = null
 var mastery_tracker: MasteryTracker = null
 var game_phase: int = 1
 var npc_read_phase: Dictionary = {"kael": 0, "lira": 0, "maro": 0}
+var completed_quests: Dictionary = {}  ## quest_id → true
 
 ## Injectable dependencies
 var data_loader: Node = null
@@ -66,6 +67,8 @@ func start_new_game() -> void:
 	crawler_state.active_chassis = "standard"
 	crawler_state.unlocked_chassis = ["standard"]
 	npc_read_phase = {"kael": 0, "lira": 0, "maro": 0}
+	completed_quests.clear()
+	crawler_state.has_rift_transmitter = false
 	## Reset milestones
 	if milestone_tracker != null:
 		milestone_tracker.completed_milestones.clear()
@@ -120,6 +123,95 @@ func notify_hidden_room() -> void:
 func notify_fusion() -> void:
 	if milestone_tracker != null:
 		milestone_tracker.on_fusion_performed()
+
+
+func check_quest_status(npc_id: String) -> Dictionary:
+	## Returns quest status for an NPC: {available, active, complete, quest_data, progress, total}
+	if data_loader == null or not data_loader.npc_quests.has(npc_id):
+		return {}
+	var quest: Dictionary = data_loader.npc_quests[npc_id]
+	var quest_id: String = quest.get("id", "")
+	if completed_quests.has(quest_id):
+		return {"state": "done", "quest": quest}
+	if game_phase < int(quest.get("min_phase", 1)):
+		return {"state": "locked", "quest": quest}
+
+	var condition: String = quest.get("condition", "")
+	var progress: int = _get_quest_progress(condition)
+	var total: int = _get_quest_total(condition)
+	var is_complete: bool = progress >= total
+	return {
+		"state": "complete" if is_complete else "active",
+		"quest": quest,
+		"progress": progress,
+		"total": total,
+	}
+
+
+func complete_quest(npc_id: String) -> String:
+	## Complete the NPC's quest and apply reward. Returns reward text.
+	var status: Dictionary = check_quest_status(npc_id)
+	if status.get("state", "") != "complete":
+		return ""
+	var quest: Dictionary = status["quest"]
+	var quest_id: String = quest.get("id", "")
+	completed_quests[quest_id] = true
+
+	var reward_type: String = quest.get("reward_type", "")
+	var reward_value: int = int(quest.get("reward_value", 0))
+	match reward_type:
+		"codex_reveal":
+			if codex_state != null:
+				for _i: int in range(reward_value):
+					_reveal_random_species()
+		"capacity":
+			if crawler_state != null:
+				crawler_state.capacity += reward_value
+		"hull_hp":
+			if crawler_state != null:
+				crawler_state.max_hull_hp += reward_value
+		"energy":
+			if crawler_state != null:
+				crawler_state.max_energy += reward_value
+
+	return quest.get("reward_text", "Quest complete!")
+
+
+func _get_quest_progress(condition: String) -> int:
+	match condition:
+		"codex_discoveries_8":
+			if codex_state != null:
+				return codex_state.discovered_species.size()
+			return 0
+		"rifts_cleared_3":
+			if codex_state != null:
+				return codex_state.cleared_rift_count()
+			return 0
+		"hidden_rooms_3":
+			if milestone_tracker != null:
+				return milestone_tracker.hidden_rooms_found
+			return 0
+	return 0
+
+
+func _get_quest_total(condition: String) -> int:
+	match condition:
+		"codex_discoveries_8":
+			return 8
+		"rifts_cleared_3":
+			return 3
+		"hidden_rooms_3":
+			return 3
+	return 1
+
+
+func _reveal_random_species() -> void:
+	if codex_state == null or data_loader == null:
+		return
+	for species_id: String in data_loader.species:
+		if not codex_state.discovered_species.has(species_id):
+			codex_state.discover_species(species_id)
+			return
 
 
 func _check_phase_advancement() -> void:

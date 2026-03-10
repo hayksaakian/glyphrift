@@ -9,6 +9,7 @@ var rift_templates: Array[RiftTemplate] = []
 var bosses: Dictionary = {}           ## rift_id → BossDef
 var codex_entries: Dictionary = {}    ## species_id → {hint, lore}
 var npc_dialogue: Dictionary = {}     ## npc_id → {name, title, phases}
+var npc_quests: Dictionary = {}      ## npc_id → quest Dictionary
 var crawler_upgrades: Array[Dictionary] = []
 
 
@@ -22,6 +23,7 @@ func _ready() -> void:
 	_load_bosses()
 	_load_codex()
 	_load_npc_dialogue()
+	_load_npc_quests()
 	_load_crawler_upgrades()
 
 
@@ -266,6 +268,13 @@ func _load_npc_dialogue() -> void:
 	if data == null:
 		return
 	npc_dialogue = data
+
+
+func _load_npc_quests() -> void:
+	var data: Variant = _load_json("res://data/npc_quests.json")
+	if data == null:
+		return
+	npc_quests = data
 
 
 func _load_crawler_upgrades() -> void:

@@ -25,6 +25,9 @@ var _portrait_label: Label = null
 var _name_label: Label = null
 var _title_label: Label = null
 var _dialogue_label: Label = null
+var _quest_label: Label = null
+var _quest_btn: Button = null
+var _current_npc_id: String = ""
 var _close_btn: Button = null
 
 
@@ -74,6 +77,36 @@ func show_npc(npc_id: String) -> void:
 	_name_label.text = npc_name
 	_name_label.add_theme_color_override("font_color", portrait_color.lightened(0.3))
 	_title_label.text = npc_title
+	_current_npc_id = npc_id
+
+	## Quest handling — may override dialogue text
+	var quest_status: Dictionary = game_state.check_quest_status(npc_id)
+	var quest_state: String = quest_status.get("state", "")
+	_quest_label.visible = false
+	_quest_btn.visible = false
+
+	if quest_state == "active":
+		var quest: Dictionary = quest_status["quest"]
+		var progress: int = quest_status.get("progress", 0)
+		var total: int = quest_status.get("total", 1)
+		dialogue_text = quest.get("accept_dialogue", dialogue_text) if progress == 0 else quest.get("progress_dialogue", dialogue_text) % progress
+		_quest_label.text = "Quest: %s (%d/%d)" % [quest.get("name", ""), progress, total]
+		_quest_label.add_theme_color_override("font_color", Color("#FFCC00"))
+		_quest_label.visible = true
+	elif quest_state == "complete":
+		var quest: Dictionary = quest_status["quest"]
+		dialogue_text = quest.get("complete_dialogue", dialogue_text)
+		_quest_label.text = "Quest: %s — COMPLETE!" % quest.get("name", "")
+		_quest_label.add_theme_color_override("font_color", Color("#44FF44"))
+		_quest_label.visible = true
+		_quest_btn.text = "Claim Reward"
+		_quest_btn.visible = true
+	elif quest_state == "done":
+		var quest: Dictionary = quest_status["quest"]
+		_quest_label.text = "Quest: %s — Done" % quest.get("name", "")
+		_quest_label.add_theme_color_override("font_color", Color("#888888"))
+		_quest_label.visible = true
+
 	_dialogue_label.text = dialogue_text
 
 	## Update portrait border color to match NPC
@@ -180,6 +213,24 @@ func _build_ui() -> void:
 	_dialogue_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_vbox.add_child(_dialogue_label)
 
+	## Quest status label
+	_quest_label = Label.new()
+	_quest_label.add_theme_font_size_override("font_size", 12)
+	_quest_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_quest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_quest_label.visible = false
+	_vbox.add_child(_quest_label)
+
+	## Quest complete button
+	_quest_btn = Button.new()
+	_quest_btn.name = "QuestCompleteButton"
+	_quest_btn.text = "Claim Reward"
+	_quest_btn.custom_minimum_size = Vector2(140, 32)
+	_quest_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_quest_btn.visible = false
+	_quest_btn.pressed.connect(_on_quest_complete)
+	_vbox.add_child(_quest_btn)
+
 	## Close button
 	_close_btn = Button.new()
 	_close_btn.name = "NpcCloseButton"
@@ -191,6 +242,16 @@ func _build_ui() -> void:
 		closed.emit()
 	)
 	_vbox.add_child(_close_btn)
+
+
+func _on_quest_complete() -> void:
+	if game_state == null or _current_npc_id == "":
+		return
+	var reward_text: String = game_state.complete_quest(_current_npc_id)
+	if reward_text != "":
+		_quest_btn.visible = false
+		_quest_label.text = reward_text
+		_quest_label.add_theme_color_override("font_color", Color("#44FF44"))
 
 
 func _gui_input(event: InputEvent) -> void:
