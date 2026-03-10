@@ -30,6 +30,65 @@ var dungeon_state: DungeonState = null
 var data_loader: Node = null  ## Injectable DataLoader
 var _state: UIState = UIState.EXPLORING
 
+## Lore objects found in empty rooms (GDD 7.8)
+const RIFT_LORE: Dictionary = {
+	"tutorial_01": [
+		"A cracked data terminal flickers weakly. The last entry reads: \"Rift stabilizers failing. Evacuate sector 7.\"",
+		"Scratches on the wall form crude tally marks — someone was counting days.",
+		"A shattered containment pod lies on its side. Whatever was inside is long gone.",
+	],
+	"minor_01": [
+		"A faded mural depicts glyphs and humans working side by side. The paint is centuries old.",
+		"A broken calibration device hums faintly. Its display reads \"IRONBARK — CONTAINMENT FAILED.\"",
+		"Stone fragments arranged in a circle. Some kind of ritual site, or maybe just rubble.",
+		"A data fragment crackles to life: \"...ground-type signatures increasing. The rift is resonating with the bedrock itself...\"",
+	],
+	"minor_02": [
+		"Condensation drips from the ceiling in rhythmic patterns, like a heartbeat.",
+		"A waterlogged journal entry: \"The Vortail was here before the rift opened. It didn't come through — it was waiting.\"",
+		"Crystal formations along the walls pulse with a faint blue light. They feel warm to the touch.",
+		"A corroded monitoring station. The last reading shows water pressure readings off the scale.",
+	],
+	"minor_03": [
+		"Scorch marks radiate outward from a central point. Something discharged here — violently.",
+		"A severed power cable sparks intermittently. The air smells of ozone.",
+		"A researcher's note: \"The electric signatures aren't random. They pulse in patterns. Almost like... communication.\"",
+		"Melted metal pooled and solidified into strange shapes. The heat must have been extraordinary.",
+	],
+	"standard_01": [
+		"A massive claw mark gouges the reinforced wall. Whatever made this was enormous.",
+		"Fragments of a containment field generator. The shielding was rated for T2 glyphs — clearly insufficient.",
+		"An audio log crackles: \"Stormfang isn't just powerful. It's intelligent. It's learning our patrol patterns.\"",
+		"The air crackles with residual static. Your crawler's instruments spike briefly.",
+	],
+	"standard_02": [
+		"The floor has been reshaped — pushed upward into ridges by some tremendous force from below.",
+		"Fossilized root structures thread through the walls. They predate the rift by millennia.",
+		"A geological survey marker, bent at an impossible angle: \"TERRADON NESTING ZONE — DO NOT DISTURB.\"",
+		"The stone here is warm. Not from heat — from something living deep within it.",
+	],
+	"major_01": [
+		"Reality itself seems thin here. The walls shimmer, and sometimes you can see... somewhere else.",
+		"A warning beacon, still active: \"RIFTMAW DETECTED. DIMENSIONAL INSTABILITY CRITICAL. ALL PERSONNEL EVACUATE.\"",
+		"Floating debris hangs motionless in mid-air. Gravity has forgotten this room.",
+		"A researcher's final log: \"The void isn't empty. It's full. Full of things that want to come through.\"",
+		"Cracks in space itself — tiny fractures through which darkness seeps like liquid.",
+	],
+	"apex_01": [
+		"The walls are made of something that isn't quite matter. Your instruments can't classify it.",
+		"A recording, barely audible: \"The Nullweaver doesn't destroy. It unmakes. There's a difference.\"",
+		"Echoes of sounds that haven't happened yet reverberate through the chamber.",
+		"The null energy here is so dense it's visible — a shimmering absence of light.",
+		"A final message, carved into unreality itself: \"They were here before the rifts. The rifts are doors, not wounds.\"",
+	],
+}
+## Generic fallback lore for rifts not in the dictionary
+const GENERIC_LORE: Array[String] = [
+	"Dust motes drift in still air. This room has been undisturbed for a long time.",
+	"Faint scratches on the floor suggest something was dragged through here.",
+	"The walls are scorched in places. Evidence of an old battle, perhaps.",
+]
+
 var roster_state: RosterState = null  ## Injectable — for item use
 var codex_state: CodexState = null  ## Injectable — for conduit reveal reward
 var rift_pool: Array[GlyphInstance] = []  ## All glyphs available in this rift (squad + bench)
@@ -96,6 +155,7 @@ const BATTLE_LOSS_HULL_DAMAGE: int = 15
 const BATTLE_LOSS_REVIVE_PCT: float = 0.3
 
 var _walk_queue: Array[String] = []
+var _walking_path: bool = false  ## True during multi-room pathfinding walk
 var _dungeon_connections: Array[Dictionary] = []
 
 ## Formation setup (shown on demand from combat popup)
@@ -796,24 +856,28 @@ func _walk_path(path: Array[String]) -> void:
 	## Walk along a BFS path, stopping early if a room triggers a blocking event.
 	if instant_mode:
 		## Synchronous walk — preserves existing test behavior
+		_walking_path = path.size() > 1
 		for room_id: String in path:
 			if _state != UIState.EXPLORING:
 				break
 			_pre_combat_room_id = dungeon_state.current_room_id
 			if not dungeon_state.move_to_room(room_id):
 				break
+		_walking_path = false
 		return
 
 	## Animated walk
 	_walk_queue = []
 	for rid: String in path:
 		_walk_queue.append(rid)
+	_walking_path = path.size() > 1
 	_state = UIState.MOVING
 	_walk_next_step()
 
 
 func _walk_next_step() -> void:
 	if _walk_queue.is_empty():
+		_walking_path = false
 		if _state == UIState.MOVING:
 			_state = UIState.EXPLORING
 		return
@@ -879,8 +943,19 @@ func _on_room_entered(room: Dictionary) -> void:
 
 	var room_type: String = room.get("type", "empty")
 
-	## Skip popups for non-actionable rooms (start, empty on revisit)
-	if room_type in ["start", "empty"]:
+	## Skip popups for non-actionable rooms (start)
+	if room_type == "start":
+		return
+
+	## Empty rooms: show lore object on first visit (50% chance)
+	## Only trigger on direct moves (not during multi-room pathfinding walk)
+	if room_type == "empty":
+		if not _walking_path and not room.get("lore_shown", false) and randi() % 2 == 0:
+			room["lore_shown"] = true
+			var lore_text: String = _get_lore_text()
+			if lore_text != "":
+				_state = UIState.POPUP
+				_room_popup.show_result("Lore Fragment", lore_text)
 		return
 
 	## Notify hidden room discovery for milestone tracking
@@ -1362,6 +1437,17 @@ func _apply_battle_loss_penalty() -> void:
 		_floor_map.set_current_room(_pre_combat_room_id)
 
 	_state = UIState.EXPLORING
+
+
+func _get_lore_text() -> String:
+	## Pick a random lore fragment for the current rift
+	if dungeon_state == null or dungeon_state.rift_template == null:
+		return ""
+	var rift_id: String = dungeon_state.rift_template.rift_id
+	var lore_pool: Array = RIFT_LORE.get(rift_id, GENERIC_LORE)
+	if lore_pool.is_empty():
+		lore_pool = GENERIC_LORE
+	return lore_pool[randi() % lore_pool.size()]
 
 
 func _get_boss_affinity() -> String:
