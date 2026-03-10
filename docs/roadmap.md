@@ -80,7 +80,7 @@ Important but not urgent. Do these as the game stabilizes.
 - [x] **Text overflow** — various popups and labels may clip on different resolutions _(Added clip_text + text_overrun_behavior to: RiftGate rift/boss name labels, RoomPopup enemy preview names, CodexBrowser rift atlas names)_
 - [x] **Difficulty curve validation** — play through full 7-rift arc and verify pacing, resource pressure, enemy scaling _(balance pass done in session 10)_
 - [x] **Balance pass** — technique power, status durations, capture rates, energy economy _(verified in session 10)_
-- [ ] **Rift re-entry variation** — GDD says boss reshuffles content; verify it feels different on repeat
+- [x] **Rift re-entry variation** — GDD says boss reshuffles content; verify it feels different on repeat _(Verified: pool-based rooms use weighted random resolution on each generate(), enemy species are randomly picked with uniqueness bias, puzzle types cycle round-robin. Each re-entry produces different room types and encounters.)_
 - [x] **Save slot management** — currently single save; multiple slots or "are you sure?" on new game _(3 save slots + autosave implemented)_
 - [ ] **Settings screen** — no options menu (text speed, animation speed, controls)
 - [ ] **Accessibility** — no colorblind mode, font size options, or input remapping
