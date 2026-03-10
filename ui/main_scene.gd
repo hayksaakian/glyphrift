@@ -70,10 +70,9 @@ func setup(
 	_dungeon_scene.roster_state = roster_state
 	_dungeon_scene.codex_state = codex_state
 	_dungeon_scene._pause_menu.setup_save_slots(game_state, roster_state, codex_state, crawler_state, data_loader)
-	## Wire bench provider so manual saves include bench glyphs mid-rift
-	var bench_fn: Callable = func() -> Array[GlyphInstance]:
-		return _get_bench_glyphs() if game_state.current_dungeon != null and _dungeon_scene != null else [] as Array[GlyphInstance]
-	_dungeon_scene._pause_menu._save_slots_popup.bench_provider = bench_fn
+	## Wire save_fn so manual saves go through the same path as auto-saves
+	_dungeon_scene._pause_menu._save_slots_popup.save_fn = _save_to_slot
+	_bastion_scene._pause_menu._save_slots_popup.save_fn = _save_to_slot
 	_battle_scene.combat_engine = combat_engine
 	_battle_scene.mastery_tracker = mastery_tracker
 
@@ -593,13 +592,17 @@ func _on_save_and_quit() -> void:
 	)
 
 
-func _auto_save() -> void:
+func _save_to_slot(slot: String) -> void:
 	if game_state == null:
 		return
 	var bench: Array[GlyphInstance] = []
 	if game_state.current_dungeon != null and _dungeon_scene != null:
 		bench = _get_bench_glyphs()
-	SaveManager.save_game(game_state, roster_state, codex_state, crawler_state, bench)
+	SaveManager.save_to_slot(slot, game_state, roster_state, codex_state, crawler_state, "", bench)
+
+
+func _auto_save() -> void:
+	_save_to_slot(SaveManager.AUTOSAVE_SLOT)
 
 
 ## --- Mid-rift resume ---

@@ -14,7 +14,7 @@ var roster_state: RosterState = null
 var codex_state: CodexState = null
 var crawler_state: CrawlerState = null
 var data_loader: Node = null
-var bench_provider: Callable = Callable()  ## Returns Array[GlyphInstance] for mid-rift bench
+var save_fn: Callable = Callable()  ## func(slot: String) -> void — called to save to a slot
 
 var _panel: PanelContainer = null
 var _vbox: VBoxContainer = null
@@ -275,12 +275,10 @@ func _refresh_row(row: Dictionary) -> void:
 
 
 func _on_save(slot_key: String) -> void:
-	if game_state == null:
-		return
-	var bench: Array[GlyphInstance] = []
-	if bench_provider.is_valid():
-		bench = bench_provider.call()
-	SaveManager.save_to_slot(slot_key, game_state, roster_state, codex_state, crawler_state, "", bench)
+	if save_fn.is_valid():
+		save_fn.call(slot_key)
+	elif game_state != null:
+		SaveManager.save_to_slot(slot_key, game_state, roster_state, codex_state, crawler_state)
 	_refresh_all_rows()
 
 
