@@ -339,20 +339,30 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 		wild_glyph.species, data_loader.mastery_pools
 	)
 
-	## Check bench capacity (non-squad glyphs in rift pool)
-	var bench_count: int = _dungeon_scene.rift_pool.size() - roster_state.active_squad.size()
-	if bench_count >= crawler_state.get_effective_bench_slots():
-		## Bench full — show swap UI (release a bench glyph to make room)
-		var bench_glyphs: Array[GlyphInstance] = _get_bench_glyphs()
-		var popup: CapturePopup = _dungeon_scene._capture_popup
-		popup.show_bench_swap(wild_glyph, bench_glyphs)
-		if not popup.bench_swap_chosen.is_connected(_on_bench_swap):
-			popup.bench_swap_chosen.connect(_on_bench_swap)
-		return
+	## If active squad has room, add directly to squad
+	var added_to_squad: bool = false
+	if roster_state.active_squad.size() < crawler_state.slots:
+		roster_state.add_glyph(wild_glyph)
+		roster_state.active_squad.append(wild_glyph)
+		if not _dungeon_scene.rift_pool.has(wild_glyph):
+			_dungeon_scene.rift_pool.append(wild_glyph)
+		added_to_squad = true
+	else:
+		## Check bench capacity (non-squad glyphs in rift pool)
+		var bench_count: int = _dungeon_scene.rift_pool.size() - roster_state.active_squad.size()
+		if bench_count >= crawler_state.get_effective_bench_slots():
+			## Bench full — show swap UI (release a bench glyph to make room)
+			var bench_glyphs: Array[GlyphInstance] = _get_bench_glyphs()
+			var popup: CapturePopup = _dungeon_scene._capture_popup
+			popup.show_bench_swap(wild_glyph, bench_glyphs)
+			if not popup.bench_swap_chosen.is_connected(_on_bench_swap):
+				popup.bench_swap_chosen.connect(_on_bench_swap)
+			return
 
-	roster_state.add_glyph(wild_glyph)
-	if not _dungeon_scene.rift_pool.has(wild_glyph):
-		_dungeon_scene.rift_pool.append(wild_glyph)
+		roster_state.add_glyph(wild_glyph)
+		if not _dungeon_scene.rift_pool.has(wild_glyph):
+			_dungeon_scene.rift_pool.append(wild_glyph)
+
 	codex_state.discover_species(wild_glyph.species.id)
 
 	## Notify mastery tracker about the capture
@@ -364,7 +374,11 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 		game_state.notify_capture(wild_glyph)
 
 	## Update popup to confirm where the glyph went
-	_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to bench."
+	if added_to_squad:
+		_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to squad."
+		_dungeon_scene.emit_signal("squad_changed")
+	else:
+		_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to bench."
 
 	## Append capture info to room history
 	_append_room_history("Captured %s." % wild_glyph.species.name)
