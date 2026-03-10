@@ -4,8 +4,6 @@
 
 These items address systems that exist but don't fully work. Highest priority.
 
-- **Mastery objective depth** — stubbed objectives (brace_then_survive, burn_then_kill) are encountered by players but always return false. Implement all species-specific challenges so the mastery system actually works end-to-end. Should teach the glyph's playstyle.
-
 - **Boss phase 2 variety** — bosses are the climax of each rift but feel samey. Design principle: bosses should showcase their species' full potential, not apply arbitrary stat modifiers. A boss's "trademark move" is just a powerful technique that species naturally has — the boss encounter is where the player first sees it in a dangerous context (tough squad, smart combos). New systems are welcome if they serve this. When the player later encounters or captures that species, it still has that move — the boss was a preview, not a one-off gimmick. Write distinct phase 2 technique sets, squad compositions, and combo strategies per boss.
 
 - **Turn queue clarity** — show upcoming turns clearly enough that interrupt/speed decisions feel strategic, not guesswork. UI-only change on the existing turn_queue system.
@@ -42,7 +40,7 @@ Broken into phases. Each phase builds on the last.
 - **Rarity system** — define which glyphs appear in which dungeons and how often. Enforce intentional design: common T1s everywhere, rare T1s in specific rifts, T2+ only in later rifts or as echo encounters. Prevents "saw everything in rift 2" feeling.
 
 ### Medium term: More content (uses existing systems, no new code)
-- **More species** — 15 feels tight for a fusion game; 5-10 more (especially T1-T2) would dramatically increase team variety
+- **More species** — 15 feels tight for a fusion game; 5-10 more (especially T1-T2) would dramatically increase team variety. When adding species, define new mastery objectives that teach each glyph's playstyle (2 fixed + 1 random per species)
 - **More techniques** — 39 techniques across 15 species; some species share too many moves, reducing identity
 - **More fusion pairs** — 33 pairs feels thin; cross-affinity mutations, secret fusions, branching paths would reward experimentation
 - **More rifts** — 7 templates with limited variation; more distinct layouts, themes, or room compositions per rift
