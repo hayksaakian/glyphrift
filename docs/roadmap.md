@@ -73,7 +73,7 @@ Broken into phases. Each phase builds on the last.
 Important but not urgent. Do these as the game stabilizes.
 
 - [ ] **Battle pacing** — animation timing may need tuning; currently tween-based but no player feedback on snappy vs sluggish
-- [ ] **Capture screen flow** — recruit→capture connection isn't obvious to players; add "Recruited!" callout
+- [x] **Capture screen flow** — recruit→capture connection isn't obvious to players. _(Added floating "Recruited! +15%" callout above enemy panel during combat when recruit succeeds. Shows exact capture bonus per recruit use. Breakdown on capture screen already shows Recruit +X%.)_
 - [x] **Tutorial completeness** — GDD 12.1 specifies guided overlays; verify all tutorial elements present _(tutorial hints system implemented)_
 - [x] **Formation UX** — strategic impact of front/back row isn't communicated well to new players _(skip mandatory formation, Fight+Formation buttons on combat popup)_
 - [x] **Rift info button in dungeon** — add an (i) button next to the rift name in the dungeon HUD that opens a summary popup with the same info shown on the rift selection screen (boss name/species, rift tier, floor count, hazard type, etc.). Players forget what they're up against mid-rift. _(implemented: (i) button in dungeon header, popup shows tier/floors/hazard/boss/pool size)_

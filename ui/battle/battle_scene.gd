@@ -721,6 +721,8 @@ func _handle_recruit_visual(actor: GlyphInstance, target: GlyphInstance, count: 
 		var panel: GlyphPanel = _panels[target.instance_id] as GlyphPanel
 		panel.set_recruit_count(count)
 		panel.play_status_bounce("recruit")
+	## Floating "Recruited! +X%" callout above target
+	_spawn_damage_number(target, count, "recruit")
 
 
 func _handle_phase_transition_visual(boss: GlyphInstance, changes: Dictionary = {}) -> void:

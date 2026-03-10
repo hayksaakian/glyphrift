@@ -8,6 +8,7 @@ const COLOR_DAMAGE: Color = Color("#FF4444")
 const COLOR_HEAL: Color = Color("#44FF44")
 const COLOR_SHIELD: Color = Color("#00DDDD")
 const COLOR_BURN: Color = Color("#FF8800")
+const COLOR_RECRUIT: Color = Color("#44BB44")
 
 
 func show_damage(value: int, type: String = "damage", reduced: bool = false) -> void:
@@ -22,6 +23,9 @@ func show_damage(value: int, type: String = "damage", reduced: bool = false) -> 
 		"burn":
 			text = str(value)
 			add_theme_color_override("font_color", COLOR_BURN)
+		"recruit":
+			text = "Recruited! +%d%%" % (value * 15)
+			add_theme_color_override("font_color", COLOR_RECRUIT)
 		_:
 			text = str(value)
 			add_theme_color_override("font_color", COLOR_DAMAGE)
