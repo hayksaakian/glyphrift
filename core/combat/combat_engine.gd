@@ -490,17 +490,18 @@ func _check_boss_phase_transition(boss: GlyphInstance) -> void:
 		## Clear all status effects
 		StatusManager.clear_all(boss)
 		## Apply phase 2 stat bonuses
-		var atk_bonus: float = _boss_def.phase2_stat_bonus.get("atk", 0.0)
-		var spd_bonus: float = _boss_def.phase2_stat_bonus.get("spd", 0.0)
-		## Apply stat bonuses directly (not via calculate_stats which resets current_hp)
-		boss.atk = int(float(boss.atk) * (1.0 + atk_bonus))
-		boss.spd = int(float(boss.spd) * (1.0 + spd_bonus))
-		## Build changes dictionary for UI communication
 		var changes: Dictionary = {}
-		if atk_bonus > 0:
-			changes["atk"] = "+%d%%" % int(atk_bonus * 100)
-		if spd_bonus > 0:
-			changes["spd"] = "+%d%%" % int(spd_bonus * 100)
+		var stat_keys: Array[String] = ["atk", "spd", "def", "res"]
+		for stat_key: String in stat_keys:
+			var bonus: float = _boss_def.phase2_stat_bonus.get(stat_key, 0.0)
+			if bonus > 0:
+				## Apply stat bonuses directly (not via calculate_stats which resets current_hp)
+				match stat_key:
+					"atk": boss.atk = int(float(boss.atk) * (1.0 + bonus))
+					"spd": boss.spd = int(float(boss.spd) * (1.0 + bonus))
+					"def": boss.def_stat = int(float(boss.def_stat) * (1.0 + bonus))
+					"res": boss.res = int(float(boss.res) * (1.0 + bonus))
+				changes[stat_key] = "+%d%%" % int(bonus * 100)
 		## Add phase 2 techniques (respect 4-technique cap per TDD)
 		var new_tech_names: Array[String] = []
 		for tid: String in _boss_def.phase2_technique_ids:

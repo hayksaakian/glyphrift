@@ -25,25 +25,67 @@
     "rift_id": "minor_01",
     "species_id": "ironbark",
     "mastery_stars": 2,
-    "phase1_technique_ids": ["iron_ram", "fortress"],
+    "phase1_technique_ids": ["iron_ram", "fortress", "stone_wall"],
     "phase2_technique_ids": ["quake_stomp"],
-    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    "phase2_stat_bonus": {"def": 0.15},
+    "squad": [
+      {
+        "species_id": "ironbark",
+        "mastered": true,
+        "technique_ids": ["iron_ram", "fortress", "stone_wall"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "stonepaw",
+        "mastered": false,
+        "technique_ids": ["rock_toss", "brace"],
+        "row_position": "front"
+      }
+    ]
   },
   {
     "rift_id": "minor_02",
     "species_id": "vortail",
     "mastery_stars": 2,
-    "phase1_technique_ids": ["warp_claw", "destabilize"],
+    "phase1_technique_ids": ["warp_claw", "destabilize", "phase_shift"],
     "phase2_technique_ids": ["rift_pulse"],
-    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    "phase2_stat_bonus": {"spd": 0.15, "atk": 0.1},
+    "squad": [
+      {
+        "species_id": "vortail",
+        "mastered": true,
+        "technique_ids": ["warp_claw", "destabilize", "phase_shift"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "driftwisp",
+        "mastered": false,
+        "technique_ids": ["phase_dart", "entropic_touch"],
+        "row_position": "back"
+      }
+    ]
   },
   {
     "rift_id": "minor_03",
     "species_id": "thunderclaw",
     "mastery_stars": 2,
-    "phase1_technique_ids": ["arc_fang", "static_snap"],
+    "phase1_technique_ids": ["arc_fang", "static_snap", "static_guard"],
     "phase2_technique_ids": ["chain_bolt"],
-    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    "phase2_stat_bonus": {"atk": 0.15, "spd": 0.05},
+    "squad": [
+      {
+        "species_id": "thunderclaw",
+        "mastered": true,
+        "technique_ids": ["arc_fang", "static_snap", "static_guard"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "zapplet",
+        "mastered": false,
+        "technique_ids": ["static_snap", "jolt_rush"],
+        "row_position": "back"
+      }
+    ]
   },
   {
     "rift_id": "standard_01",
@@ -51,7 +93,27 @@
     "mastery_stars": 1,
     "phase1_technique_ids": ["storm_lance", "spark_shower", "static_guard"],
     "phase2_technique_ids": ["thunder_cascade"],
-    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1},
+    "squad": [
+      {
+        "species_id": "thunderclaw",
+        "mastered": true,
+        "technique_ids": ["arc_fang", "chain_bolt", "static_guard"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "stormfang",
+        "mastered": true,
+        "technique_ids": ["storm_lance", "spark_shower", "static_guard"],
+        "row_position": "back"
+      },
+      {
+        "species_id": "sparkfin",
+        "mastered": false,
+        "technique_ids": ["static_snap", "spark_shower"],
+        "row_position": "back"
+      }
+    ]
   },
   {
     "rift_id": "standard_02",
@@ -59,15 +121,55 @@
     "mastery_stars": 1,
     "phase1_technique_ids": ["spire_crush", "root_hold", "tremor_response"],
     "phase2_technique_ids": ["tectonic_slam"],
-    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    "phase2_stat_bonus": {"def": 0.1, "res": 0.1},
+    "squad": [
+      {
+        "species_id": "terradon",
+        "mastered": true,
+        "technique_ids": ["spire_crush", "root_hold", "tremor_response"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "ironbark",
+        "mastered": true,
+        "technique_ids": ["iron_ram", "fortress"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "mossling",
+        "mastered": false,
+        "technique_ids": ["vine_lash", "root_hold"],
+        "row_position": "back"
+      }
+    ]
   },
   {
     "rift_id": "major_01",
     "species_id": "riftmaw",
     "mastery_stars": 2,
     "phase1_technique_ids": ["null_beam", "entropic_touch", "null_counter"],
-    "phase2_technique_ids": ["rift_pulse", "destabilize"],
-    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    "phase2_technique_ids": ["rift_pulse"],
+    "phase2_stat_bonus": {"atk": 0.15, "spd": 0.1},
+    "squad": [
+      {
+        "species_id": "vortail",
+        "mastered": true,
+        "technique_ids": ["warp_claw", "destabilize", "phase_shift"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "riftmaw",
+        "mastered": true,
+        "technique_ids": ["null_beam", "entropic_touch", "null_counter"],
+        "row_position": "back"
+      },
+      {
+        "species_id": "glitchkit",
+        "mastered": false,
+        "technique_ids": ["phase_dart", "destabilize"],
+        "row_position": "back"
+      }
+    ]
   },
   {
     "rift_id": "apex_01",
@@ -75,6 +177,26 @@
     "mastery_stars": 3,
     "phase1_technique_ids": ["void_collapse", "null_beam", "flux_veil"],
     "phase2_technique_ids": ["phase_shift"],
-    "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    "phase2_stat_bonus": {"atk": 0.2},
+    "squad": [
+      {
+        "species_id": "riftmaw",
+        "mastered": true,
+        "technique_ids": ["null_beam", "entropic_touch", "null_counter"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "vortail",
+        "mastered": true,
+        "technique_ids": ["warp_claw", "destabilize", "phase_shift"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "nullweaver",
+        "mastered": true,
+        "technique_ids": ["void_collapse", "null_beam", "flux_veil"],
+        "row_position": "back"
+      }
+    ]
   }
 ]

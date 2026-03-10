@@ -727,10 +727,9 @@ func _handle_phase_transition_visual(boss: GlyphInstance, changes: Dictionary = 
 	var boss_name: String = boss.species.name if boss.species else "???"
 	_combat_log.add_entry("%s enters PHASE 2!" % boss_name, Color("#FF4444"))
 	## Log individual changes
-	if changes.has("atk"):
-		_combat_log.add_entry("  ATK %s" % changes["atk"], Color("#FFAAAA"))
-	if changes.has("spd"):
-		_combat_log.add_entry("  SPD %s" % changes["spd"], Color("#FFAAAA"))
+	for stat_key: String in ["atk", "def", "spd", "res"]:
+		if changes.has(stat_key):
+			_combat_log.add_entry("  %s %s" % [stat_key.to_upper(), changes[stat_key]], Color("#FFAAAA"))
 	if changes.has("new_techniques"):
 		for t_name: Variant in changes["new_techniques"]:
 			_combat_log.add_entry("  New technique: %s" % str(t_name), Color("#FFAAAA"))

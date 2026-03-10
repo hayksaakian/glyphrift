@@ -41,6 +41,7 @@ func _run_tests() -> void:
 	_test_status_manager()
 	_test_ai_controller()
 	_test_auto_battle()
+	_test_boss_variety()
 
 	print("")
 	print("========================================")
@@ -551,6 +552,86 @@ func _on_round_started(round_num: int) -> void:
 
 func _on_turn_started(glyph: GlyphInstance, turn_idx: int) -> void:
 	_events.append("TURN %d: %s (%s) [HP %d/%d]" % [turn_idx, glyph.species.name, glyph.side, glyph.current_hp, glyph.max_hp])
+
+func _test_boss_variety() -> void:
+	print("--- Boss Variety ---")
+
+	## Test: all bosses have squads
+	var bosses: Array = _data_loader.bosses.values()
+	for boss_def: BossDef in bosses:
+		_assert(boss_def.squad.size() >= 2, "Boss %s has squad with %d members (>= 2)" % [boss_def.species_id, boss_def.squad.size()])
+
+	## Test: all squad technique IDs are valid
+	for boss_def: BossDef in bosses:
+		for entry: Dictionary in boss_def.squad:
+			for tid: String in entry.get("technique_ids", []):
+				var tech: TechniqueDef = _data_loader.get_technique(tid)
+				_assert(tech != null, "Boss %s squad member %s technique '%s' exists" % [boss_def.species_id, entry["species_id"], tid])
+
+	## Test: all squad species IDs are valid
+	for boss_def: BossDef in bosses:
+		for entry: Dictionary in boss_def.squad:
+			var species: GlyphSpecies = _data_loader.get_species(entry["species_id"])
+			_assert(species != null, "Boss %s squad member '%s' is a valid species" % [boss_def.species_id, entry["species_id"]])
+
+	## Test: varied stat bonuses — not all identical
+	var bonus_strings: Array[String] = []
+	for boss_def: BossDef in bosses:
+		var s: String = str(boss_def.phase2_stat_bonus)
+		if not bonus_strings.has(s):
+			bonus_strings.append(s)
+	_assert(bonus_strings.size() >= 3, "At least 3 distinct phase2_stat_bonus configs (got %d)" % bonus_strings.size())
+
+	## Test: DEF bonus applies correctly in phase transition
+	var ironbark_def: BossDef = _data_loader.get_boss("minor_01")
+	_assert(ironbark_def.phase2_stat_bonus.has("def"), "Ironbark boss has DEF phase2 bonus")
+
+	var boss_species: GlyphSpecies = _data_loader.get_species(ironbark_def.species_id)
+	var boss: GlyphInstance = GlyphInstance.create_from_species(boss_species, _data_loader)
+	boss.is_boss = true
+	boss.boss_phase = 1
+	for tid: String in ironbark_def.phase1_technique_ids:
+		var tech: TechniqueDef = _data_loader.get_technique(tid)
+		if tech != null:
+			boss.techniques.append(tech)
+
+	var pre_def: int = boss.def_stat
+	boss.current_hp = boss.max_hp / 2
+	_engine._boss = boss
+	_engine._boss_def = ironbark_def
+	_engine._check_boss_phase_transition(boss)
+	_assert(boss.boss_phase == 2, "Boss entered phase 2")
+	_assert(boss.def_stat > pre_def, "Boss DEF increased from %d to %d after phase 2" % [pre_def, boss.def_stat])
+
+	## Test: boss with only ATK bonus doesn't change DEF
+	var apex_def: BossDef = _data_loader.get_boss("apex_01")
+	var nw_sp: GlyphSpecies = _data_loader.get_species(apex_def.species_id)
+	var nw_boss: GlyphInstance = GlyphInstance.create_from_species(nw_sp, _data_loader)
+	nw_boss.is_boss = true
+	nw_boss.boss_phase = 1
+	for tid: String in apex_def.phase1_technique_ids:
+		var tech: TechniqueDef = _data_loader.get_technique(tid)
+		if tech != null:
+			nw_boss.techniques.append(tech)
+	var nw_pre_def: int = nw_boss.def_stat
+	var nw_pre_atk: int = nw_boss.atk
+	nw_boss.current_hp = nw_boss.max_hp / 2
+	_engine._boss = nw_boss
+	_engine._boss_def = apex_def
+	_engine._check_boss_phase_transition(nw_boss)
+	_assert(nw_boss.boss_phase == 2, "Nullweaver entered phase 2")
+	_assert(nw_boss.atk > nw_pre_atk, "Nullweaver ATK increased (had 20%% ATK bonus)")
+	_assert(nw_boss.def_stat == nw_pre_def, "Nullweaver DEF unchanged (no DEF bonus)")
+
+	## Test: RES bonus for standard_02 terradon
+	var terra_def: BossDef = _data_loader.get_boss("standard_02")
+	_assert(terra_def.phase2_stat_bonus.has("res"), "Terradon boss has RES phase2 bonus")
+	_assert(terra_def.phase2_stat_bonus.has("def"), "Terradon boss has DEF phase2 bonus")
+
+	## Clean up engine state
+	_engine._boss = null
+	_engine._boss_def = null
+
 
 func _on_technique_used(user: GlyphInstance, technique: TechniqueDef, target: GlyphInstance, damage: int) -> void:
 	_events.append("TECHNIQUE: %s uses %s on %s → %d dmg" % [user.species.name, technique.name, target.species.name, damage])

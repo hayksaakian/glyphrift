@@ -69,10 +69,9 @@ func play_transition(changes: Dictionary = {}) -> void:
 
 func _format_changes(changes: Dictionary) -> String:
 	var parts: Array[String] = []
-	if changes.has("atk"):
-		parts.append("ATK %s" % changes["atk"])
-	if changes.has("spd"):
-		parts.append("SPD %s" % changes["spd"])
+	for stat_key: String in ["atk", "def", "spd", "res"]:
+		if changes.has(stat_key):
+			parts.append("%s %s" % [stat_key.to_upper(), changes[stat_key]])
 	if changes.has("new_techniques"):
 		var techs: Array = changes["new_techniques"]
 		for t_name: Variant in techs:

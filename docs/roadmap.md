@@ -4,7 +4,7 @@
 
 These items address systems that exist but don't fully work. Highest priority.
 
-- [ ] **Boss phase 2 variety** — bosses are the climax of each rift but feel samey. Design principle: bosses should showcase their species' full potential, not apply arbitrary stat modifiers. A boss's "trademark move" is just a powerful technique that species naturally has — the boss encounter is where the player first sees it in a dangerous context (tough squad, smart combos). New systems are welcome if they serve this. When the player later encounters or captures that species, it still has that move — the boss was a preview, not a one-off gimmick. Write distinct phase 2 technique sets, squad compositions, and combo strategies per boss.
+- [x] **Boss phase 2 variety** — bosses are the climax of each rift but feel samey. Design principle: bosses should showcase their species' full potential, not apply arbitrary stat modifiers. _(All 7 non-tutorial bosses now have distinct 2-3 member squads with themed compositions: Ironbark=double tank wall, Vortail=debuff duo, Thunderclaw=melee aggro, Stormfang=stun-lock trio, Terradon=sustain wall+healer, Riftmaw=void debuff trio, Nullweaver=full water squad. Phase 2 stat bonuses vary per boss identity: DEF for tanks, SPD for fast attackers, ATK for nukers, DEF+RES for walls. Engine extended to support def/res phase 2 bonuses.)_
 
 - [x] **Turn queue clarity** — show upcoming turns clearly enough that interrupt/speed decisions feel strategic, not guesswork. UI-only change on the existing turn_queue system. _(SPD badges, stun skip indicator, active turn arrow, round separators)_
 
@@ -76,7 +76,7 @@ Important but not urgent. Do these as the game stabilizes.
 - [ ] **Capture screen flow** — recruit→capture connection isn't obvious to players; add "Recruited!" callout
 - [x] **Tutorial completeness** — GDD 12.1 specifies guided overlays; verify all tutorial elements present _(tutorial hints system implemented)_
 - [x] **Formation UX** — strategic impact of front/back row isn't communicated well to new players _(skip mandatory formation, Fight+Formation buttons on combat popup)_
-- [ ] **Rift info button in dungeon** — add an (i) button next to the rift name in the dungeon HUD that opens a summary popup with the same info shown on the rift selection screen (boss name/species, rift tier, floor count, hazard type, etc.). Players forget what they're up against mid-rift.
+- [x] **Rift info button in dungeon** — add an (i) button next to the rift name in the dungeon HUD that opens a summary popup with the same info shown on the rift selection screen (boss name/species, rift tier, floor count, hazard type, etc.). Players forget what they're up against mid-rift. _(implemented: (i) button in dungeon header, popup shows tier/floors/hazard/boss/pool size)_
 - [ ] **Text overflow** — various popups and labels may clip on different resolutions
 - [x] **Difficulty curve validation** — play through full 7-rift arc and verify pacing, resource pressure, enemy scaling _(balance pass done in session 10)_
 - [x] **Balance pass** — technique power, status durations, capture rates, energy economy _(verified in session 10)_
