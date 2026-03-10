@@ -66,7 +66,7 @@ Broken into phases. Each phase builds on the last.
 - [ ] **NPC side quests** — GDD mentions Lira's "bring me a Water T2" quest type; not implemented
 - [ ] **Lore objects** — GDD 7.8 mentions murals, data fragments, broken pods in rift rooms; no environmental storytelling currently
 - [x] **Echo flavor text** — give echo encounters memory fragments or species lore snippets _(Done in Tier 2 echo encounters as mini-stories)_
-- [ ] **Hidden room rewards** — hidden rooms exist but need more interesting/unique content
+- [x] **Hidden room rewards** — hidden rooms exist but need more interesting/unique content _(Hidden rooms now give item + 15 hull HP restore bonus, differentiated from regular caches)_
 
 ## Tier 4 — Polish & QoL
 
@@ -82,7 +82,7 @@ Important but not urgent. Do these as the game stabilizes.
 - [x] **Balance pass** — technique power, status durations, capture rates, energy economy _(verified in session 10)_
 - [x] **Rift re-entry variation** — GDD says boss reshuffles content; verify it feels different on repeat _(Verified: pool-based rooms use weighted random resolution on each generate(), enemy species are randomly picked with uniqueness bias, puzzle types cycle round-robin. Each re-entry produces different room types and encounters.)_
 - [x] **Save slot management** — currently single save; multiple slots or "are you sure?" on new game _(3 save slots + autosave implemented)_
-- [ ] **Settings screen** — no options menu (text speed, animation speed, controls)
+- [x] **Settings screen** — no options menu (text speed, animation speed, controls) _(Battle speed setting: Normal/Fast/Instant via pause menu Settings button. GameSettings persists to user://settings.json. Scales AnimationQueue delays.)_
 - [ ] **Accessibility** — no colorblind mode, font size options, or input remapping
 - [x] **Endgame / post-apex** — what happens after clearing all 7 rifts? _(Shows "ALL RIFTS CONQUERED!" message with codex discovery percentage when last rift is cleared. Player returns to bastion and can re-enter rifts for captures/completion.)_
 - [ ] **Crawler upgrade: Rift Transmitter** — when bench is full during capture, allow sending caught glyph directly to bastion reserves. Crawler upgrade (not default) — keeps early-game tension, gives late-game QoL.
