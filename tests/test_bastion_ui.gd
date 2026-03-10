@@ -515,7 +515,7 @@ func _test_barracks_reserve_full() -> void:
 	print("--- Barracks: Reserve Full ---")
 	var rs: RosterState = _make_roster_state()
 	var cs: CrawlerState = _make_crawler_state()
-	cs.cargo_slots = 0
+	cs.bench_slots = 0
 	rs.initialize_starting_glyphs(_data_loader)
 
 	var barracks: Barracks = Barracks.new()
@@ -526,7 +526,7 @@ func _test_barracks_reserve_full() -> void:
 	## Squad→reserve always allowed (rearranging existing roster, not adding new glyphs)
 	var g: GlyphInstance = rs.active_squad[0]
 	barracks._remove_from_squad(g)
-	_assert(rs.active_squad.size() == 2, "squad to reserve allowed even at cargo 0 (roster unchanged)")
+	_assert(rs.active_squad.size() == 2, "squad to reserve allowed even at bench 0 (roster unchanged)")
 
 	_cleanup_node(barracks)
 	_cleanup_node(rs)

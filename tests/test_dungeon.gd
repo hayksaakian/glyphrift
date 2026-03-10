@@ -229,7 +229,7 @@ func _test_crawler_apply_upgrade() -> void:
 	_crawler.max_hull_hp = 100
 	_crawler.max_energy = 50
 	_crawler.capacity = 12
-	_crawler.cargo_slots = 2
+	_crawler.bench_slots = 2
 	_crawler.unlocked_chassis = ["standard"]
 
 	_crawler.apply_upgrade({"type": "hull_hp", "value": 20})
@@ -241,8 +241,8 @@ func _test_crawler_apply_upgrade() -> void:
 	_crawler.apply_upgrade({"type": "capacity", "value": 2})
 	_assert(_crawler.capacity == 14, "Capacity upgrade +2 (got %d)" % _crawler.capacity)
 
-	_crawler.apply_upgrade({"type": "cargo", "value": 1})
-	_assert(_crawler.cargo_slots == 3, "Cargo upgrade +1 (got %d)" % _crawler.cargo_slots)
+	_crawler.apply_upgrade({"type": "bench", "value": 1})
+	_assert(_crawler.bench_slots == 3, "Bench upgrade +1 (got %d)" % _crawler.bench_slots)
 
 	_crawler.apply_upgrade({"type": "chassis", "chassis_id": "scout"})
 	_assert(_crawler.unlocked_chassis.has("scout"), "Scout chassis unlocked")
@@ -259,7 +259,7 @@ func _test_crawler_apply_upgrade() -> void:
 	_crawler.max_hull_hp = 100
 	_crawler.max_energy = 50
 	_crawler.capacity = 12
-	_crawler.cargo_slots = 2
+	_crawler.bench_slots = 2
 	_crawler.unlocked_chassis = ["standard"]
 
 
@@ -271,11 +271,11 @@ func _test_crawler_persistent_properties() -> void:
 	_crawler.max_energy = 50
 	_crawler.capacity = 12
 	_crawler.slots = 3
-	_crawler.cargo_slots = 2
+	_crawler.bench_slots = 2
 
 	_assert(_crawler.capacity == 12, "Default capacity is 12")
 	_assert(_crawler.slots == 3, "Default slots is 3")
-	_assert(_crawler.cargo_slots == 2, "Default cargo_slots is 2")
+	_assert(_crawler.bench_slots == 2, "Default bench_slots is 2")
 
 	## These persist across runs
 	_crawler.capacity = 14

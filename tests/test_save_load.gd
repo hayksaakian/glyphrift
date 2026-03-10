@@ -61,7 +61,7 @@ func _run_tests() -> void:
 	## Mid-rift save/load tests
 	_test_mid_rift_save_round_trip()
 	_test_mid_rift_crawler_run_state()
-	_test_mid_rift_rift_cargo()
+	_test_mid_rift_rift_bench()
 	_test_mid_rift_room_state_preserved()
 	_test_no_dungeon_means_bastion()
 
@@ -503,7 +503,7 @@ func _test_crawler_upgrades() -> void:
 	crs1.max_energy = 60
 	crs1.capacity = 16
 	crs1.slots = 4
-	crs1.cargo_slots = 3
+	crs1.bench_slots = 3
 
 	SaveManager.save_game(gs1, rs1, cs1, crs1)
 
@@ -517,7 +517,7 @@ func _test_crawler_upgrades() -> void:
 	_assert(crs2.max_energy == 60, "crawler: max_energy == 60")
 	_assert(crs2.capacity == 16, "crawler: capacity == 16")
 	_assert(crs2.slots == 4, "crawler: slots == 4")
-	_assert(crs2.cargo_slots == 3, "crawler: cargo_slots == 3")
+	_assert(crs2.bench_slots == 3, "crawler: bench_slots == 3")
 
 	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
 
@@ -902,9 +902,9 @@ func _test_mid_rift_crawler_run_state() -> void:
 	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
 
 
-func _test_mid_rift_rift_cargo() -> void:
+func _test_mid_rift_rift_bench() -> void:
 	print("")
-	print("--- Mid-rift: Rift cargo ---")
+	print("--- Mid-rift: Rift bench ---")
 	var gs1: GameState = _make_game_state()
 	var rs1: RosterState = _make_roster_state()
 	var cs1: CodexState = _make_codex_state()
@@ -915,10 +915,11 @@ func _test_mid_rift_rift_cargo() -> void:
 	var ds1: DungeonState = _make_dungeon_state(crs1)
 	gs1.current_dungeon = ds1
 
-	var cargo_glyph: GlyphInstance = _make_glyph("sparkfin")
-	var cargo: Array[GlyphInstance] = [cargo_glyph]
+	var bench_glyph: GlyphInstance = _make_glyph("sparkfin")
+	rs1.add_glyph(bench_glyph)  ## Bench glyphs must be in roster
+	var bench: Array[GlyphInstance] = [bench_glyph]
 
-	SaveManager.save_game(gs1, rs1, cs1, crs1, cargo)
+	SaveManager.save_game(gs1, rs1, cs1, crs1, bench)
 
 	var gs2: GameState = _make_game_state()
 	var rs2: RosterState = _make_roster_state()
@@ -926,9 +927,11 @@ func _test_mid_rift_rift_cargo() -> void:
 	var crs2: CrawlerState = _make_crawler_state()
 
 	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
-	var loaded_cargo: Array = SaveManager.last_load_rift_data.get("rift_cargo", [])
-	_assert(loaded_cargo.size() == 1, "mid-rift cargo: 1 item")
-	_assert((loaded_cargo[0] as GlyphInstance).species.id == "sparkfin", "mid-rift cargo: sparkfin")
+	var loaded_bench: Array = SaveManager.last_load_rift_data.get("rift_bench", [])
+	_assert(loaded_bench.size() == 1, "mid-rift bench: 1 item")
+	_assert((loaded_bench[0] as GlyphInstance).species.id == "sparkfin", "mid-rift bench: sparkfin")
+	## Verify bench glyph is the SAME object as roster glyph (not a duplicate)
+	_assert(loaded_bench[0] == rs2.all_glyphs[rs2.all_glyphs.size() - 1], "mid-rift bench: same instance as roster")
 
 	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
 

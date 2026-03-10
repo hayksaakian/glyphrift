@@ -228,7 +228,7 @@ func _dungeon_loop(template: RiftTemplate) -> void:
 		print("    P. Purge hazard (%d energy)" % _crawler.get_ability_cost("purge"))
 		print("    W. Emergency Warp (%d energy)" % _crawler.get_ability_cost("emergency_warp"))
 		if not _crawler.items.is_empty():
-			print("    I. Use Item (%d in cargo)" % _crawler.items.size())
+			print("    I. Use Item (%d items)" % _crawler.items.size())
 		print("    0. Flee rift (return to Bastion)")
 		print("")
 
@@ -328,7 +328,7 @@ func _handle_room(room: Dictionary, template: RiftTemplate) -> void:
 			if _crawler.add_item(item):
 				print("  Found: %s — %s" % [item.name, item.description])
 			else:
-				print("  Found %s but cargo is full!" % item.name)
+				print("  Found %s but inventory is full!" % item.name)
 			room["looted"] = true
 		"hazard":
 			pass  ## Damage handled by DungeonState; display via signals + reinforced check
@@ -672,9 +672,9 @@ func _attempt_capture(enemies: Array[GlyphInstance], template: RiftTemplate) -> 
 		print("  CAPTURED %s!" % target.species.name)
 		var new_glyph: GlyphInstance = GlyphInstance.create_from_species(target.species, _dl)
 		new_glyph.mastery_objectives = MasteryTracker.build_mastery_track(target.species, _dl.mastery_pools)
-		var max_roster: int = _crawler.slots + _crawler.cargo_slots
+		var max_roster: int = _crawler.slots + _crawler.bench_slots
 		if _roster.get_glyph_count() >= max_roster:
-			## GDD: Cargo full — swap or leave
+			## GDD: Bench full — swap or leave
 			print("  Roster full! (%d/%d)" % [_roster.get_glyph_count(), max_roster])
 			print("  Swap with an existing glyph, or leave the capture?")
 			for i: int in range(_roster.all_glyphs.size()):
@@ -925,7 +925,7 @@ func _view_crawler() -> void:
 	print("  Energy: %d/%d" % [_crawler.energy, _crawler.max_energy])
 	print("  Capacity: %d GP" % _crawler.capacity)
 	print("  Slots: %d" % _crawler.slots)
-	print("  Cargo: %d" % _crawler.cargo_slots)
+	print("  Bench: %d" % _crawler.bench_slots)
 	print("  Chassis: %s" % _crawler.active_chassis)
 	print("  Items: %d/%d" % [_crawler.items.size(), CrawlerState.MAX_ITEMS])
 	for item: ItemDef in _crawler.items:
@@ -938,7 +938,7 @@ func _view_crawler() -> void:
 
 func _use_item() -> void:
 	if _crawler.items.is_empty():
-		print("  No items in cargo.")
+		print("  No items in inventory.")
 		return
 
 	print("")

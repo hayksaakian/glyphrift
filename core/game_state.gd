@@ -62,7 +62,7 @@ func start_new_game() -> void:
 	crawler_state.max_energy = 50
 	crawler_state.capacity = 12
 	crawler_state.slots = 3
-	crawler_state.cargo_slots = 2
+	crawler_state.bench_slots = 2
 	crawler_state.active_chassis = "standard"
 	crawler_state.unlocked_chassis = ["standard"]
 	npc_read_phase = {"kael": 0, "lira": 0, "maro": 0}

@@ -28,7 +28,7 @@
     "type": "chassis",
     "chassis_id": "hauler",
     "value": 0,
-    "description": "Unlock Hauler chassis (+1 Cargo slot, -10 Hull HP)"
+    "description": "Unlock Hauler chassis (+1 Bench slot, -10 Hull HP)"
   },
   {
     "id": "all_affinities",
@@ -40,9 +40,9 @@
   {
     "id": "fuse_10_unique",
     "milestone": "Fuse 10 unique Glyph species",
-    "type": "cargo",
+    "type": "bench",
     "value": 1,
-    "description": "+1 Cargo slot"
+    "description": "+1 Bench slot"
   },
   {
     "id": "seal_major_rift",

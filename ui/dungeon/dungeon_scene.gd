@@ -23,6 +23,7 @@ enum UIState {
 	FLOOR_TRANSITION,
 	RESULT,
 	PUZZLE,
+	SQUAD_SWAP,
 }
 
 var dungeon_state: DungeonState = null
@@ -31,6 +32,7 @@ var _state: UIState = UIState.EXPLORING
 
 var roster_state: RosterState = null  ## Injectable — for item use
 var codex_state: CodexState = null  ## Injectable — for conduit reveal reward
+var rift_pool: Array[GlyphInstance] = []  ## All glyphs available in this rift (squad + bench)
 var _squad_overlay: Variant = null  ## Set by MainScene — for ward charm glyph effects
 
 ## Puzzle overlays
@@ -102,6 +104,9 @@ var _pending_formation_room_data: Dictionary = {}
 ## Pause menu
 var _pause_menu: PauseMenu = null
 
+## Squad swap popup
+var _squad_swap_popup: SquadSwapPopup = null
+
 ## Tutorial hint tracking (tutorial_01 only)
 var _tutorial_hints_shown: Dictionary = {}
 var _tutorial_label: Label = null
@@ -116,6 +121,11 @@ func _ready() -> void:
 func start_rift(p_dungeon_state: DungeonState) -> void:
 	dungeon_state = p_dungeon_state
 	_connect_dungeon_signals()
+	## Build initial rift pool from current squad
+	rift_pool.clear()
+	if roster_state != null:
+		for g: GlyphInstance in roster_state.active_squad:
+			rift_pool.append(g)
 
 	## Pass instant_mode to floor map
 	_floor_map.instant_mode = instant_mode
@@ -281,6 +291,13 @@ func _build_scene_tree() -> void:
 	_pause_menu.save_and_quit_pressed.connect(func() -> void: save_and_quit_pressed.emit())
 	_pause_menu.save_slot_loaded.connect(func() -> void: save_slot_loaded.emit())
 	add_child(_pause_menu)
+
+	## Squad swap popup (full-screen overlay, hidden)
+	_squad_swap_popup = SquadSwapPopup.new()
+	_squad_swap_popup.name = "SquadSwapPopup"
+	_squad_swap_popup.swap_completed.connect(_on_swap_completed)
+	_squad_swap_popup.swap_cancelled.connect(_on_swap_cancelled)
+	add_child(_squad_swap_popup)
 
 	## Room popup (centered, hidden)
 	_room_popup = RoomPopup.new()
@@ -977,6 +994,35 @@ func _on_capture_dismissed() -> void:
 		_show_result(true)
 	else:
 		_state = UIState.EXPLORING
+
+
+func _on_swap_pressed() -> void:
+	if _state != UIState.EXPLORING:
+		return
+	## Need at least one benchable glyph
+	var bench_count: int = 0
+	if roster_state != null:
+		for g: GlyphInstance in rift_pool:
+			if not roster_state.active_squad.has(g):
+				bench_count += 1
+	if bench_count == 0:
+		return
+	_state = UIState.SQUAD_SWAP
+	_squad_swap_popup.roster_state = roster_state
+	_squad_swap_popup.crawler_state = dungeon_state.crawler if dungeon_state else null
+	_squad_swap_popup.rift_pool = rift_pool
+	_squad_swap_popup.show_popup()
+
+
+func _on_swap_completed() -> void:
+	_squad_swap_popup.hide_popup()
+	_state = UIState.EXPLORING
+	squad_changed.emit()
+
+
+func _on_swap_cancelled() -> void:
+	_squad_swap_popup.hide_popup()
+	_state = UIState.EXPLORING
 
 
 func _on_items_pressed() -> void:

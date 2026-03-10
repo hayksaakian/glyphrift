@@ -6,7 +6,7 @@ var max_hull_hp: int = 100
 var max_energy: int = 50
 var capacity: int = 12                     ## Maximum combined Glyph Power in active squad
 var slots: int = 3                         ## Number of Glyphs in active battle squad
-var cargo_slots: int = 2                   ## Extra Glyphs capturable per dungeon run
+var bench_slots: int = 2                   ## Max non-active glyphs during a rift run
 var active_chassis: String = "standard"
 var unlocked_chassis: Array[String] = ["standard"]
 
@@ -96,8 +96,8 @@ func apply_upgrade(upgrade: Dictionary) -> void:
 			max_energy += value
 		"capacity":
 			capacity += value
-		"cargo":
-			cargo_slots += value
+		"bench":
+			bench_slots += value
 		"chassis":
 			var chassis_id: String = upgrade.get("chassis_id", "")
 			if chassis_id != "" and not unlocked_chassis.has(chassis_id):

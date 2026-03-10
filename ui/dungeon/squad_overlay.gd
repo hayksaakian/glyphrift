@@ -6,14 +6,16 @@ extends PanelContainer
 ## Click any glyph name to open the detail popup.
 
 signal glyph_clicked(glyph: GlyphInstance)
+signal swap_pressed
 
 var _vbox: VBoxContainer = null
 var _entries: Array[Dictionary] = []  ## [{glyph, name_label, hp_bar, hp_label, effect_badge}]
 var _reserve_header: Label = null
 var _reserve_rows: Array[HBoxContainer] = []
+var _swap_btn: Button = null
 var _roster_state: RosterState = null
-var _cargo: Array[GlyphInstance] = []
-var _cargo_capacity: int = 0
+var _crawler_state: CrawlerState = null
+var _rift_pool: Array[GlyphInstance] = []
 
 
 func _ready() -> void:
@@ -37,23 +39,34 @@ func _ready() -> void:
 	add_child(_vbox)
 
 
-func setup(squad: Array[GlyphInstance], p_roster_state: RosterState = null, p_cargo: Array[GlyphInstance] = [], p_cargo_capacity: int = 0) -> void:
+func setup(squad: Array[GlyphInstance], p_roster_state: RosterState = null, p_rift_pool: Array[GlyphInstance] = [], p_crawler_state: CrawlerState = null) -> void:
 	_roster_state = p_roster_state
-	_cargo = p_cargo
-	_cargo_capacity = p_cargo_capacity
+	_crawler_state = p_crawler_state
+	_rift_pool = p_rift_pool
 	_clear_entries()
 
 	for g: GlyphInstance in squad:
 		var entry: Dictionary = _make_entry(g)
 		_entries.append(entry)
 
-	## Reserve header (hidden until reserves exist)
+	## Bench header (hidden until bench glyphs exist)
 	_reserve_header = Label.new()
-	_reserve_header.text = "Reserves"
+	_reserve_header.text = "Bench"
 	_reserve_header.add_theme_font_size_override("font_size", 9)
 	_reserve_header.add_theme_color_override("font_color", Color("#888888"))
 	_reserve_header.visible = false
 	_vbox.add_child(_reserve_header)
+
+	## Swap button at the bottom
+	_swap_btn = Button.new()
+	_swap_btn.name = "SwapButton"
+	_swap_btn.text = "⇄ Swap"
+	_swap_btn.add_theme_font_size_override("font_size", 10)
+	_swap_btn.custom_minimum_size.y = 24
+	_swap_btn.tooltip_text = "Swap bench glyphs into your active squad"
+	_swap_btn.pressed.connect(func() -> void: swap_pressed.emit())
+	_swap_btn.visible = false
+	_vbox.add_child(_swap_btn)
 
 	refresh()
 
@@ -91,16 +104,23 @@ func _refresh_reserves() -> void:
 		row.queue_free()
 	_reserve_rows.clear()
 
-	## Use cargo (glyphs captured this rift) instead of full roster reserves
-	var reserves: Array[GlyphInstance] = _cargo
+	## Show rift pool glyphs that aren't currently in the active squad
+	var reserves: Array[GlyphInstance] = []
+	var squad_set: Array[GlyphInstance] = []
+	for entry: Dictionary in _entries:
+		squad_set.append(entry["glyph"])
+	for g: GlyphInstance in _rift_pool:
+		if not squad_set.has(g):
+			reserves.append(g)
 
 	if _reserve_header != null:
-		if _cargo_capacity > 0:
-			_reserve_header.text = "Cargo %d/%d" % [reserves.size(), _cargo_capacity]
-			_reserve_header.visible = true
-		else:
-			_reserve_header.visible = not reserves.is_empty()
-			_reserve_header.text = "Reserves"
+		var bench_limit: int = _crawler_state.bench_slots if _crawler_state else 0
+		_reserve_header.visible = not reserves.is_empty() or bench_limit > 0
+		_reserve_header.text = "Bench %d/%d" % [reserves.size(), bench_limit] if bench_limit > 0 else "Bench"
+
+	## Show swap button when there are bench glyphs to swap with
+	if _swap_btn != null:
+		_swap_btn.visible = not reserves.is_empty()
 
 	for g: GlyphInstance in reserves:
 		var row: HBoxContainer = HBoxContainer.new()
@@ -201,6 +221,7 @@ func _clear_entries() -> void:
 	_entries.clear()
 	_reserve_rows.clear()
 	_reserve_header = null
+	_swap_btn = null
 	for child: Node in _vbox.get_children():
 		_vbox.remove_child(child)
 		child.queue_free()

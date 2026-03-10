@@ -187,7 +187,7 @@ func _test_all_affinities() -> void:
 func _test_fuse_10_unique() -> void:
 	print("--- Fuse 10 Unique Species ---")
 	var mt: MilestoneTracker = _make_tracker()
-	var initial_cargo: int = mt.crawler_state.cargo_slots
+	var initial_bench: int = mt.crawler_state.bench_slots
 
 	## Log 9 unique fusions
 	for i: int in range(9):
@@ -199,7 +199,7 @@ func _test_fuse_10_unique() -> void:
 	mt.codex_state.log_fusion("a9", "b9", "result_9")
 	mt.on_fusion_performed()
 	_assert(mt.is_completed("fuse_10_unique"), "Fuse 10 unique milestone completed")
-	_assert(mt.crawler_state.cargo_slots == initial_cargo + 1, "Cargo slots increased by 1 (got %d)" % mt.crawler_state.cargo_slots)
+	_assert(mt.crawler_state.bench_slots == initial_bench + 1, "Bench slots increased by 1 (got %d)" % mt.crawler_state.bench_slots)
 
 	_cleanup_crawler(mt)
 

@@ -30,8 +30,6 @@ var instant_mode: bool = false
 ## Track current rift template for completion
 var _current_rift_template: RiftTemplate = null
 
-## Glyphs captured during the current rift run (shown as "cargo" in squad overlay)
-var _rift_cargo: Array[GlyphInstance] = []
 
 
 func _ready() -> void:
@@ -200,6 +198,7 @@ func _connect_signals() -> void:
 	_dungeon_scene.save_slot_loaded.connect(_on_save_slot_loaded)
 	_battle_scene.battle_finished.connect(_on_battle_finished)
 	_squad_overlay.glyph_clicked.connect(_on_squad_overlay_glyph_clicked)
+	_squad_overlay.swap_pressed.connect(func() -> void: _dungeon_scene._on_swap_pressed())
 
 
 ## --- State transitions ---
@@ -227,7 +226,7 @@ func _show_dungeon() -> void:
 	_dungeon_scene.visible = true
 	_battle_scene.visible = false
 	_squad_overlay.visible = true
-	_squad_overlay.setup(roster_state.active_squad, null, _rift_cargo, crawler_state.cargo_slots)
+	_squad_overlay.setup(roster_state.active_squad, null, _dungeon_scene.rift_pool, crawler_state)
 	_squad_overlay.refresh()
 
 
@@ -290,7 +289,6 @@ func grb_enter_first_rift() -> void:
 func _on_rift_selected(template: RiftTemplate) -> void:
 	_auto_save()
 	_current_rift_template = template
-	_rift_cargo.clear()
 	crawler_state.begin_run()
 	game_state.start_rift(template)
 	_dungeon_scene.instant_mode = instant_mode
@@ -341,17 +339,20 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 		wild_glyph.species, data_loader.mastery_pools
 	)
 
-	## Check cargo capacity
-	if _rift_cargo.size() >= crawler_state.cargo_slots:
-		## Cargo full — show swap UI
+	## Check bench capacity (non-squad glyphs in rift pool)
+	var bench_count: int = _dungeon_scene.rift_pool.size() - roster_state.active_squad.size()
+	if bench_count >= crawler_state.bench_slots:
+		## Bench full — show swap UI (release a bench glyph to make room)
+		var bench_glyphs: Array[GlyphInstance] = _get_bench_glyphs()
 		var popup: CapturePopup = _dungeon_scene._capture_popup
-		popup.show_cargo_swap(wild_glyph, _rift_cargo)
-		if not popup.cargo_swap_chosen.is_connected(_on_cargo_swap):
-			popup.cargo_swap_chosen.connect(_on_cargo_swap)
+		popup.show_bench_swap(wild_glyph, bench_glyphs)
+		if not popup.bench_swap_chosen.is_connected(_on_bench_swap):
+			popup.bench_swap_chosen.connect(_on_bench_swap)
 		return
 
 	roster_state.add_glyph(wild_glyph)
-	_rift_cargo.append(wild_glyph)
+	if not _dungeon_scene.rift_pool.has(wild_glyph):
+		_dungeon_scene.rift_pool.append(wild_glyph)
 	codex_state.discover_species(wild_glyph.species.id)
 
 	## Notify mastery tracker about the capture
@@ -363,7 +364,7 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 		game_state.notify_capture(wild_glyph)
 
 	## Update popup to confirm where the glyph went
-	_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to cargo."
+	_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to bench."
 
 	## Append capture info to room history
 	_append_room_history("Captured %s." % wild_glyph.species.name)
@@ -372,14 +373,23 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 	_squad_overlay.refresh()
 
 
-func _on_cargo_swap(keep_glyph: GlyphInstance, release_glyph: GlyphInstance) -> void:
-	## Remove released glyph from cargo and roster
-	_rift_cargo.erase(release_glyph)
+func _get_bench_glyphs() -> Array[GlyphInstance]:
+	var result: Array[GlyphInstance] = []
+	for g: GlyphInstance in _dungeon_scene.rift_pool:
+		if not roster_state.active_squad.has(g):
+			result.append(g)
+	return result
+
+
+func _on_bench_swap(keep_glyph: GlyphInstance, release_glyph: GlyphInstance) -> void:
+	## Remove released glyph from rift pool and roster
 	roster_state.remove_glyph(release_glyph)
+	_dungeon_scene.rift_pool.erase(release_glyph)
 
 	## Add new glyph
 	roster_state.add_glyph(keep_glyph)
-	_rift_cargo.append(keep_glyph)
+	if not _dungeon_scene.rift_pool.has(keep_glyph):
+		_dungeon_scene.rift_pool.append(keep_glyph)
 	codex_state.discover_species(keep_glyph.species.id)
 
 	## Notify mastery tracker about the capture
@@ -405,7 +415,6 @@ func _on_rift_completed(won: bool) -> void:
 	## Heal all glyphs when returning to bastion
 	_heal_all_glyphs()
 
-	_rift_cargo.clear()
 	_auto_save()
 
 	var msg: String = ""
@@ -428,6 +437,7 @@ func _heal_all_glyphs() -> void:
 
 
 func _on_squad_changed() -> void:
+	_squad_overlay.setup(roster_state.active_squad, null, _dungeon_scene.rift_pool, crawler_state)
 	_squad_overlay.refresh()
 
 
@@ -521,7 +531,10 @@ func _on_save_and_quit() -> void:
 func _auto_save() -> void:
 	if game_state == null:
 		return
-	SaveManager.save_game(game_state, roster_state, codex_state, crawler_state, _rift_cargo)
+	var bench: Array[GlyphInstance] = []
+	if _dungeon_scene != null and _dungeon_scene.visible:
+		bench = _get_bench_glyphs()
+	SaveManager.save_game(game_state, roster_state, codex_state, crawler_state, bench)
 
 
 ## --- Mid-rift resume ---
@@ -536,15 +549,20 @@ func _try_resume_rift() -> bool:
 		return false
 
 	_current_rift_template = ds.rift_template
-	_rift_cargo.clear()
-	var cargo: Array = rift_data.get("rift_cargo", [])
-	for g: Variant in cargo:
-		if g is GlyphInstance:
-			_rift_cargo.append(g as GlyphInstance)
 
 	_dungeon_scene.instant_mode = instant_mode
 	_show_dungeon()
 	_dungeon_scene.start_rift(ds)
+	## Add bench glyphs to rift pool (start_rift only adds squad)
+	var bench: Array = rift_data.get("rift_bench", rift_data.get("rift_cargo", []))
+	for g: Variant in bench:
+		if g is GlyphInstance:
+			if not _dungeon_scene.rift_pool.has(g as GlyphInstance):
+				_dungeon_scene.rift_pool.append(g as GlyphInstance)
+
+	## Re-setup overlay now that rift_pool is fully populated
+	_squad_overlay.setup(roster_state.active_squad, null, _dungeon_scene.rift_pool, crawler_state)
+	_squad_overlay.refresh()
 
 	## Clear so subsequent loads don't re-trigger
 	SaveManager.last_load_rift_data = {}

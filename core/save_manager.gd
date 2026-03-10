@@ -13,7 +13,7 @@ const _LEGACY_PATH: String = "user://save.json"
 static var _test_prefix: String = ""
 
 ## After load_from_slot, this contains mid-rift data if the save was mid-rift.
-## Keys: "in_rift" (bool), "dungeon_state" (DungeonState), "rift_cargo" (Array[GlyphInstance])
+## Keys: "in_rift" (bool), "dungeon_state" (DungeonState), "rift_bench" (Array[GlyphInstance])
 static var last_load_rift_data: Dictionary = {}
 
 
@@ -31,7 +31,7 @@ static func save_to_slot(
 	codex_state: CodexState,
 	crawler_state: CrawlerState,
 	label: String = "",
-	rift_cargo: Array[GlyphInstance] = [],
+	rift_bench: Array[GlyphInstance] = [],
 ) -> bool:
 	var data: Dictionary = {
 		"version": SAVE_VERSION,
@@ -44,15 +44,18 @@ static func save_to_slot(
 		"milestone_tracker": _serialize_milestone_tracker(game_state.milestone_tracker),
 	}
 
-	## Mid-rift save: include dungeon state + run-specific crawler state + cargo
+	## Mid-rift save: include dungeon state + run-specific crawler state + bench
 	if game_state.current_dungeon != null:
 		data["in_rift"] = true
 		data["dungeon_state"] = _serialize_dungeon_state(game_state.current_dungeon)
 		data["crawler_run_state"] = _serialize_crawler_run_state(crawler_state)
-		var cargo_data: Array[Dictionary] = []
-		for g: GlyphInstance in rift_cargo:
-			cargo_data.append(_serialize_glyph(g))
-		data["rift_cargo"] = cargo_data
+		## Save bench as indices into roster all_glyphs (same instance on load)
+		var bench_indices: Array[int] = []
+		for g: GlyphInstance in rift_bench:
+			var idx: int = roster_state.all_glyphs.find(g)
+			if idx >= 0:
+				bench_indices.append(idx)
+		data["rift_bench_indices"] = bench_indices
 
 	var path: String = _slot_path(slot)
 	var json_string: String = JSON.stringify(data, "\t")
@@ -110,18 +113,27 @@ static func load_from_slot(
 		if ds != null:
 			## Restore crawler per-run state (hull, energy, etc.)
 			_deserialize_crawler_run_state(data.get("crawler_run_state", {}), crawler_state, data_loader)
-			## Restore rift cargo
-			var cargo: Array[GlyphInstance] = []
-			for gd: Dictionary in data.get("rift_cargo", []):
-				var g: GlyphInstance = _deserialize_glyph(gd, data_loader)
-				if g != null:
-					cargo.append(g)
+			## Restore rift bench from indices into roster (same object references)
+			var bench: Array[GlyphInstance] = []
+			if data.has("rift_bench_indices"):
+				var idx_arr: Array = data.get("rift_bench_indices", [])
+				for idx_val: Variant in idx_arr:
+					var idx: int = int(idx_val)
+					if idx >= 0 and idx < roster_state.all_glyphs.size():
+						bench.append(roster_state.all_glyphs[idx])
+			else:
+				## Backward compat: old saves with full glyph dicts
+				var bench_raw: Array = data.get("rift_bench", data.get("rift_cargo", []))
+				for gd: Dictionary in bench_raw:
+					var g: GlyphInstance = _deserialize_glyph(gd, data_loader)
+					if g != null:
+						bench.append(g)
 			game_state.current_dungeon = ds
 			game_state.current_state = GameState.State.RIFT
 			last_load_rift_data = {
 				"in_rift": true,
 				"dungeon_state": ds,
-				"rift_cargo": cargo,
+				"rift_bench": bench,
 			}
 
 	return true
@@ -210,9 +222,9 @@ static func save_game(
 	roster_state: RosterState,
 	codex_state: CodexState,
 	crawler_state: CrawlerState,
-	rift_cargo: Array[GlyphInstance] = [],
+	rift_bench: Array[GlyphInstance] = [],
 ) -> bool:
-	return save_to_slot(AUTOSAVE_SLOT, game_state, roster_state, codex_state, crawler_state, "", rift_cargo)
+	return save_to_slot(AUTOSAVE_SLOT, game_state, roster_state, codex_state, crawler_state, "", rift_bench)
 
 
 static func load_game(
@@ -428,7 +440,7 @@ static func _serialize_crawler_state(crs: CrawlerState) -> Dictionary:
 		"max_energy": crs.max_energy,
 		"capacity": crs.capacity,
 		"slots": crs.slots,
-		"cargo_slots": crs.cargo_slots,
+		"bench_slots": crs.bench_slots,
 		"active_chassis": crs.active_chassis,
 		"unlocked_chassis": chassis_list,
 		"items": item_ids,
@@ -440,7 +452,7 @@ static func _deserialize_crawler_state(data: Dictionary, crs: CrawlerState, data
 	crs.max_energy = int(data.get("max_energy", 50))
 	crs.capacity = int(data.get("capacity", 12))
 	crs.slots = int(data.get("slots", 3))
-	crs.cargo_slots = int(data.get("cargo_slots", 2))
+	crs.bench_slots = int(data.get("bench_slots", data.get("cargo_slots", 2)))
 	crs.active_chassis = str(data.get("active_chassis", "standard"))
 
 	var chassis_arr: Array = data.get("unlocked_chassis", ["standard"])

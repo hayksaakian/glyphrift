@@ -8,6 +8,7 @@ signal ability_pressed(ability_name: String)
 signal items_pressed()
 signal menu_pressed
 
+
 const HULL_COLOR_HIGH: Color = Color("#4CAF50")
 const HULL_COLOR_MED: Color = Color("#FFC107")
 const HULL_COLOR_LOW: Color = Color("#F44336")
@@ -146,7 +147,7 @@ func _build_ui() -> void:
 	menu_btn.name = "MenuButton"
 	menu_btn.text = "\u2630"  ## Hamburger menu icon
 	menu_btn.tooltip_text = "Menu — Save & Quit"
-	menu_btn.custom_minimum_size.x = 36.0
+	menu_btn.custom_minimum_size.x = 32.0
 	menu_btn.pressed.connect(func() -> void: menu_pressed.emit())
 	hbox.add_child(menu_btn)
 

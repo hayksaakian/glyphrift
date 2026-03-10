@@ -11,7 +11,7 @@ signal squad_changed(squad: Array[GlyphInstance])
 var all_glyphs: Array[GlyphInstance] = []
 var active_squad: Array[GlyphInstance] = []
 var max_squad_size: int = 3
-var max_reserves: int = 20                  ## Barracks storage capacity (separate from crawler cargo)
+var max_reserves: int = 20                  ## Barracks storage capacity (separate from crawler bench)
 
 
 func add_glyph(glyph: GlyphInstance) -> void:

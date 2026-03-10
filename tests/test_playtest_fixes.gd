@@ -20,6 +20,11 @@ func _init() -> void:
 	_test_minor_03_loads()
 	_test_boss_mastery_stats()
 	_test_boss_mastery_display()
+	_test_squad_swap_popup()
+	_test_squad_swap_bench_original()
+	_test_squad_swap_gp_limit()
+	_test_squad_swap_from_dungeon_scene()
+	_test_squad_overlay_bench()
 
 	print("\n========================================")
 	print("  RESULTS: %d passed, %d failed" % [_pass_count, _fail_count])
@@ -436,3 +441,273 @@ func _test_boss_mastery_display() -> void:
 	var stars_text: String = boss.get_mastery_stars_text()
 	_assert(stars_text.length() == 2, "Stars text has 2 chars (got %d: '%s')" % [stars_text.length(), stars_text])
 	_assert("\u2605" in stars_text, "Stars text contains filled star")
+
+
+# ==========================================================
+#  SQUAD SWAP POPUP — Basic swap logic
+# ==========================================================
+
+func _test_squad_swap_popup() -> void:
+	print("--- SquadSwapPopup: Basic Swap ---")
+
+	var popup: SquadSwapPopup = SquadSwapPopup.new()
+	root.add_child(popup)
+
+	## Setup roster with 2 squad glyphs
+	var roster: RosterState = RosterState.new()
+	var g1: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("zapplet"), _data_loader)
+	g1.calculate_stats()
+	var g2: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("mossling"), _data_loader)
+	g2.calculate_stats()
+	var g3: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("stonepaw"), _data_loader)
+	g3.calculate_stats()
+	roster.add_glyph(g1)
+	roster.add_glyph(g2)
+	roster.add_glyph(g3)
+	roster.set_active_squad([g1, g2] as Array[GlyphInstance])
+
+	var crawler: CrawlerState = CrawlerState.new()
+	crawler.name = "TestCrawler_swap"
+	root.add_child(crawler)
+	crawler.capacity = 12
+	crawler.slots = 3
+
+	popup.roster_state = roster
+	popup.crawler_state = crawler
+	popup.rift_pool = [g1, g2, g3] as Array[GlyphInstance]
+	popup.show_popup()
+
+	_assert(popup.visible, "Swap popup is visible")
+
+	## Deploy bench glyph
+	popup._deploy_glyph(g3)
+	_assert(roster.active_squad.has(g3), "g3 deployed to squad")
+	_assert(roster.active_squad.size() == 3, "Squad size = 3 after deploy")
+
+	## Bench a squad glyph
+	popup._bench_glyph(g1)
+	_assert(not roster.active_squad.has(g1), "g1 benched from squad")
+	_assert(roster.active_squad.size() == 2, "Squad size = 2 after bench")
+
+	## Can't bench last glyph
+	popup._bench_glyph(g2)
+	popup._bench_glyph(g3)
+	_assert(roster.active_squad.size() == 1, "Squad min 1 — can't bench last")
+
+	## Done button works
+	var completed: Dictionary = {"called": false}
+	popup.swap_completed.connect(func() -> void: completed["called"] = true)
+	popup._on_done_pressed()
+	_assert(completed["called"], "swap_completed emitted on Done")
+	_assert(not popup.visible, "Popup hidden after Done")
+
+	crawler.queue_free()
+	popup.queue_free()
+
+
+# ==========================================================
+#  SQUAD SWAP — Benching original squad member shows in bench
+# ==========================================================
+
+func _test_squad_swap_bench_original() -> void:
+	print("--- SquadSwapPopup: Bench Original Squad Member ---")
+
+	var popup: SquadSwapPopup = SquadSwapPopup.new()
+	root.add_child(popup)
+
+	## Setup: g1+g2 in squad, g3 on bench
+	var roster: RosterState = RosterState.new()
+	var g1: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("mossling"), _data_loader)
+	g1.calculate_stats()
+	var g2: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("ironbark"), _data_loader)
+	g2.calculate_stats()
+	var g3: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("driftwisp"), _data_loader)
+	g3.calculate_stats()
+	roster.add_glyph(g1)
+	roster.add_glyph(g2)
+	roster.add_glyph(g3)
+	roster.set_active_squad([g1, g2] as Array[GlyphInstance])
+
+	var crawler: CrawlerState = CrawlerState.new()
+	crawler.name = "TestCrawler_bench"
+	root.add_child(crawler)
+	crawler.capacity = 12
+	crawler.slots = 3
+
+	popup.roster_state = roster
+	popup.crawler_state = crawler
+	popup.rift_pool = [g1, g2, g3] as Array[GlyphInstance]
+	popup.show_popup()
+
+	## Bench list should show g3 (not in squad)
+	var bench_before: Array[GlyphInstance] = popup._get_bench_glyphs()
+	_assert(bench_before.has(g3), "Bench shows glyph g3")
+	_assert(bench_before.size() == 1, "Bench has 1 glyph before benching")
+
+	## Bench g1 (original squad member) — should appear in bench list
+	popup._bench_glyph(g1)
+	var bench_after: Array[GlyphInstance] = popup._get_bench_glyphs()
+	_assert(bench_after.has(g1), "Benched g1 appears in bench list")
+	_assert(bench_after.has(g3), "g3 still in bench list")
+	_assert(bench_after.size() == 2, "Bench has 2 glyphs after benching g1")
+
+	## Re-deploy g1
+	popup._deploy_glyph(g1)
+	_assert(roster.active_squad.has(g1), "g1 re-deployed to squad")
+	var bench_recheck: Array[GlyphInstance] = popup._get_bench_glyphs()
+	_assert(not bench_recheck.has(g1), "g1 no longer on bench after redeploy")
+
+	crawler.queue_free()
+	popup.queue_free()
+
+
+# ==========================================================
+#  SQUAD SWAP — GP limit enforcement
+# ==========================================================
+
+func _test_squad_swap_gp_limit() -> void:
+	print("--- SquadSwapPopup: GP Limit ---")
+
+	var popup: SquadSwapPopup = SquadSwapPopup.new()
+	root.add_child(popup)
+
+	## Setup with tight GP capacity
+	var roster: RosterState = RosterState.new()
+	var g1: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("thunderclaw"), _data_loader)
+	g1.calculate_stats()  ## T2 = 4 GP
+	var g2: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("ironbark"), _data_loader)
+	g2.calculate_stats()  ## T2 = 4 GP
+	roster.add_glyph(g1)
+	roster.add_glyph(g2)
+	roster.set_active_squad([g1] as Array[GlyphInstance])
+
+	var crawler: CrawlerState = CrawlerState.new()
+	crawler.name = "TestCrawler_gp"
+	root.add_child(crawler)
+	crawler.capacity = 6  ## Only 6 GP budget
+	crawler.slots = 3
+
+	popup.roster_state = roster
+	popup.crawler_state = crawler
+	popup.rift_pool = [g1, g2] as Array[GlyphInstance]
+	popup.show_popup()
+
+	## Try to deploy g2 (4 GP) when g1 already costs 4 GP → 8 > 6 = fail
+	popup._deploy_glyph(g2)
+	_assert(not roster.active_squad.has(g2), "GP over limit blocks deploy")
+	_assert(popup._feedback_label.text != "", "Feedback shown for GP overflow")
+
+	## Can't deploy KO'd glyph
+	g2.current_hp = 0
+	popup._deploy_glyph(g2)
+	_assert(not roster.active_squad.has(g2), "KO'd glyph can't be deployed")
+
+	crawler.queue_free()
+	popup.queue_free()
+
+
+# ==========================================================
+#  SQUAD SWAP — DungeonScene integration
+# ==========================================================
+
+func _test_squad_swap_from_dungeon_scene() -> void:
+	print("--- DungeonScene: Squad Swap ---")
+
+	var scene: DungeonScene = DungeonScene.new()
+	scene.instant_mode = true
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+
+	## Setup roster + bench
+	var roster: RosterState = RosterState.new()
+	var g1: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("zapplet"), _data_loader)
+	g1.calculate_stats()
+	var g2: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("driftwisp"), _data_loader)
+	g2.calculate_stats()
+	roster.add_glyph(g1)
+	roster.add_glyph(g2)
+	roster.set_active_squad([g1] as Array[GlyphInstance])
+	scene.roster_state = roster
+
+	## Build minimal dungeon
+	var crawler: CrawlerState = CrawlerState.new()
+	crawler.name = "TestCrawler_ds_swap"
+	root.add_child(crawler)
+	var ds: DungeonState = DungeonState.new()
+	ds.crawler = crawler
+	var template: RiftTemplate = _data_loader.get_rift_template("tutorial_01")
+	ds.initialize(template)
+	scene.start_rift(ds)
+
+	## Add g2 to rift pool as bench glyph
+	if not scene.rift_pool.has(g2):
+		scene.rift_pool.append(g2)
+
+	## Pressing swap opens popup
+	scene._on_swap_pressed()
+	_assert(scene._state == DungeonScene.UIState.SQUAD_SWAP, "State is SQUAD_SWAP")
+	_assert(scene._squad_swap_popup.visible, "Swap popup visible")
+
+	## Complete swap
+	var changed: Dictionary = {"called": false}
+	scene.squad_changed.connect(func() -> void: changed["called"] = true)
+	scene._on_swap_completed()
+	_assert(scene._state == DungeonScene.UIState.EXPLORING, "State back to EXPLORING")
+	_assert(not scene._squad_swap_popup.visible, "Swap popup hidden")
+	_assert(changed["called"], "squad_changed emitted")
+
+	## No benchable glyphs → swap blocked
+	scene.rift_pool.clear()
+	scene.rift_pool.append(g1)  ## Only squad member in pool
+	scene._on_swap_pressed()
+	_assert(scene._state == DungeonScene.UIState.EXPLORING, "No swap when no benchable glyphs")
+
+	crawler.queue_free()
+	scene.queue_free()
+
+
+func _test_squad_overlay_bench() -> void:
+	print("--- SquadOverlay: Bench section ---")
+	var overlay: SquadOverlay = SquadOverlay.new()
+	root.add_child(overlay)
+
+	var g1: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("zapplet"), _data_loader)
+	g1.calculate_stats()
+	var g2: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("stonepaw"), _data_loader)
+	g2.calculate_stats()
+	var g3: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("driftwisp"), _data_loader)
+	g3.calculate_stats()
+
+	var crawler: CrawlerState = CrawlerState.new()
+	crawler.name = "TestCrawler_overlay"
+	root.add_child(crawler)
+	crawler.bench_slots = 2
+
+	## Setup with squad=[g1, g2], rift_pool=[g1, g2, g3]
+	## g3 is not in squad → shows in bench
+	var pool: Array[GlyphInstance] = [g1, g2, g3]
+	var squad: Array[GlyphInstance] = [g1, g2]
+	overlay.setup(squad, null, pool, crawler)
+
+	## Bench header with capacity
+	_assert(overlay._reserve_header != null, "Bench header exists")
+	_assert(overlay._reserve_header.visible, "Bench header visible (has 1 bench glyph)")
+	_assert(overlay._reserve_header.text == "Bench 1/2", "Header says 'Bench 1/2', got: %s" % overlay._reserve_header.text)
+
+	## Bench rows should have 1 entry (g3)
+	_assert(overlay._reserve_rows.size() == 1, "1 bench glyph shown")
+
+	## Swap button visible when bench has glyphs
+	_assert(overlay._swap_btn != null, "Swap button exists")
+	_assert(overlay._swap_btn.visible, "Swap button visible when bench has glyphs")
+
+	## Test with no bench glyphs (all in squad)
+	var full_squad: Array[GlyphInstance] = [g1, g2, g3]
+	overlay.setup(full_squad, null, pool, crawler)
+	_assert(overlay._reserve_header.visible, "Bench header visible even when empty (shows capacity)")
+	_assert(overlay._reserve_header.text == "Bench 0/2", "Header says 'Bench 0/2', got: %s" % overlay._reserve_header.text)
+	_assert(overlay._reserve_rows.size() == 0, "0 bench rows when all in squad")
+	_assert(not overlay._swap_btn.visible, "Swap button hidden when no bench glyphs")
+
+	crawler.queue_free()
+	overlay.queue_free()

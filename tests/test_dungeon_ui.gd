@@ -67,9 +67,9 @@ func _run_tests() -> void:
 	_test_dungeon_scene_combat_signal()
 	_test_dungeon_scene_capture_flow()
 
-	_test_capture_popup_cargo_swap_display()
-	_test_capture_popup_cargo_swap_release()
-	_test_capture_popup_cargo_swap_abandon()
+	_test_capture_popup_bench_swap_display()
+	_test_capture_popup_bench_swap_release()
+	_test_capture_popup_bench_swap_abandon()
 
 	_test_fog_of_war()
 	_test_scan_reveals_adjacent()
@@ -782,28 +782,28 @@ func _test_capture_popup_release() -> void:
 
 
 # ==========================================================================
-# CapturePopup Cargo Swap Tests
+# CapturePopup Bench Swap Tests
 # ==========================================================================
 
-func _test_capture_popup_cargo_swap_display() -> void:
-	print("--- CapturePopup: Cargo Swap Display ---")
+func _test_capture_popup_bench_swap_display() -> void:
+	print("--- CapturePopup: Bench Swap Display ---")
 	var popup: CapturePopup = CapturePopup.new()
 	root.add_child(popup)
 
 	var new_glyph: GlyphInstance = _make_glyph("zapplet")
-	var cargo_a: GlyphInstance = _make_glyph("stonepaw")
-	var cargo_b: GlyphInstance = _make_glyph("sparkfin")
-	var cargo: Array[GlyphInstance] = [cargo_a, cargo_b]
+	var bench_a: GlyphInstance = _make_glyph("stonepaw")
+	var bench_b: GlyphInstance = _make_glyph("sparkfin")
+	var bench: Array[GlyphInstance] = [bench_a, bench_b]
 
-	popup.show_cargo_swap(new_glyph, cargo)
+	popup.show_bench_swap(new_glyph, bench)
 
-	_assert(popup.visible, "Popup visible after show_cargo_swap")
-	_assert(popup._title_label.text == "Cargo Full!", "Title shows Cargo Full!")
+	_assert(popup.visible, "Popup visible after show_bench_swap")
+	_assert(popup._title_label.text == "Bench Full!", "Title shows Bench Full!")
 	_assert(popup._name_label.text == "Zapplet", "Shows new glyph name")
 	_assert(not popup._capture_button.visible, "Capture button hidden in swap mode")
 	_assert(not popup._release_button.visible, "Release button hidden in swap mode")
 	_assert(popup._swap_container.visible, "Swap container visible")
-	_assert(popup._swap_container.get_child_count() == 2, "Two swap buttons for two cargo glyphs")
+	_assert(popup._swap_container.get_child_count() == 2, "Two swap buttons for two bench glyphs")
 	_assert(popup._abandon_btn.visible, "Abandon button visible")
 
 	var btn0: Button = popup._swap_container.get_child(0) as Button
@@ -814,18 +814,18 @@ func _test_capture_popup_cargo_swap_display() -> void:
 	_cleanup_node(popup)
 
 
-func _test_capture_popup_cargo_swap_release() -> void:
-	print("--- CapturePopup: Cargo Swap Release ---")
+func _test_capture_popup_bench_swap_release() -> void:
+	print("--- CapturePopup: Bench Swap Release ---")
 	var popup: CapturePopup = CapturePopup.new()
 	root.add_child(popup)
 
 	var new_glyph: GlyphInstance = _make_glyph("zapplet")
-	var cargo_a: GlyphInstance = _make_glyph("stonepaw")
-	var cargo_b: GlyphInstance = _make_glyph("sparkfin")
-	var cargo: Array[GlyphInstance] = [cargo_a, cargo_b]
+	var bench_a: GlyphInstance = _make_glyph("stonepaw")
+	var bench_b: GlyphInstance = _make_glyph("sparkfin")
+	var bench: Array[GlyphInstance] = [bench_a, bench_b]
 
 	var signal_data: Dictionary = {"received": false, "keep": null, "release": null}
-	popup.cargo_swap_chosen.connect(func(k: GlyphInstance, r: GlyphInstance) -> void:
+	popup.bench_swap_chosen.connect(func(k: GlyphInstance, r: GlyphInstance) -> void:
 		signal_data["received"] = true
 		signal_data["keep"] = k
 		signal_data["release"] = r
@@ -836,15 +836,15 @@ func _test_capture_popup_cargo_swap_release() -> void:
 		dismissed_data["received"] = true
 	)
 
-	popup.show_cargo_swap(new_glyph, cargo)
+	popup.show_bench_swap(new_glyph, bench)
 
-	## Click to release first cargo glyph
+	## Click to release first bench glyph
 	var btn0: Button = popup._swap_container.get_child(0) as Button
 	btn0.pressed.emit()
 
-	_assert(signal_data["received"], "cargo_swap_chosen emitted on release click")
+	_assert(signal_data["received"], "bench_swap_chosen emitted on release click")
 	_assert(signal_data["keep"] == new_glyph, "Keep glyph is the new capture")
-	_assert(signal_data["release"] == cargo_a, "Released glyph is the clicked cargo")
+	_assert(signal_data["release"] == bench_a, "Released glyph is the clicked bench glyph")
 	_assert(popup._result_label.visible, "result label visible after swap")
 	_assert("CAPTURED" in popup._result_label.text, "result shows CAPTURED after swap")
 	_assert(popup._continue_button.visible, "continue button visible after swap")
@@ -855,17 +855,17 @@ func _test_capture_popup_cargo_swap_release() -> void:
 	_cleanup_node(popup)
 
 
-func _test_capture_popup_cargo_swap_abandon() -> void:
-	print("--- CapturePopup: Cargo Swap Abandon ---")
+func _test_capture_popup_bench_swap_abandon() -> void:
+	print("--- CapturePopup: Bench Swap Abandon ---")
 	var popup: CapturePopup = CapturePopup.new()
 	root.add_child(popup)
 
 	var new_glyph: GlyphInstance = _make_glyph("zapplet")
-	var cargo_a: GlyphInstance = _make_glyph("stonepaw")
-	var cargo: Array[GlyphInstance] = [cargo_a]
+	var bench_a: GlyphInstance = _make_glyph("stonepaw")
+	var bench: Array[GlyphInstance] = [bench_a]
 
 	var swap_data: Dictionary = {"received": false}
-	popup.cargo_swap_chosen.connect(func(_k: GlyphInstance, _r: GlyphInstance) -> void:
+	popup.bench_swap_chosen.connect(func(_k: GlyphInstance, _r: GlyphInstance) -> void:
 		swap_data["received"] = true
 	)
 
@@ -874,10 +874,10 @@ func _test_capture_popup_cargo_swap_abandon() -> void:
 		dismissed_data["received"] = true
 	)
 
-	popup.show_cargo_swap(new_glyph, cargo)
+	popup.show_bench_swap(new_glyph, bench)
 	popup._abandon_btn.pressed.emit()
 
-	_assert(not swap_data["received"], "cargo_swap_chosen NOT emitted on abandon")
+	_assert(not swap_data["received"], "bench_swap_chosen NOT emitted on abandon")
 	_assert(dismissed_data["received"], "dismissed emitted on abandon")
 
 	_cleanup_node(popup)

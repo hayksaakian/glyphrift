@@ -88,7 +88,7 @@ func _refresh_stats() -> void:
 		"Energy: %d" % crawler_state.max_energy,
 		"Capacity (CP): %d" % crawler_state.capacity,
 		"Squad Slots: %d" % crawler_state.slots,
-		"Cargo Slots: %d" % crawler_state.cargo_slots,
+		"Bench Slots: %d" % crawler_state.bench_slots,
 		"Active Chassis: %s" % crawler_state.active_chassis.capitalize(),
 	]
 	for s: String in stats:
@@ -109,7 +109,7 @@ func _refresh_chassis() -> void:
 		"standard": "No bonus (default)",
 		"ironclad": "+25 Hull HP, -5 Energy",
 		"scout": "Scan costs 3 Energy (instead of 5)",
-		"hauler": "+1 Cargo slot, -10 Hull HP",
+		"hauler": "+1 Bench slot, -10 Hull HP",
 	}
 
 	for chassis_id: String in ["standard", "ironclad", "scout", "hauler"]:

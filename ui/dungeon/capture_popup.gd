@@ -6,7 +6,7 @@ extends PanelContainer
 
 signal capture_attempted(glyph: GlyphInstance, success: bool)
 signal capture_released(glyph: GlyphInstance)
-signal cargo_swap_chosen(keep_glyph: GlyphInstance, release_glyph: GlyphInstance)
+signal bench_swap_chosen(keep_glyph: GlyphInstance, release_glyph: GlyphInstance)
 signal dismissed()
 
 const POPUP_SIZE: Vector2 = Vector2(340, 280)
@@ -98,10 +98,10 @@ func hide_popup() -> void:
 	visible = false
 
 
-func show_cargo_swap(new_glyph: GlyphInstance, cargo: Array[GlyphInstance]) -> void:
+func show_bench_swap(new_glyph: GlyphInstance, bench: Array[GlyphInstance]) -> void:
 	_swap_new_glyph = new_glyph
 
-	_title_label.text = "Cargo Full!"
+	_title_label.text = "Bench Full!"
 	_title_label.add_theme_color_override("font_color", Color("#FFC107"))
 
 	var aff_color: Color = Affinity.COLORS.get(new_glyph.species.affinity, Color.WHITE)
@@ -112,7 +112,7 @@ func show_cargo_swap(new_glyph: GlyphInstance, cargo: Array[GlyphInstance]) -> v
 	var emoji: String = Affinity.EMOJI.get(new_glyph.species.affinity, "")
 	_info_label.text = "%s %s T%d" % [emoji, new_glyph.species.affinity.capitalize(), new_glyph.species.tier]
 
-	_chance_label.text = "Release a cargo glyph to make room:"
+	_chance_label.text = "Release a bench glyph to make room:"
 	_capture_button.visible = false
 	_release_button.visible = false
 	_result_label.visible = false
@@ -124,13 +124,13 @@ func show_cargo_swap(new_glyph: GlyphInstance, cargo: Array[GlyphInstance]) -> v
 		_swap_container.remove_child(child)
 		child.queue_free()
 
-	## Add a release button for each cargo glyph
-	for cargo_glyph: GlyphInstance in cargo:
+	## Add a release button for each bench glyph
+	for bench_glyph: GlyphInstance in bench:
 		var btn: Button = Button.new()
-		btn.name = "ReleaseButton_%s" % cargo_glyph.species.name.replace(" ", "")
-		btn.text = "Release %s" % cargo_glyph.species.name
+		btn.name = "ReleaseButton_%s" % bench_glyph.species.name.replace(" ", "")
+		btn.text = "Release %s" % bench_glyph.species.name
 		btn.custom_minimum_size = Vector2(200, 32)
-		btn.pressed.connect(_on_swap_release.bind(cargo_glyph))
+		btn.pressed.connect(_on_swap_release.bind(bench_glyph))
 		_swap_container.add_child(btn)
 
 	## Abandon button
@@ -140,7 +140,7 @@ func show_cargo_swap(new_glyph: GlyphInstance, cargo: Array[GlyphInstance]) -> v
 
 
 func _on_swap_release(released: GlyphInstance) -> void:
-	cargo_swap_chosen.emit(_swap_new_glyph, released)
+	bench_swap_chosen.emit(_swap_new_glyph, released)
 	## Show result confirmation (like normal capture) instead of instant dismiss
 	_swap_container.visible = false
 	_abandon_btn.visible = false
@@ -285,7 +285,7 @@ func _build_ui() -> void:
 	_continue_button.pressed.connect(func() -> void: dismissed.emit())
 	vbox.add_child(_continue_button)
 
-	## Cargo swap container (hidden by default)
+	## Bench swap container (hidden by default)
 	_swap_container = VBoxContainer.new()
 	_swap_container.add_theme_constant_override("separation", 6)
 	_swap_container.visible = false
