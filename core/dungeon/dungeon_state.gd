@@ -197,6 +197,9 @@ func _enter_floor(floor_index: int) -> void:
 
 
 func _handle_hazard() -> void:
+	if crawler.hazard_shield_active:
+		crawler.hazard_shield_active = false
+		return
 	if crawler.is_reinforced:
 		crawler.is_reinforced = false
 		return

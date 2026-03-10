@@ -14,6 +14,10 @@ const ITEM_COLORS: Dictionary = {
 	"heal_glyph": Color("#E91E63"),
 	"status_immunity": Color("#9C27B0"),
 	"capture_bonus": Color("#FF9800"),
+	"reveal_floor": Color("#FFEB3B"),
+	"revive_glyph": Color("#FF5722"),
+	"damage_boost": Color("#F44336"),
+	"hazard_immunity": Color("#607D8B"),
 }
 const ITEM_ICON_SIZE: int = 40
 
@@ -216,7 +220,17 @@ static func apply_item(item: ItemDef, p_crawler: CrawlerState, p_roster: RosterS
 			most_damaged.current_hp = most_damaged.max_hp
 			most_damaged.is_knocked_out = false
 			return true
-		"status_immunity", "capture_bonus":
+		"revive_glyph":
+			## Revive a KO'd glyph with effect_value% HP
+			if p_roster == null:
+				return false
+			for g: GlyphInstance in p_roster.active_squad:
+				if g.is_knocked_out:
+					g.current_hp = maxi(1, int(float(g.max_hp) * item.effect_value / 100.0))
+					g.is_knocked_out = false
+					return true
+			return false  ## No KO'd glyphs
+		"status_immunity", "capture_bonus", "reveal_floor", "damage_boost", "hazard_immunity":
 			## These are passive effects — just consume for now
 			return true
 		_:

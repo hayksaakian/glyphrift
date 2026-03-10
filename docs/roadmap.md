@@ -59,7 +59,7 @@ Broken into phases. Each phase builds on the last.
 - [ ] **More techniques** — 39 techniques across 15 species; some species share too many moves, reducing identity
 - [ ] **More fusion pairs** — 33 pairs feels thin; cross-affinity mutations, secret fusions, branching paths would reward experimentation
 - [ ] **More rifts** — 7 templates with limited variation; more distinct layouts, themes, or room compositions per rift
-- [ ] **More items** — only 5 consumables; new pickups, passive buffs, or rift-specific drops
+- [x] **More items** — added 4 new items (Revival Core, Rift Beacon, Affinity Prism, Hull Shield) with full effect handling: revive KO'd glyphs, reveal entire floor, +50% ATK boost for next battle, block next hazard damage
 
 ### Longer term: Narrative & lore
 - [x] **NPC dialogue expansion** — 3 NPCs with ~3 lines each feels sparse. _(Expanded to 5 phases with 2 lines each = 30 total lines (was 9). All 3 NPCs now have dialogue for phases 1-5. Randomly picks from available lines per phase for variety. Phase cap removed — phases 4-5 have unique content about Apex preparation and post-completion.)_

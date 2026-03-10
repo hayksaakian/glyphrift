@@ -16,6 +16,7 @@ var hull_hp: int = 100
 var energy: int = 50
 var items: Array = []  ## Array of ItemDef
 var is_reinforced: bool = false
+var hazard_shield_active: bool = false
 var took_hull_damage_this_run: bool = false
 
 const MAX_ITEMS: int = 5

@@ -115,6 +115,9 @@ var _swap_source: String = ""  ## "cache" or "puzzle"
 ## Active item bonuses (consumed after next combat)
 var _capture_item_bonus: float = 0.0
 var _ward_charm_active: bool = false
+var _damage_boost_active: bool = false
+var _damage_boost_amounts: Dictionary = {}  ## GlyphInstance → int (ATK added)
+var _hazard_shield_active: bool = false
 
 ## Last combat stats (for capture calculation)
 var _last_enemy_count: int = 1
@@ -220,6 +223,7 @@ func get_ui_state() -> UIState:
 
 func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3, recruit_counts: Dictionary = {}) -> void:
 	## Called by parent after combat ends
+	_clear_damage_boost()
 	_last_enemy_count = maxi(1, enemies.size())
 	_last_turns = turns
 	_last_recruit_counts = recruit_counts
@@ -1113,6 +1117,7 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 			_state = UIState.COMBAT
 			var scan_ids: Array = room_data_local.get("scan_species_ids", [])
 			var enemies: Array[GlyphInstance] = _generate_wild_enemies(scan_ids)
+			_apply_damage_boost()
 			combat_requested.emit(enemies, null)
 		"boss":
 			_state = UIState.COMBAT
@@ -1120,6 +1125,7 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 			if data_loader != null:
 				boss_data = data_loader.get_boss(dungeon_state.rift_template.rift_id)
 			var boss_squad: Array[GlyphInstance] = _generate_boss(boss_data)
+			_apply_damage_boost()
 			combat_requested.emit(boss_squad, boss_data)
 		"cache":
 			if room_data_local.get("cleared", false):
@@ -1296,11 +1302,51 @@ func _on_item_used(item: ItemDef) -> void:
 			"Next status effect on %s will be blocked." % (
 				roster_state.active_squad[0].species.name if roster_state != null and not roster_state.active_squad.is_empty() else "first glyph"
 			))
+	elif item.effect_type == "reveal_floor":
+		## Reveal all rooms on current floor
+		if dungeon_state != null:
+			var floor_data: Dictionary = dungeon_state.floors[dungeon_state.current_floor]
+			for room: Dictionary in floor_data.get("rooms", []):
+				room["revealed"] = true
+				room["visible"] = true
+			_floor_map.refresh_all()
+		_crawler_hud.add_active_effect("reveal_floor",
+			"Rift Beacon", "All rooms on this floor revealed.")
+	elif item.effect_type == "damage_boost":
+		_damage_boost_active = true
+		_crawler_hud.add_active_effect("damage_boost",
+			"Affinity Prism +50%", "Next battle: all attacks deal +50% damage.")
+	elif item.effect_type == "hazard_immunity":
+		_hazard_shield_active = true
+		if dungeon_state != null and dungeon_state.crawler != null:
+			dungeon_state.crawler.hazard_shield_active = true
+		_crawler_hud.add_active_effect("hazard_immunity",
+			"Hull Shield", "Next hazard room damage blocked.")
 	_crawler_hud.refresh()
 	squad_changed.emit()
 
 
 ## --- Helpers ---
+
+
+func _apply_damage_boost() -> void:
+	if not _damage_boost_active or roster_state == null:
+		return
+	_damage_boost_amounts.clear()
+	for g: GlyphInstance in roster_state.active_squad:
+		var boost: int = int(float(g.atk) * 0.5)
+		g.atk += boost
+		_damage_boost_amounts[g] = boost
+	_damage_boost_active = false
+	_crawler_hud.remove_active_effect("damage_boost")
+
+
+func _clear_damage_boost() -> void:
+	for g: Variant in _damage_boost_amounts:
+		var glyph: GlyphInstance = g as GlyphInstance
+		if glyph != null:
+			glyph.atk -= _damage_boost_amounts[g]
+	_damage_boost_amounts.clear()
 
 
 func _on_backdrop_click(event: InputEvent, dismiss_fn: Callable) -> void:
@@ -2004,6 +2050,7 @@ func _on_echo_combat_requested(echo_glyph: GlyphInstance) -> void:
 	_echo_glyph = echo_glyph
 	_puzzle_echo.visible = false
 	_state = UIState.COMBAT
+	_apply_damage_boost()
 	var enemies: Array[GlyphInstance] = [echo_glyph]
 	combat_requested.emit(enemies, null)
 

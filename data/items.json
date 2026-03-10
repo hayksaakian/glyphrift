@@ -38,5 +38,37 @@
     "effect_value": 25.0,
     "description": "Increases capture probability by +25% for the next battle. Consumed whether or not a capture occurs.",
     "usable_in_combat": false
+  },
+  {
+    "id": "rift_beacon",
+    "name": "Rift Beacon",
+    "effect_type": "reveal_floor",
+    "effect_value": 1.0,
+    "description": "Reveals all rooms on the current floor. Like a free full-floor scan.",
+    "usable_in_combat": false
+  },
+  {
+    "id": "revival_core",
+    "name": "Revival Core",
+    "effect_type": "revive_glyph",
+    "effect_value": 50.0,
+    "description": "Revives a KO'd Glyph with 50% HP. Usable between battles.",
+    "usable_in_combat": false
+  },
+  {
+    "id": "affinity_prism",
+    "name": "Affinity Prism",
+    "effect_type": "damage_boost",
+    "effect_value": 50.0,
+    "description": "Boosts all attack damage by +50% in the next battle. Consumed when battle starts.",
+    "usable_in_combat": false
+  },
+  {
+    "id": "hull_shield",
+    "name": "Hull Shield",
+    "effect_type": "hazard_immunity",
+    "effect_value": 1.0,
+    "description": "Blocks the next hazard room's hull damage. Consumed on hazard entry.",
+    "usable_in_combat": false
   }
 ]

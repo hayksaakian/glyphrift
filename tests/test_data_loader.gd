@@ -182,11 +182,11 @@ func _run_tests() -> void:
 
 	# --- Items ---
 	var item_count: int = _data_loader.items.size()
-	if item_count == 5:
-		print("[PASS] Items loaded: %d (expected 5)" % item_count)
+	if item_count == 9:
+		print("[PASS] Items loaded: %d (expected 9)" % item_count)
 		pass_count += 1
 	else:
-		print("[FAIL] Items loaded: %d (expected 5)" % item_count)
+		print("[FAIL] Items loaded: %d (expected 9)" % item_count)
 		fail_count += 1
 
 	# --- Rift Templates ---
