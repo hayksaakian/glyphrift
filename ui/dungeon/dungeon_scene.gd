@@ -1501,6 +1501,8 @@ func _show_swap_picker(new_item: ItemDef, source: String) -> void:
 		row.add_theme_constant_override("separation", 6)
 		_swap_vbox.add_child(row)
 
+		row.add_child(ItemPopup.create_item_icon(item))
+
 		var info_col: VBoxContainer = VBoxContainer.new()
 		info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		info_col.add_theme_constant_override("separation", 1)

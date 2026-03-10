@@ -20,7 +20,7 @@
     "name": "Vital Shard",
     "effect_type": "heal_glyph",
     "effect_value": 100.0,
-    "description": "Fully restores one Glyph's HP. Usable between battles.",
+    "description": "Fully restores the most damaged Glyph's HP. Usable between battles.",
     "usable_in_combat": false
   },
   {

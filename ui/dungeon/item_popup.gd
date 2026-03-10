@@ -8,6 +8,15 @@ extends PanelContainer
 signal item_used(item: ItemDef)
 signal closed()
 
+const ITEM_COLORS: Dictionary = {
+	"repair_hull": Color("#4CAF50"),
+	"restore_energy": Color("#2196F3"),
+	"heal_glyph": Color("#E91E63"),
+	"status_immunity": Color("#9C27B0"),
+	"capture_bonus": Color("#FF9800"),
+}
+const ITEM_ICON_SIZE: int = 40
+
 var crawler: CrawlerState = null
 var roster_state: RosterState = null
 
@@ -103,6 +112,8 @@ func _rebuild_list() -> void:
 		_item_list.add_child(row)
 		_item_rows.append(row)
 
+		row.add_child(ItemPopup.create_item_icon(item))
+
 		var info_col: VBoxContainer = VBoxContainer.new()
 		info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		info_col.add_theme_constant_override("separation", 1)
@@ -136,6 +147,45 @@ func _on_use_pressed(item: ItemDef) -> void:
 		crawler.use_item(item)
 		item_used.emit(item)
 		_rebuild_list()
+
+
+static func create_item_icon(item: ItemDef, icon_size: int = ITEM_ICON_SIZE) -> Control:
+	var container: Control = Control.new()
+	container.custom_minimum_size = Vector2(icon_size, icon_size)
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var bg: ColorRect = ColorRect.new()
+	bg.custom_minimum_size = Vector2(icon_size, icon_size)
+	bg.size = Vector2(icon_size, icon_size)
+	bg.color = ITEM_COLORS.get(item.effect_type, Color("#666666"))
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(bg)
+
+	var border: ReferenceRect = ReferenceRect.new()
+	border.custom_minimum_size = Vector2(icon_size, icon_size)
+	border.size = Vector2(icon_size, icon_size)
+	border.border_color = ITEM_COLORS.get(item.effect_type, Color("#666666")).lightened(0.3)
+	border.border_width = 2.0
+	border.editor_only = false
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(border)
+
+	var letter: Label = Label.new()
+	letter.text = item.name.substr(0, 1)
+	letter.add_theme_font_size_override("font_size", int(icon_size * 0.5))
+	letter.add_theme_color_override("font_color", Color.WHITE)
+	letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	letter.size = Vector2(icon_size, icon_size)
+	letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(letter)
+
+	## Outline effect via shadow
+	letter.add_theme_color_override("font_shadow_color", Color.BLACK)
+	letter.add_theme_constant_override("shadow_offset_x", 1)
+	letter.add_theme_constant_override("shadow_offset_y", 1)
+
+	return container
 
 
 static func apply_item(item: ItemDef, p_crawler: CrawlerState, p_roster: RosterState) -> bool:
