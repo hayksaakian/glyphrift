@@ -52,12 +52,18 @@ func show_npc(npc_id: String) -> void:
 	var npc_title: String = npc_data.get("title", "")
 	var phases: Dictionary = npc_data.get("phases", {})
 
-	## Cap phase at 3 per plan
-	var phase_key: String = str(mini(game_state.game_phase, 3))
+	## Use current game phase, fall back to highest available
+	var phase_key: String = str(game_state.game_phase)
 	var lines: Array = phases.get(phase_key, [])
+	if lines.is_empty():
+		## Fall back to highest available phase
+		for p: int in range(game_state.game_phase, 0, -1):
+			lines = phases.get(str(p), [])
+			if not lines.is_empty():
+				break
 	var dialogue_text: String = ""
 	if not lines.is_empty():
-		dialogue_text = lines[0]
+		dialogue_text = lines[randi() % lines.size()]
 
 	## Portrait color
 	var portrait_color: Color = NPC_COLORS.get(npc_id, Color("#888888"))

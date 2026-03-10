@@ -62,10 +62,10 @@ Broken into phases. Each phase builds on the last.
 - [ ] **More items** — only 5 consumables; new pickups, passive buffs, or rift-specific drops
 
 ### Longer term: Narrative & lore
-- [ ] **NPC dialogue expansion** — 3 NPCs with ~3 lines each feels sparse; more dialogue per phase, reactions to player progress, fusion hints
+- [x] **NPC dialogue expansion** — 3 NPCs with ~3 lines each feels sparse. _(Expanded to 5 phases with 2 lines each = 30 total lines (was 9). All 3 NPCs now have dialogue for phases 1-5. Randomly picks from available lines per phase for variety. Phase cap removed — phases 4-5 have unique content about Apex preparation and post-completion.)_
 - [ ] **NPC side quests** — GDD mentions Lira's "bring me a Water T2" quest type; not implemented
 - [ ] **Lore objects** — GDD 7.8 mentions murals, data fragments, broken pods in rift rooms; no environmental storytelling currently
-- [ ] **Echo flavor text** — give echo encounters memory fragments or species lore snippets
+- [x] **Echo flavor text** — give echo encounters memory fragments or species lore snippets _(Done in Tier 2 echo encounters as mini-stories)_
 - [ ] **Hidden room rewards** — hidden rooms exist but need more interesting/unique content
 
 ## Tier 4 — Polish & QoL

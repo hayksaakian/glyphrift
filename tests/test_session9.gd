@@ -47,7 +47,7 @@ func _run_tests() -> void:
 	_test_npc_show_lira()
 	_test_npc_show_maro()
 	_test_npc_phase_dialogue()
-	_test_npc_phase_cap_at_3()
+	_test_npc_phase_5_dialogue()
 	_test_npc_close_signal()
 	_test_npc_portrait_colors()
 
@@ -705,28 +705,28 @@ func _test_npc_phase_dialogue() -> void:
 	np.setup(_data_loader, gs)
 	np.show_npc("kael")
 
-	## Phase 2 dialogue should mention "fusion"
-	_assert(np._dialogue_label.text.contains("fusion"), "phase 2 Kael mentions fusion")
+	## Phase 2 dialogue should be non-empty (randomly picks from phase 2 lines)
+	_assert(np._dialogue_label.text.length() > 0, "phase 2 Kael has dialogue")
 
 	_cleanup_node(np)
 	_cleanup_node(gs)
 
 
-func _test_npc_phase_cap_at_3() -> void:
-	print("--- NpcPanel: Phase Cap at 3 ---")
+func _test_npc_phase_5_dialogue() -> void:
+	print("--- NpcPanel: Phase 5 Dialogue ---")
 	var gs: GameState = _make_game_state()
 	gs.data_loader = _data_loader
-	gs.game_phase = 5  ## Beyond phase 3
+	gs.game_phase = 5
 
 	var np: NpcPanel = NpcPanel.new()
 	root.add_child(np)
 	np.setup(_data_loader, gs)
 	np.show_npc("kael")
 
-	## Should use phase 3 dialogue (capped)
-	_assert(np._dialogue_label.text.length() > 0, "dialogue loaded with capped phase")
-	## Phase 3 Kael mentions "Major Rift"
-	_assert(np._dialogue_label.text.contains("Major Rift"), "uses phase 3 dialogue")
+	## Phase 5 dialogue exists and loads
+	_assert(np._dialogue_label.text.length() > 0, "phase 5 Kael has dialogue")
+	## Phase 5 should NOT use phase 3 content (which mentions Major Rift)
+	_assert(not np._dialogue_label.text.contains("Major Rift"), "uses phase 5 dialogue, not phase 3")
 
 	_cleanup_node(np)
 	_cleanup_node(gs)

@@ -4,13 +4,24 @@
     "title": "Veteran Warden",
     "phases": {
       "1": [
-        "First time in the Bastion? You'll get used to it. Before you head into a rift, here's a tip: if you Guard with a Glyph that knows an Interrupt technique, it'll fire off automatically when the conditions are right. It's the difference between a good Warden and a great one."
+        "First time in the Bastion? You'll get used to it. Before you head into a rift, here's a tip: if you Guard with a Glyph that knows an Interrupt technique, it'll fire off automatically when the conditions are right. It's the difference between a good Warden and a great one.",
+        "One more thing — don't forget about Recruit. Call out to a wild Glyph during battle and your capture odds go up. Three calls per fight, max. It's not glamorous, but it works."
       ],
       "2": [
-        "You performed your first fusion? Good. Here's something they don't teach in the Academy: mixing affinities produces unexpected results. Don't be afraid to combine an Electric with a Ground. You might be surprised."
+        "You performed your first fusion? Good. Here's something they don't teach in the Academy: mixing affinities produces unexpected results. Don't be afraid to combine an Electric with a Ground. You might be surprised.",
+        "I've seen plenty of Wardens rely on raw power. The ones who survive? They learn to read the turn order. Speed controls the battlefield. A fast Glyph with Stun can shut down threats before they act."
       ],
       "3": [
-        "The Major Rift is no joke. The boss in there — a Riftmaw — hits hard and fast. Phase 2 it switches to Piercing attacks, so your back row isn't safe. Bring something tanky with an Interrupt, or you'll be eating Null Beams all day."
+        "The Major Rift is no joke. The boss in there — a Riftmaw — hits hard and fast. Phase 2 it switches to Piercing attacks, so your back row isn't safe. Bring something tanky with an Interrupt, or you'll be eating Null Beams all day.",
+        "Watch your squad composition. I've seen Wardens bring three damage dealers and wonder why they can't survive Phase 2. You need a healer, a tank, and a plan."
+      ],
+      "4": [
+        "The Apex Rift... I won't sugarcoat it. The Nullweaver in there brings a full squad — Riftmaw, Vortail, the works. All Water-type. You'll want Ground advantage, but they'll try to debuff you into dust.",
+        "I've only seen two Wardens clear the Apex. One had a fully mastered team. The other was just stubborn. Be both."
+      ],
+      "5": [
+        "You've done what most Wardens only dream about. Every rift sealed, every boss bested. But the rifts don't stay quiet forever. Keep your team sharp — the echoes are getting stronger.",
+        "If you're looking for a challenge now, try re-entering the Apex with a team you haven't used before. The Nullweaver's squad changes tactics each time. There's always something new to learn."
       ]
     }
   },
@@ -19,13 +30,24 @@
     "title": "Rift Researcher",
     "phases": {
       "1": [
-        "The Codex is your most valuable tool. Every species you discover is catalogued there — and the ones you haven't found yet leave traces. Pay attention to the silhouettes. I've added notes where I can."
+        "The Codex is your most valuable tool. Every species you discover is catalogued there — and the ones you haven't found yet leave traces. Pay attention to the silhouettes. I've added notes where I can.",
+        "I've been tracking echo signatures in the rifts. Those ghostly encounters? They're not random. Each echo carries a memory fragment — a piece of this world's history before the rifts opened."
       ],
       "2": [
-        "Fascinating — the Glyph you created doesn't match any species in my field records. I've updated the Codex. I wonder... there are several silhouettes that seem to resonate with storm energy. Perhaps try fusing two of the same affinity next?"
+        "Fascinating — the Glyph you created doesn't match any species in my field records. I've updated the Codex. I wonder... there are several silhouettes that seem to resonate with storm energy. Perhaps try fusing two of the same affinity next?",
+        "The mastery system isn't just a training exercise. When a Glyph truly masters its techniques, its base capabilities improve permanently. Check the objectives in the detail popup — each one teaches you something about how that species fights best."
       ],
       "3": [
-        "I've been studying Glyph #009 in the Codex — the one we haven't identified yet. Its energy signature resonates with both storm and fracture wavelengths. If I had to guess... you'd need to fuse an Electric Prime with a Water Prime to find it. But that's just a theory."
+        "I've been studying Glyph #009 in the Codex — the one we haven't identified yet. Its energy signature resonates with both storm and fracture wavelengths. If I had to guess... you'd need to fuse an Electric Prime with a Water Prime to find it. But that's just a theory.",
+        "The Tier 3 species are remarkable. Each one represents the pinnacle of its affinity — Stormfang channels storms, Terradon reshapes stone, and Riftmaw... well, Riftmaw is something else entirely."
+      ],
+      "4": [
+        "The Apex-tier species — Voltarion, Lithosurge, Nullweaver. They're not just powerful. My research suggests they existed before the rifts. The rifts didn't create them; they awakened them.",
+        "Your Codex completion is coming along. Every species you discover fills in another piece of the puzzle. I believe there's a pattern — the affinities aren't random. They're connected to something deeper."
+      ],
+      "5": [
+        "You've discovered every species. The Codex is complete. But look at the memory fragments you've collected from echo encounters — they tell a story. The rifts aren't invading. They're remembering.",
+        "I'll keep studying the data. If you find anything unusual in re-entered rifts — echoes behaving differently, new patterns — bring it to me. Science never sleeps."
       ]
     }
   },
@@ -34,13 +56,24 @@
     "title": "Crawler Mechanic",
     "phases": {
       "1": [
-        "Your Crawler's seen better days, but she'll hold. Bring her back without a scratch sometime and I'll see what I can do about the hull plating."
+        "Your Crawler's seen better days, but she'll hold. Bring her back without a scratch sometime and I'll see what I can do about the hull plating.",
+        "Energy management is key in the rifts. Scanning costs 5 energy, but knowing what's ahead? Priceless. Don't burn it all on Reinforce early — save some for deeper floors."
       ],
       "2": [
-        "Hey, you're filling up that Bench. If you find yourself turning down captures, come talk to me — I might be able to squeeze in another slot once you've done some exploring."
+        "Hey, you're filling up that Bench. If you find yourself turning down captures, come talk to me — I might be able to squeeze in another slot once you've done some exploring.",
+        "I've been tuning the Scan module. It'll reveal room types in a radius now, which means fewer surprises. Use it near clusters of unrevealed rooms for maximum coverage."
       ],
       "3": [
-        "You've been through a lot of rifts. Your Crawler's got character now — battle scars and all. If you manage to clear the Major Rift, I've got something special waiting for your Capacity rating."
+        "You've been through a lot of rifts. Your Crawler's got character now — battle scars and all. If you manage to clear the Major Rift, I've got something special waiting for your Capacity rating.",
+        "Repair items are rare but they can save a run. If your hull's getting low, don't be too proud to use one. A dead Crawler means a failed rift, and that's worse than burning a consumable."
+      ],
+      "4": [
+        "The Apex Rift has 4 floors. Your energy economy needs to last the entire descent. I'd suggest being conservative with abilities on the first two floors and saving your reserves for the deep.",
+        "I've reinforced the hull for the Apex run, but the hazard damage in there is no joke. Watch those hazard rooms — they'll chip away at you faster than you'd expect."
+      ],
+      "5": [
+        "Well, you did it. Every rift sealed. Your Crawler's been to places I never thought she'd go. I'm proud of both of you.",
+        "The Crawler's fully upgraded now. If you're heading back into rifts for captures, remember — the items you find can make or break a deep floor. Keep that inventory stocked."
       ]
     }
   }
