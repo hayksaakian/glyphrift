@@ -20,6 +20,10 @@
         "I've only seen two Wardens clear the Apex. One had a fully mastered team. The other was just stubborn. Be both."
       ],
       "5": [
+        "Almost there, Warden. The deepest rifts are still waiting — don't let up now. The Major and Apex bosses are a different breed. Everything you've learned so far? You'll need it.",
+        "You've come further than most. But the final stretch is where good Wardens become legends. Tighten up your squad and finish this."
+      ],
+      "all_cleared": [
         "You've done what most Wardens only dream about. Every rift sealed, every boss bested. But the rifts don't stay quiet forever. Keep your team sharp — the echoes are getting stronger.",
         "If you're looking for a challenge now, try re-entering the Apex with a team you haven't used before. The Nullweaver's squad changes tactics each time. There's always something new to learn."
       ]
@@ -46,6 +50,10 @@
         "Your Codex completion is coming along. Every species you discover fills in another piece of the puzzle. I believe there's a pattern — the affinities aren't random. They're connected to something deeper."
       ],
       "5": [
+        "We're so close to understanding the full picture. The deepest rifts hold species I've only theorized about. Keep exploring — every discovery brings us closer.",
+        "The data from your recent runs is extraordinary. But there are still gaps in the Codex. The answers lie in the rifts you haven't sealed yet."
+      ],
+      "all_cleared": [
         "You've discovered every species. The Codex is complete. But look at the memory fragments you've collected from echo encounters — they tell a story. The rifts aren't invading. They're remembering.",
         "I'll keep studying the data. If you find anything unusual in re-entered rifts — echoes behaving differently, new patterns — bring it to me. Science never sleeps."
       ]
@@ -72,6 +80,10 @@
         "I've reinforced the hull for the Apex run, but the hazard damage in there is no joke. Watch those hazard rooms — they'll chip away at you faster than you'd expect."
       ],
       "5": [
+        "You're in the home stretch now. The Crawler's holding up, but those last rifts will push her limits. Stock up on Hull Shields and Repair Patches before you dive in.",
+        "The deep rifts have nastier hazards. Four floors of punishment. Make sure your energy lasts — running dry down there means no scanning, no reinforcing, nothing."
+      ],
+      "all_cleared": [
         "Well, you did it. Every rift sealed. Your Crawler's been to places I never thought she'd go. I'm proud of both of you.",
         "The Crawler's fully upgraded now. If you're heading back into rifts for captures, remember — the items you find can make or break a deep floor. Keep that inventory stocked."
       ]

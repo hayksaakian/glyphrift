@@ -609,6 +609,7 @@ static func _serialize_crawler_run_state(crs: CrawlerState) -> Dictionary:
 		"hull_hp": crs.hull_hp,
 		"energy": crs.energy,
 		"is_reinforced": crs.is_reinforced,
+		"hazard_shield_active": crs.hazard_shield_active,
 		"took_hull_damage_this_run": crs.took_hull_damage_this_run,
 		"items": item_ids,
 	}
@@ -618,6 +619,7 @@ static func _deserialize_crawler_run_state(data: Dictionary, crs: CrawlerState, 
 	crs.hull_hp = int(data.get("hull_hp", crs.max_hull_hp))
 	crs.energy = int(data.get("energy", crs.max_energy))
 	crs.is_reinforced = data.get("is_reinforced", false)
+	crs.hazard_shield_active = data.get("hazard_shield_active", false)
 	crs.took_hull_damage_this_run = data.get("took_hull_damage_this_run", false)
 	crs.items.clear()
 	for item_id: Variant in data.get("items", []):

@@ -1907,6 +1907,8 @@ func _on_swap_use_selected(use_item: ItemDef) -> void:
 	if not applied:
 		return
 	dungeon_state.crawler.use_item(use_item)
+	## Apply passive effects (same as _on_item_used)
+	_on_item_used(use_item)
 	## Now there's room — add the new item
 	dungeon_state.crawler.add_item(_swap_pending_item)
 	var item_name: String = _swap_pending_item.name

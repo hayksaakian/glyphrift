@@ -55,11 +55,17 @@ func show_npc(npc_id: String) -> void:
 	var npc_title: String = npc_data.get("title", "")
 	var phases: Dictionary = npc_data.get("phases", {})
 
-	## Use current game phase, fall back to highest available
-	var phase_key: String = str(game_state.game_phase)
+	## Check if all rifts are cleared for the "all_cleared" dialogue
+	var all_cleared: bool = false
+	if game_state.codex_state != null and game_state.data_loader != null:
+		var total_rifts: int = game_state.data_loader.rift_templates.size()
+		all_cleared = game_state.codex_state.cleared_rift_count() >= total_rifts
+
+	## Use all_cleared key if available, otherwise fall back to phase
+	var phase_key: String = "all_cleared" if all_cleared else str(game_state.game_phase)
 	var lines: Array = phases.get(phase_key, [])
 	if lines.is_empty():
-		## Fall back to highest available phase
+		## Fall back to highest numbered phase
 		for p: int in range(game_state.game_phase, 0, -1):
 			lines = phases.get(str(p), [])
 			if not lines.is_empty():

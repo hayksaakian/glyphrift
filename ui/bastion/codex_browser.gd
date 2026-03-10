@@ -368,6 +368,8 @@ func _build_species_panel(sp: GlyphSpecies) -> Control:
 		hint_label.add_theme_color_override("font_color", Color("#777777"))
 		hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hint_label.max_lines_visible = 2
+		hint_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		hint_label.text = hint
 		vbox.add_child(hint_label)

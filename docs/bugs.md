@@ -10,11 +10,36 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
-*No open bugs.*
+### BUG-015: "Heal Glyph" action auto-closes after one use
+- **Priority:** P2
+- **Status:** 🟡 In Progress (cannot reproduce)
+- **Steps:** Open items menu → use a Heal Glyph item
+- **Expected:** Item popup stays open so the player can heal additional glyphs with more items
+- **Actual:** Popup closes after a single heal, requiring player to reopen items menu to use another
+- **Investigation:** Code review shows `_on_use_pressed` calls `_rebuild_list()` which refreshes contents but does NOT hide the popup. No `visible = false` or `hide()` call found in the use path. The popup only closes via the Close button or `dismissed` signal. May need runtime testing to reproduce — could be a focus/input issue rather than explicit close.
+- **Files:** `ui/dungeon/item_popup.gd`
 
 ---
 
 ## Fixed Bugs
+
+### BUG-017: NPC Phase 5 dialogue claims "every rift sealed" when 2 rifts remain
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Fix:** Rewrote Phase 5 dialogue for all 3 NPCs to be forward-looking ("Almost there", "the deepest rifts await"). Added `"all_cleared"` key to each NPC's phases with the true victory dialogue. Updated `npc_panel.gd` to check `codex_state.cleared_rift_count() >= total_rifts` and use `"all_cleared"` phase key when all rifts are sealed, otherwise falls back to game_phase. Removed `mini(game_state.game_phase, 3)` cap in `bastion_scene.gd`.
+- **Files:** `data/npc_dialogue.json`, `ui/bastion/npc_panel.gd`, `ui/bastion/bastion_scene.gd`
+
+### BUG-016: Codex Glyph Registry descriptions overflow card bounds
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Fix:** Added `max_lines_visible = 2` and `text_overrun_behavior = OVERRUN_TRIM_ELLIPSIS` to hint labels in codex_browser.gd. Full text available on click via detail popup.
+- **Files:** `ui/bastion/codex_browser.gd`
+
+### BUG-014: Hull Shield item has no effect on hazard rooms
+- **Priority:** P1
+- **Status:** 🟢 Fixed
+- **Fix:** Two issues fixed: (1) `hazard_shield_active` was not included in save/load serialization — added to `save_manager.gd` so the flag survives mid-rift saves. (2) The swap-use path (`_on_swap_use_selected`) called `apply_item` but not `_on_item_used`, so using Hull Shield via swap consumed it without setting the flag — now calls `_on_item_used(use_item)` for passive effects.
+- **Files:** `core/save_manager.gd`, `ui/dungeon/dungeon_scene.gd`
 
 ### BUG-013: Benched glyphs intermittently lost on save/load (mid-rift)
 - **Priority:** P1

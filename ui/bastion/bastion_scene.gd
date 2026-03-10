@@ -455,7 +455,7 @@ func _open_npc(npc_id: String) -> void:
 func _update_npc_indicators() -> void:
 	if game_state == null:
 		return
-	var phase: int = mini(game_state.game_phase, 3)
+	var phase: int = game_state.game_phase
 	for npc_id: String in _npc_indicators:
 		## Chat bubble for unread dialogue
 		var indicator: Label = _npc_indicators[npc_id] as Label
