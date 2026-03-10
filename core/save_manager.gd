@@ -2,7 +2,7 @@ class_name SaveManager
 extends RefCounted
 
 ## Static utility for saving/loading game state to slot-based JSON files.
-## Autosave uses the "autosave" slot; manual slots use "slot1", "slot2", "slot3".
+## Autosave uses the "autosave" slot; manual slots use "slot1" through "slot5".
 ## Supports both bastion-boundary and mid-rift saves.
 
 const AUTOSAVE_SLOT: String = "autosave"
@@ -24,6 +24,24 @@ static func _slot_path(slot: String) -> String:
 # --- Slot-based API ---
 
 
+static func get_location_string(game_state: GameState) -> String:
+	## Generate a location string from current game state
+	if game_state.current_dungeon != null:
+		var ds: DungeonState = game_state.current_dungeon
+		var rift_name: String = ds.rift_template.name if ds.rift_template else "Unknown Rift"
+		return "Mid-rift: %s F%d" % [rift_name, ds.current_floor + 1]
+	return "Bastion"
+
+
+static func generate_save_name(game_state: GameState) -> String:
+	## Generate a default save name from context
+	if game_state.current_dungeon != null:
+		var ds: DungeonState = game_state.current_dungeon
+		var rift_name: String = ds.rift_template.name if ds.rift_template else "Unknown Rift"
+		return "%s F%d" % [rift_name, ds.current_floor + 1]
+	return "Bastion Phase %d" % game_state.game_phase
+
+
 static func save_to_slot(
 	slot: String,
 	game_state: GameState,
@@ -33,10 +51,22 @@ static func save_to_slot(
 	label: String = "",
 	rift_bench: Array[GlyphInstance] = [],
 ) -> bool:
+	## Preserve existing save_name if label is empty and slot already has one
+	var save_name: String = label
+	if save_name == "" and has_slot(slot):
+		var existing: Dictionary = get_slot_info(slot)
+		save_name = existing.get("save_name", "")
+	## Auto-generate if still empty
+	if save_name == "":
+		save_name = generate_save_name(game_state)
+
+	var location: String = get_location_string(game_state)
 	var data: Dictionary = {
 		"version": SAVE_VERSION,
 		"timestamp": Time.get_datetime_string_from_system(true),
 		"label": label,
+		"save_name": save_name,
+		"location": location,
 		"game_state": _serialize_game_state(game_state),
 		"roster_state": _serialize_roster_state(roster_state),
 		"codex_state": _serialize_codex_state(codex_state),
@@ -173,6 +203,8 @@ static func get_slot_info(slot: String) -> Dictionary:
 		"glyph_count": (rs_data.get("glyphs", []) as Array).size(),
 		"timestamp": str(data.get("timestamp", "")),
 		"label": str(data.get("label", "")),
+		"save_name": str(data.get("save_name", "")),
+		"location": str(data.get("location", "")),
 	}
 
 

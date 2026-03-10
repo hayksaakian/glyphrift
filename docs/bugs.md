@@ -10,24 +10,17 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
-### BUG-006: Save slot UI needs rework — naming, location, rename, 5 slots
-- **Priority:** P2
-- **Status:** 🔴 Open
-- **Steps:** Open save slots from bastion menu
-- **Expected:** Richer save slot info, renamable, 5 slots
-- **Actual:** Current UI shows "Phase 4 — 36 Glyphs — 2026-03-10" which truncates and lacks location context
-- **Changes needed (this is a feature enhancement, not just a bug):**
-  1. **5 slots** instead of 3 (+ autosave)
-  2. **Richer save summary** — 2-line format: Line 1: save name (auto-generated or custom). Line 2: location (e.g. "Bastion", "Mid-rift: Voltaic Fissure F2"), phase, glyph count, date. Current single-line "Phase 4 — 36 Glyphs — 2026-03-10" is too condensed and truncates.
-  3. **Auto-generated save names** — Generate a default name on save based on context (e.g. "Bastion Phase 4", "Voltaic Fissure F2"). Store the name in the save JSON alongside slot data.
-  4. **Rename saves** — Add a "Rename" button per slot that opens an inline LineEdit or dialog to edit the save name. Store custom name in save JSON, overriding the auto-generated one.
-  5. **Save JSON changes** — Add `save_name: String` and `location: String` fields to the save data dict. `location` should capture current game state (bastion vs mid-rift + rift name + floor).
-- **Files likely involved:** `core/save_manager.gd` (save format + name/location fields), save slot UI (wherever the save slots panel is built), `ui/main_scene.gd` or `ui/bastion/bastion_scene.gd` (location context at save time)
-- **Verify:** Open save slots, confirm 5 slots, 2-line summaries with location, rename works, name persists on reload.
+*No open bugs.*
 
 ---
 
 ## Fixed Bugs
+
+### BUG-006: Save slot UI needs rework — naming, location, rename, 5 slots
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Fix:** Expanded to 5 manual slots + autosave. 2-line display (save name on line 1, location · Phase · Glyphs · date on line 2). Auto-generated save names from context ("Bastion Phase 4" or "Voltaic Fissure F2"). Rename button opens inline LineEdit, writes back to save JSON. ScrollContainer for slot list. `save_name` and `location` fields added to save JSON format.
+- **Files:** `core/save_manager.gd`, `ui/bastion/save_slots_popup.gd`
 
 ### BUG-005: Inconsistent item row heights in inventory popup
 - **Priority:** P3
