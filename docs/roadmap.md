@@ -64,7 +64,7 @@ Broken into phases. Each phase builds on the last.
 ### Longer term: Narrative & lore
 - [x] **NPC dialogue expansion** — 3 NPCs with ~3 lines each feels sparse. _(Expanded to 5 phases with 2 lines each = 30 total lines (was 9). All 3 NPCs now have dialogue for phases 1-5. Randomly picks from available lines per phase for variety. Phase cap removed — phases 4-5 have unique content about Apex preparation and post-completion.)_
 - [ ] **NPC side quests** — GDD mentions Lira's "bring me a Water T2" quest type; not implemented
-- [ ] **Lore objects** — GDD 7.8 mentions murals, data fragments, broken pods in rift rooms; no environmental storytelling currently
+- [x] **Lore objects** — GDD 7.8 mentions murals, data fragments, broken pods in rift rooms; no environmental storytelling currently _(Empty rooms now show lore fragments 50% of the time — murals, data terminals, researcher notes, warning beacons. 3-5 unique entries per rift tied to boss theme. Generic fallback pool for unlisted rifts.)_
 - [x] **Echo flavor text** — give echo encounters memory fragments or species lore snippets _(Done in Tier 2 echo encounters as mini-stories)_
 - [x] **Hidden room rewards** — hidden rooms exist but need more interesting/unique content _(Hidden rooms now give item + 15 hull HP restore bonus, differentiated from regular caches)_
 
@@ -72,7 +72,7 @@ Broken into phases. Each phase builds on the last.
 
 Important but not urgent. Do these as the game stabilizes.
 
-- [ ] **Battle pacing** — animation timing may need tuning; currently tween-based but no player feedback on snappy vs sluggish
+- [x] **Battle pacing** — animation timing may need tuning; currently tween-based but no player feedback on snappy vs sluggish _(Settings screen battle speed: Normal/Fast(2x)/Instant. Scales AnimationQueue inter-event delays. Individual tweens kept at normal speed for readability.)_
 - [x] **Capture screen flow** — recruit→capture connection isn't obvious to players. _(Added floating "Recruited! +15%" callout above enemy panel during combat when recruit succeeds. Shows exact capture bonus per recruit use. Breakdown on capture screen already shows Recruit +X%.)_
 - [x] **Tutorial completeness** — GDD 12.1 specifies guided overlays; verify all tutorial elements present _(tutorial hints system implemented)_
 - [x] **Formation UX** — strategic impact of front/back row isn't communicated well to new players _(skip mandatory formation, Fight+Formation buttons on combat popup)_
