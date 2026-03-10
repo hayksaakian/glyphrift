@@ -75,7 +75,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit"],
+    "wild_glyph_pool": ["stonepaw", "mossling", "driftwisp", "glitchkit"],
     "floors": [
       {
         "floor_number": 0,
@@ -177,7 +177,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit"],
     "floors": [
       {
         "floor_number": 0,
@@ -279,7 +279,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling"],
     "floors": [
       {
         "floor_number": 0,
@@ -381,8 +381,8 @@
     "name": "The Crackling Abyss",
     "tier": "standard",
     "hazard_damage": 15,
-    "enemy_tier_pool": [1, 2],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "thunderclaw", "ironbark", "vortail"],
+    "enemy_tier_pool": [2],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "thunderclaw", "ironbark", "stormfang", "terradon", "voltarion", "lithosurge"],
     "floors": [
       {
         "floor_number": 0,
@@ -508,8 +508,8 @@
     "name": "Petrified Depths",
     "tier": "standard",
     "hazard_damage": 15,
-    "enemy_tier_pool": [1, 2],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "thunderclaw", "ironbark", "vortail"],
+    "enemy_tier_pool": [2],
+    "wild_glyph_pool": ["stonepaw", "mossling", "driftwisp", "glitchkit", "ironbark", "vortail", "terradon", "riftmaw", "lithosurge", "nullweaver"],
     "floors": [
       {
         "floor_number": 0,
@@ -629,7 +629,7 @@
     "tier": "major",
     "hazard_damage": 20,
     "enemy_tier_pool": [2, 3],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "thunderclaw", "ironbark", "vortail", "stormfang", "terradon", "riftmaw"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit", "thunderclaw", "vortail", "stormfang", "riftmaw", "voltarion", "nullweaver"],
     "floors": [
       {
         "floor_number": 0,
@@ -781,7 +781,7 @@
     "tier": "apex",
     "hazard_damage": 25,
     "enemy_tier_pool": [3, 4],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "thunderclaw", "ironbark", "vortail", "stormfang", "terradon", "riftmaw"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit", "thunderclaw", "vortail", "stormfang", "riftmaw", "voltarion", "nullweaver"],
     "floors": [
       {
         "floor_number": 0,

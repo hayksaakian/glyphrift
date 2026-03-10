@@ -1232,6 +1232,79 @@ func _apply_battle_loss_penalty() -> void:
 	_state = UIState.EXPLORING
 
 
+func _get_boss_affinity() -> String:
+	## Look up the boss's affinity from template → boss_def → species
+	if data_loader == null or dungeon_state == null:
+		return ""
+	var template: RiftTemplate = dungeon_state.rift_template
+	var boss_def: BossDef = data_loader.get_boss(template.rift_id)
+	if boss_def == null:
+		return ""
+	var boss_species: GlyphSpecies = data_loader.get_species(boss_def.species_id)
+	if boss_species == null:
+		return ""
+	return boss_species.affinity
+
+
+func _get_filtered_pool() -> Array[String]:
+	## Filter wild_glyph_pool by enemy_tier_pool, then weight boss-affinity species 2x
+	if data_loader == null or dungeon_state == null:
+		return [] as Array[String]
+	var template: RiftTemplate = dungeon_state.rift_template
+	if template.wild_glyph_pool.is_empty():
+		return [] as Array[String]
+
+	## Filter by tier
+	var filtered: Array[String] = []
+	for sid: String in template.wild_glyph_pool:
+		var species: GlyphSpecies = data_loader.get_species(sid)
+		if species != null and species.tier in template.enemy_tier_pool:
+			filtered.append(sid)
+	if filtered.is_empty():
+		return [] as Array[String]
+
+	## Weight boss-affinity species 2x
+	var boss_aff: String = _get_boss_affinity()
+	var weighted: Array[String] = []
+	for sid: String in filtered:
+		weighted.append(sid)
+		var species: GlyphSpecies = data_loader.get_species(sid)
+		if species != null and species.affinity == boss_aff:
+			weighted.append(sid)  ## 2x weight
+	return weighted
+
+
+func _get_enemy_count() -> int:
+	## Floor-scaled enemy count: early floors 1-2, late floors 2-3
+	if dungeon_state == null:
+		return randi_range(1, 3)
+	var total_floors: int = dungeon_state.rift_template.floors.size()
+	var progress: float = float(dungeon_state.current_floor) / float(maxi(total_floors - 1, 1))
+	if progress < 0.5:
+		return randi_range(1, 2)
+	else:
+		return randi_range(2, 3)
+
+
+func _pick_enemy_species(count: int) -> Array[String]:
+	## Pick species with uniqueness bias from filtered+weighted pool
+	var pool: Array[String] = _get_filtered_pool()
+	if pool.is_empty():
+		return [] as Array[String]
+
+	var picked: Array[String] = []
+	for i: int in range(count):
+		var choice: String = pool[randi() % pool.size()]
+		## Retry up to 3 times to avoid duplicates
+		for _retry: int in range(3):
+			if choice in picked:
+				choice = pool[randi() % pool.size()]
+			else:
+				break
+		picked.append(choice)
+	return picked
+
+
 func _generate_scan_info(room_id: String) -> void:
 	## Pre-generate species names and IDs for a scanned enemy room
 	if data_loader == null or dungeon_state == null:
@@ -1240,15 +1313,13 @@ func _generate_scan_info(room_id: String) -> void:
 	if template.wild_glyph_pool.is_empty():
 		return
 
-	var count: int = randi_range(1, 3)
+	var count: int = _get_enemy_count()
+	var species_ids: Array[String] = _pick_enemy_species(count)
 	var names: Array[String] = []
-	var species_ids: Array[String] = []
-	for i: int in range(count):
-		var species_id: String = template.wild_glyph_pool[randi() % template.wild_glyph_pool.size()]
+	for species_id: String in species_ids:
 		var species: GlyphSpecies = data_loader.get_species(species_id)
 		if species != null:
 			names.append(species.name)
-			species_ids.append(species_id)
 
 	if not names.is_empty():
 		var room: Dictionary = dungeon_state._get_room(dungeon_state.current_floor, room_id)
@@ -1281,12 +1352,10 @@ func _generate_wild_enemies(scan_species_ids: Array = []) -> Array[GlyphInstance
 		for sid: Variant in scan_species_ids:
 			ids.append(str(sid))
 	else:
-		var template: RiftTemplate = dungeon_state.rift_template
-		if template.wild_glyph_pool.is_empty():
+		var count: int = _get_enemy_count()
+		ids = _pick_enemy_species(count)
+		if ids.is_empty():
 			return enemies
-		var count: int = randi_range(1, 3)
-		for i: int in range(count):
-			ids.append(template.wild_glyph_pool[randi() % template.wild_glyph_pool.size()])
 
 	for species_id: String in ids:
 		var species: GlyphSpecies = data_loader.get_species(species_id)

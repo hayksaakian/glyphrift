@@ -90,6 +90,12 @@ func _run_tests() -> void:
 	_test_pause_menu_exists()
 	_test_pause_save_and_quit_signal()
 
+	_test_encounter_floor_scaled_count()
+	_test_encounter_tier_filtering()
+	_test_encounter_boss_affinity_weighting()
+	_test_encounter_uniqueness_bias()
+	_test_encounter_pool_exclusion()
+
 	print("")
 	print("========================================")
 	print("  RESULTS: %d passed, %d failed" % [pass_count, fail_count])
@@ -1662,3 +1668,145 @@ func _test_pause_save_and_quit_signal() -> void:
 	_assert(sig["fired"], "save_and_quit_pressed signal fired")
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)
+
+
+# ==========================================================================
+# Encounter Variety Tests
+# ==========================================================================
+
+func _test_encounter_floor_scaled_count() -> void:
+	print("--- Encounter: Floor-Scaled Count ---")
+	## Floor 0 of 5 should never produce 3; last floor should never produce 1
+	var early_got_3: bool = false
+	var late_got_1: bool = false
+
+	for i: int in range(200):
+		## Early floor (0 of 5 floors)
+		var ds_early: DungeonState = _make_dungeon_state("standard_01")
+		var scene_early: DungeonScene = DungeonScene.new()
+		scene_early.data_loader = _data_loader
+		scene_early.instant_mode = true
+		root.add_child(scene_early)
+		scene_early.dungeon_state = ds_early
+		var count_early: int = scene_early._get_enemy_count()
+		if count_early == 3:
+			early_got_3 = true
+		_cleanup_node(scene_early)
+		_cleanup_node(ds_early.crawler)
+
+		## Late floor (floor 4 of 5 floors)
+		var ds_late: DungeonState = _make_dungeon_state("standard_01")
+		## Navigate to last floor
+		ds_late.current_floor = ds_late.rift_template.floors.size() - 1
+		var scene_late: DungeonScene = DungeonScene.new()
+		scene_late.data_loader = _data_loader
+		scene_late.instant_mode = true
+		root.add_child(scene_late)
+		scene_late.dungeon_state = ds_late
+		var count_late: int = scene_late._get_enemy_count()
+		if count_late == 1:
+			late_got_1 = true
+		_cleanup_node(scene_late)
+		_cleanup_node(ds_late.crawler)
+
+	_assert(not early_got_3, "Floor 0/5: never produces 3 enemies (200 runs)")
+	_assert(not late_got_1, "Last floor: never produces 1 enemy (200 runs)")
+
+
+func _test_encounter_tier_filtering() -> void:
+	print("--- Encounter: Tier Filtering ---")
+	## standard_01 has enemy_tier_pool=[2], so all picked species should be T2
+	var all_t2: bool = true
+
+	for i: int in range(200):
+		var ds: DungeonState = _make_dungeon_state("standard_01")
+		var scene: DungeonScene = DungeonScene.new()
+		scene.data_loader = _data_loader
+		scene.instant_mode = true
+		root.add_child(scene)
+		scene.dungeon_state = ds
+		var picked: Array[String] = scene._pick_enemy_species(3)
+		for sid: String in picked:
+			var species: GlyphSpecies = _data_loader.get_species(sid)
+			if species != null and species.tier != 2:
+				all_t2 = false
+		_cleanup_node(scene)
+		_cleanup_node(ds.crawler)
+
+	_assert(all_t2, "standard_01: all picked species are T2 (200 runs)")
+
+
+func _test_encounter_boss_affinity_weighting() -> void:
+	print("--- Encounter: Boss Affinity Weighting ---")
+	## minor_01 has Ground boss (ironbark), pool=[stonepaw, mossling, driftwisp, glitchkit]
+	## Ground species (stonepaw, mossling) should appear ~66% with 2x weight
+	var ground_count: int = 0
+	var total_count: int = 0
+
+	for i: int in range(200):
+		var ds: DungeonState = _make_dungeon_state("minor_01")
+		var scene: DungeonScene = DungeonScene.new()
+		scene.data_loader = _data_loader
+		scene.instant_mode = true
+		root.add_child(scene)
+		scene.dungeon_state = ds
+		var picked: Array[String] = scene._pick_enemy_species(3)
+		for sid: String in picked:
+			total_count += 1
+			var species: GlyphSpecies = _data_loader.get_species(sid)
+			if species != null and species.affinity == "ground":
+				ground_count += 1
+		_cleanup_node(scene)
+		_cleanup_node(ds.crawler)
+
+	var ratio: float = float(ground_count) / float(maxi(total_count, 1))
+	_assert(ratio > 0.40 and ratio < 0.90, "minor_01: Ground species ratio %.2f in [0.40, 0.90]" % ratio)
+
+
+func _test_encounter_uniqueness_bias() -> void:
+	print("--- Encounter: Uniqueness Bias ---")
+	## minor_01 has 4 species in pool — all-same encounters should be rare (<10%)
+	var all_same_count: int = 0
+
+	for i: int in range(200):
+		var ds: DungeonState = _make_dungeon_state("minor_01")
+		var scene: DungeonScene = DungeonScene.new()
+		scene.data_loader = _data_loader
+		scene.instant_mode = true
+		root.add_child(scene)
+		scene.dungeon_state = ds
+		var picked: Array[String] = scene._pick_enemy_species(3)
+		if picked.size() == 3:
+			var unique: Dictionary = {}
+			for sid: String in picked:
+				unique[sid] = true
+			if unique.size() == 1:
+				all_same_count += 1
+		_cleanup_node(scene)
+		_cleanup_node(ds.crawler)
+
+	var ratio: float = float(all_same_count) / 200.0
+	_assert(ratio < 0.10, "minor_01: all-same encounters %.1f%% < 10%% (200 runs)" % (ratio * 100.0))
+
+
+func _test_encounter_pool_exclusion() -> void:
+	print("--- Encounter: Pool Exclusion ---")
+	## minor_01 (Ground boss) should never produce Electric species
+	var got_electric: bool = false
+
+	for i: int in range(200):
+		var ds: DungeonState = _make_dungeon_state("minor_01")
+		var scene: DungeonScene = DungeonScene.new()
+		scene.data_loader = _data_loader
+		scene.instant_mode = true
+		root.add_child(scene)
+		scene.dungeon_state = ds
+		var picked: Array[String] = scene._pick_enemy_species(3)
+		for sid: String in picked:
+			var species: GlyphSpecies = _data_loader.get_species(sid)
+			if species != null and species.affinity == "electric":
+				got_electric = true
+		_cleanup_node(scene)
+		_cleanup_node(ds.crawler)
+
+	_assert(not got_electric, "minor_01: zero Electric species in 200 runs")
