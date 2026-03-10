@@ -764,6 +764,14 @@ func _on_room_entered(room: Dictionary) -> void:
 			"cache", "hidden":
 				_show_tutorial_hint("cache", "Supply cache! Items give temporary bonuses like capture chance or status immunity.")
 
+	## Hazards: show popup only on first visit, silently damage on revisits
+	if room_type == "hazard":
+		if room.get("hazard_seen", false):
+			## Revisit — damage already applied by DungeonState, just refresh HUD
+			_crawler_hud.refresh()
+			return
+		room["hazard_seen"] = true
+
 	## Show popup for actionable rooms
 	if room_type in ["enemy", "cache", "hazard", "puzzle", "boss", "hidden"]:
 		_state = UIState.POPUP
@@ -924,7 +932,8 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 		"puzzle":
 			_launch_puzzle(room_data_local)
 		"hazard":
-			_clear_current_room("Hazard cleared. Safe to pass.")
+			## Hazards are persistent — they damage every pass-through.
+			## Only Purge ability converts them to empty. Don't mark cleared.
 			_state = UIState.EXPLORING
 		"empty", "start":
 			_state = UIState.EXPLORING
