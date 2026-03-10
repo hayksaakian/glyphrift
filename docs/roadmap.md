@@ -62,26 +62,9 @@ _Data/writing/design work that uses existing systems — no new code required._
 - **Boss phase 2 movesets** — write distinct phase 2 technique sets and stat profiles for each boss
 - **Echo flavor text** — give echo encounters memory fragments or species lore snippets
 
-### Mid-Rift Squad Swap
-
-_Allow players to swap captured cargo glyphs into their active squad during a rift run._
-
-**Current state:** Captured glyphs go to cargo (max 2 by default) and sit there until rift ends. Players can't use them until they return to the Bastion barracks. This feels like a missed opportunity — capturing a glyph mid-rift should be immediately exciting.
-
-**What's needed (medium complexity, most plumbing already exists):**
-- New swap modal accessible from dungeon HUD (simpler than Barracks — just squad slots + cargo list)
-- Click squad member + click cargo glyph to swap; validate GP capacity (already in Barracks logic)
-- New `UIState.SQUAD_SWAP` in DungeonScene
-- SquadOverlay refresh after swap
-- Save/load already handles squad + cargo separately, so swaps persist on mid-rift save
-
-**Design decision — HP on swap:**
-- Option A (simple): Swapped-in glyphs keep their capture HP (likely full); swapped-out glyphs keep current HP and can be swapped back
-- Option B (strategic): Swapped-in glyphs always enter at full HP, making swap a soft heal — adds tactical depth but may be too strong
-
-**What doesn't change:** capture flow, roster serialization, bastion barracks, save format
-
 ### Systems & Features
+
+- **Crawler upgrade: Rift Transmitter** — when bench is full during a capture, allow sending the caught glyph directly to bastion reserves instead of forcing a bench swap or abandon. This would be a crawler upgrade (milestone reward or chassis perk), not available by default — keeps early-game resource tension intact while giving late-game players a quality-of-life option.
 
 - **NPC side quests** — GDD mentions Lira's "bring me a Water T2" quest type; not implemented yet
 - **Difficulty curve validation** — play through full 7-rift arc (4-6 hrs) and verify pacing, resource pressure, enemy scaling
