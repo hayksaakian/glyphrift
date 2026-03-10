@@ -85,7 +85,7 @@ Important but not urgent. Do these as the game stabilizes.
 - [x] **Settings screen** — no options menu (text speed, animation speed, controls) _(Battle speed setting: Normal/Fast/Instant via pause menu Settings button. GameSettings persists to user://settings.json. Scales AnimationQueue delays.)_
 - [ ] **Accessibility** — no colorblind mode, font size options, or input remapping
 - [x] **Endgame / post-apex** — what happens after clearing all 7 rifts? _(Shows "ALL RIFTS CONQUERED!" message with codex discovery percentage when last rift is cleared. Player returns to bastion and can re-enter rifts for captures/completion.)_
-- [ ] **Crawler upgrade: Rift Transmitter** — when bench is full during capture, allow sending caught glyph directly to bastion reserves. Crawler upgrade (not default) — keeps early-game tension, gives late-game QoL.
+- [x] **Crawler upgrade: Rift Transmitter** — when bench is full during capture, allow sending caught glyph directly to bastion reserves. Crawler upgrade (not default) — keeps early-game tension, gives late-game QoL. _(Milestone: "Seal the Apex Rift" → unlocks Rift Transmitter. "Send to Reserves" button on bench-full swap screen. Glyph goes directly to roster reserves, not rift pool. Saved/loaded via has_rift_transmitter flag.)_
 
 ## Art & Visual Pass
 
