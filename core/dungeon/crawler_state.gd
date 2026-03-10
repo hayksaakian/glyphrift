@@ -39,6 +39,7 @@ func begin_run(_hazard_damage: int = 0) -> void:
 	hull_hp = max_hull_hp
 	energy = max_energy
 	is_reinforced = false
+	hazard_shield_active = false
 	took_hull_damage_this_run = false
 	## Chassis bonuses
 	match active_chassis:

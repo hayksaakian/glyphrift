@@ -117,7 +117,6 @@ var _capture_item_bonus: float = 0.0
 var _ward_charm_active: bool = false
 var _damage_boost_active: bool = false
 var _damage_boost_amounts: Dictionary = {}  ## GlyphInstance → int (ATK added)
-var _hazard_shield_active: bool = false
 
 ## Last combat stats (for capture calculation)
 var _last_enemy_count: int = 1
@@ -1317,7 +1316,6 @@ func _on_item_used(item: ItemDef) -> void:
 		_crawler_hud.add_active_effect("damage_boost",
 			"Affinity Prism +50%", "Next battle: all attacks deal +50% damage.")
 	elif item.effect_type == "hazard_immunity":
-		_hazard_shield_active = true
 		if dungeon_state != null and dungeon_state.crawler != null:
 			dungeon_state.crawler.hazard_shield_active = true
 		_crawler_hud.add_active_effect("hazard_immunity",
