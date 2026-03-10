@@ -11,7 +11,8 @@ signal swap_pressed
 var _vbox: VBoxContainer = null
 var _entries: Array[Dictionary] = []  ## [{glyph, name_label, hp_bar, hp_label, effect_badge}]
 var _reserve_header: Label = null
-var _reserve_rows: Array[HBoxContainer] = []
+var _reserve_entries: Array[Dictionary] = []  ## same format as _entries
+var _reserve_nodes: Array[Node] = []  ## all nodes added for reserves (for cleanup)
 var _swap_btn: Button = null
 var _roster_state: RosterState = null
 var _crawler_state: CrawlerState = null
@@ -72,43 +73,48 @@ func setup(squad: Array[GlyphInstance], p_roster_state: RosterState = null, p_ri
 
 
 func refresh() -> void:
-	## Update squad HP bars and mastery stars
-	for entry: Dictionary in _entries:
-		var g: GlyphInstance = entry["glyph"]
-		var hp_bar: ProgressBar = entry["hp_bar"]
-		var hp_label: Label = entry["hp_label"]
-		var name_label: Label = entry["name_label"]
-
-		hp_bar.max_value = g.max_hp
-		hp_bar.value = g.current_hp
-		hp_label.text = str(g.current_hp)
-
-		## Refresh name + stars (mastery may complete mid-rift via capture)
-		var sp_name: String = g.species.name if g.species else "???"
-		var stars: String = g.get_mastery_stars_text()
-		name_label.text = "%s %s" % [sp_name, stars] if stars != "" else sp_name
-
-		## Color thresholds (same as CrawlerHUD)
-		var pct: float = float(g.current_hp) / maxf(float(g.max_hp), 1.0)
-		var fill: StyleBoxFlat = hp_bar.get_theme_stylebox("fill") as StyleBoxFlat
-		if fill != null:
-			if pct > 0.5:
-				fill.bg_color = Color("#4CAF50")
-			elif pct > 0.25:
-				fill.bg_color = Color("#FFC107")
-			else:
-				fill.bg_color = Color("#F44336")
+	## Update squad + reserve HP bars and mastery stars
+	for entry: Dictionary in _entries + _reserve_entries:
+		_refresh_entry(entry)
 
 	## Update reserves list
 	_refresh_reserves()
 
 
+func _refresh_entry(entry: Dictionary) -> void:
+	var g: GlyphInstance = entry["glyph"]
+	var hp_bar: ProgressBar = entry["hp_bar"]
+	var hp_label: Label = entry["hp_label"]
+	var name_label: Label = entry["name_label"]
+
+	hp_bar.max_value = g.max_hp
+	hp_bar.value = g.current_hp
+	hp_label.text = str(g.current_hp)
+
+	## Refresh name + stars (mastery may complete mid-rift via capture)
+	var sp_name: String = g.species.name if g.species else "???"
+	var stars: String = g.get_mastery_stars_text()
+	name_label.text = "%s %s" % [sp_name, stars] if stars != "" else sp_name
+
+	## Color thresholds (same as CrawlerHUD)
+	var pct: float = float(g.current_hp) / maxf(float(g.max_hp), 1.0)
+	var fill: StyleBoxFlat = hp_bar.get_theme_stylebox("fill") as StyleBoxFlat
+	if fill != null:
+		if pct > 0.5:
+			fill.bg_color = Color("#4CAF50")
+		elif pct > 0.25:
+			fill.bg_color = Color("#FFC107")
+		else:
+			fill.bg_color = Color("#F44336")
+
+
 func _refresh_reserves() -> void:
-	## Clear old reserve rows
-	for row: HBoxContainer in _reserve_rows:
-		_vbox.remove_child(row)
-		row.queue_free()
-	_reserve_rows.clear()
+	## Clear old reserve nodes
+	for node: Node in _reserve_nodes:
+		_vbox.remove_child(node)
+		node.queue_free()
+	_reserve_nodes.clear()
+	_reserve_entries.clear()
 
 	## Show rift pool glyphs that aren't currently in the active squad
 	var reserves: Array[GlyphInstance] = []
@@ -129,30 +135,15 @@ func _refresh_reserves() -> void:
 		_swap_btn.visible = not reserves.is_empty()
 
 	for g: GlyphInstance in reserves:
-		var row: HBoxContainer = HBoxContainer.new()
-		row.add_theme_constant_override("separation", 4)
-		row.mouse_filter = Control.MOUSE_FILTER_STOP
-		row.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		row.gui_input.connect(func(event: InputEvent) -> void:
-			if event is InputEventMouseButton:
-				var mb: InputEventMouseButton = event as InputEventMouseButton
-				if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
-					glyph_clicked.emit(g)
-		)
-		_vbox.add_child(row)
-		_reserve_rows.append(row)
+		var entry: Dictionary = _make_entry(g)
+		_reserve_entries.append(entry)
+		_reserve_nodes.append(entry["name_row"])
+		_reserve_nodes.append(entry["hp_row"])
+		_refresh_entry(entry)
 
-		var art: Control = _make_art_icon(g, 16, false)
-		row.add_child(art)
-
-		var label: Label = Label.new()
-		var sp_name: String = g.species.name if g.species else "???"
-		label.text = sp_name
-		label.add_theme_font_size_override("font_size", 10)
-		label.add_theme_color_override("font_color", Color("#AAAAAA"))
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(label)
+	## Keep swap button at the bottom
+	if _swap_btn != null:
+		_vbox.move_child(_swap_btn, -1)
 
 
 func _make_entry(g: GlyphInstance) -> Dictionary:
@@ -220,12 +211,13 @@ func _make_entry(g: GlyphInstance) -> Dictionary:
 	hp_label.custom_minimum_size = Vector2(24, 0)
 	hp_row.add_child(hp_label)
 
-	return {"glyph": g, "name_label": name_label, "hp_bar": hp_bar, "hp_label": hp_label, "effect_badge": effect_badge}
+	return {"glyph": g, "name_label": name_label, "hp_bar": hp_bar, "hp_label": hp_label, "effect_badge": effect_badge, "name_row": name_row, "hp_row": hp_row}
 
 
 func _clear_entries() -> void:
 	_entries.clear()
-	_reserve_rows.clear()
+	_reserve_entries.clear()
+	_reserve_nodes.clear()
 	_reserve_header = null
 	_swap_btn = null
 	for child: Node in _vbox.get_children():

@@ -131,30 +131,30 @@ func _rebuild_list() -> void:
 func _on_use_pressed(item: ItemDef) -> void:
 	if crawler == null:
 		return
-	var applied: bool = _apply_item(item)
+	var applied: bool = ItemPopup.apply_item(item, crawler, roster_state)
 	if applied:
 		crawler.use_item(item)
 		item_used.emit(item)
 		_rebuild_list()
 
 
-func _apply_item(item: ItemDef) -> bool:
+static func apply_item(item: ItemDef, p_crawler: CrawlerState, p_roster: RosterState) -> bool:
 	match item.effect_type:
 		"repair_hull":
-			crawler.hull_hp = mini(crawler.hull_hp + int(item.effect_value), crawler.max_hull_hp)
-			crawler.hull_changed.emit(crawler.hull_hp, crawler.max_hull_hp)
+			p_crawler.hull_hp = mini(p_crawler.hull_hp + int(item.effect_value), p_crawler.max_hull_hp)
+			p_crawler.hull_changed.emit(p_crawler.hull_hp, p_crawler.max_hull_hp)
 			return true
 		"restore_energy":
-			crawler.energy = mini(crawler.energy + int(item.effect_value), crawler.max_energy)
-			crawler.energy_changed.emit(crawler.energy, crawler.max_energy)
+			p_crawler.energy = mini(p_crawler.energy + int(item.effect_value), p_crawler.max_energy)
+			p_crawler.energy_changed.emit(p_crawler.energy, p_crawler.max_energy)
 			return true
 		"heal_glyph":
 			## Heal the most damaged glyph
-			if roster_state == null:
+			if p_roster == null:
 				return false
 			var most_damaged: GlyphInstance = null
 			var most_missing: int = 0
-			for g: GlyphInstance in roster_state.active_squad:
+			for g: GlyphInstance in p_roster.active_squad:
 				var missing: int = g.max_hp - g.current_hp
 				if missing > most_missing:
 					most_missing = missing

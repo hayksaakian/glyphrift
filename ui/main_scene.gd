@@ -546,7 +546,7 @@ func _auto_save() -> void:
 	if game_state == null:
 		return
 	var bench: Array[GlyphInstance] = []
-	if _dungeon_scene != null and _dungeon_scene.visible:
+	if game_state.current_dungeon != null and _dungeon_scene != null:
 		bench = _get_bench_glyphs()
 	SaveManager.save_game(game_state, roster_state, codex_state, crawler_state, bench)
 

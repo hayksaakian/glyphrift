@@ -1492,20 +1492,48 @@ func _show_swap_picker(new_item: ItemDef, source: String) -> void:
 	var sep: HSeparator = HSeparator.new()
 	_swap_vbox.add_child(sep)
 
-	var drop_label: Label = Label.new()
-	drop_label.text = "Drop an item to make room:"
-	drop_label.add_theme_font_size_override("font_size", 12)
-	drop_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_swap_vbox.add_child(drop_label)
+	var hint_label: Label = Label.new()
+	hint_label.text = "Use or drop an item to make room:"
+	hint_label.add_theme_font_size_override("font_size", 12)
+	hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_swap_vbox.add_child(hint_label)
 
 	for item: ItemDef in dungeon_state.crawler.items:
-		var btn: Button = Button.new()
-		btn.name = "DropButton_%s" % item.name.replace(" ", "")
-		btn.text = "Drop: %s" % item.name
-		btn.custom_minimum_size = Vector2(0, 30)
+		var row: HBoxContainer = HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		_swap_vbox.add_child(row)
+
+		var info_col: VBoxContainer = VBoxContainer.new()
+		info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info_col.add_theme_constant_override("separation", 1)
+		row.add_child(info_col)
+
+		var name_label: Label = Label.new()
+		name_label.text = item.name
+		name_label.add_theme_font_size_override("font_size", 13)
+		info_col.add_child(name_label)
+
+		var item_desc: Label = Label.new()
+		item_desc.text = item.description
+		item_desc.add_theme_font_size_override("font_size", 10)
+		item_desc.add_theme_color_override("font_color", Color("#AAAAAA"))
+		item_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info_col.add_child(item_desc)
+
+		var use_btn: Button = Button.new()
+		use_btn.name = "UseButton_%s" % item.name.replace(" ", "")
+		use_btn.text = "Use"
+		use_btn.custom_minimum_size = Vector2(50, 28)
 		var item_ref: ItemDef = item
-		btn.pressed.connect(func() -> void: _on_swap_drop_selected(item_ref))
-		_swap_vbox.add_child(btn)
+		use_btn.pressed.connect(func() -> void: _on_swap_use_selected(item_ref))
+		row.add_child(use_btn)
+
+		var drop_btn: Button = Button.new()
+		drop_btn.name = "DropButton_%s" % item.name.replace(" ", "")
+		drop_btn.text = "Drop"
+		drop_btn.custom_minimum_size = Vector2(50, 28)
+		drop_btn.pressed.connect(func() -> void: _on_swap_drop_selected(item_ref))
+		row.add_child(drop_btn)
 
 	var leave_btn: Button = Button.new()
 	leave_btn.name = "LeaveItButton"
@@ -1517,6 +1545,25 @@ func _show_swap_picker(new_item: ItemDef, source: String) -> void:
 
 	_state = UIState.POPUP
 	_swap_overlay.visible = true
+
+
+func _on_swap_use_selected(use_item: ItemDef) -> void:
+	var applied: bool = ItemPopup.apply_item(use_item, dungeon_state.crawler, roster_state)
+	if not applied:
+		return
+	dungeon_state.crawler.use_item(use_item)
+	## Now there's room — add the new item
+	dungeon_state.crawler.add_item(_swap_pending_item)
+	var item_name: String = _swap_pending_item.name
+	_swap_pending_item = null
+	_swap_overlay.visible = false
+	_crawler_hud.refresh()
+
+	if _swap_source == "puzzle":
+		_state = UIState.EXPLORING
+	else:
+		_room_popup.show_result("Found: %s" % item_name, "Used %s to make room." % use_item.name)
+		_state = UIState.POPUP
 
 
 func _on_swap_drop_selected(drop_item: ItemDef) -> void:
