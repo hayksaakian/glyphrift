@@ -600,11 +600,11 @@ func _test_status_icons_letters() -> void:
 			if sid == "burn":
 				found_burn = true
 				var lbl: Label = icon.get_child(0) as Label
-				_assert(lbl != null and lbl.text == "B", "Burn icon has letter B")
+				_assert(lbl != null and lbl.text.begins_with("B"), "Burn icon starts with B (got '%s')" % (lbl.text if lbl else "null"))
 			elif sid == "stun":
 				found_stun = true
 				var lbl: Label = icon.get_child(0) as Label
-				_assert(lbl != null and lbl.text == "S", "Stun icon has letter S")
+				_assert(lbl != null and lbl.text.begins_with("S"), "Stun icon starts with S (got '%s')" % (lbl.text if lbl else "null"))
 
 	_assert(found_burn, "Found burn status icon")
 	_assert(found_stun, "Found stun status icon")

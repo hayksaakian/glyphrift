@@ -25,6 +25,24 @@ const STATUS_LETTERS: Dictionary = {
 	"shield": "H",
 }
 
+const STATUS_DESCRIPTIONS: Dictionary = {
+	"burn": "Burn — loses 8%% max HP per turn",
+	"stun": "Stun — skips next turn",
+	"slow": "Slow — SPD reduced by 30%%",
+	"weaken": "Weaken — ATK reduced by 25%%",
+	"corrode": "Corrode — DEF reduced by 25%%",
+	"shield": "Shield — incoming damage reduced by 25%%",
+}
+
+const STATUS_IS_BUFF: Dictionary = {
+	"burn": false,
+	"stun": false,
+	"slow": false,
+	"weaken": false,
+	"corrode": false,
+	"shield": true,
+}
+
 
 var glyph: GlyphInstance = null
 var recruit_count: int = 0
@@ -431,21 +449,29 @@ func _refresh_statuses() -> void:
 		_status_row.add_child(icon)
 
 	for status_id: String in glyph.active_statuses:
+		var turns: int = glyph.active_statuses[status_id]
 		var icon: PanelContainer = PanelContainer.new()
 		icon.custom_minimum_size = Vector2(22, 22)
 		icon.set_meta("status_id", status_id)
-		icon.tooltip_text = status_id.capitalize()
+		## Rich tooltip: description + remaining turns
+		var desc: String = STATUS_DESCRIPTIONS.get(status_id, status_id.capitalize())
+		icon.tooltip_text = "%s (%d turn%s)" % [desc, turns, "" if turns == 1 else "s"]
 		var icon_style: StyleBoxFlat = StyleBoxFlat.new()
 		icon_style.bg_color = STATUS_COLORS.get(status_id, Color.WHITE)
 		icon_style.set_corner_radius_all(3)
+		## Buff/debuff border distinction
+		var is_buff: bool = STATUS_IS_BUFF.get(status_id, false)
+		icon_style.border_color = Color("#00DDDD") if is_buff else Color("#FF6666")
+		icon_style.set_border_width_all(1)
 		icon.add_theme_stylebox_override("panel", icon_style)
 
 		var letter: Label = Label.new()
-		letter.text = STATUS_LETTERS.get(status_id, "?")
+		letter.text = "%s%d" % [STATUS_LETTERS.get(status_id, "?"), turns]
 		letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		letter.add_theme_font_size_override("font_size", 12)
+		letter.add_theme_font_size_override("font_size", 10)
 		letter.add_theme_color_override("font_color", Color.WHITE)
+		letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon.add_child(letter)
 
 		_status_row.add_child(icon)

@@ -35,7 +35,7 @@ These make the biggest difference in player experience.
     - Trophy Mount — +10% capture chance
   - Parts found as rare cache drops or milestone rewards. Chassis identity could come from bonuses to certain part types (e.g. Ironclad: +50% from Accessories, Scout: +50% from Computers) or unique part unlocks per chassis. This gives pre-rift loadout decisions without adding combat complexity.
 
-- [ ] **Status effect clarity** — 6 status types with single-letter icons; tooltip on hover works but in-battle readability could improve (color-coded borders, persistent effect descriptions).
+- [x] **Status effect clarity** — 6 status types with single-letter icons; tooltip on hover works but in-battle readability could improve. _(Status badges now show letter+turns remaining (e.g. "B3", "S1"), rich tooltips with effect description and duration, red/cyan border for debuff/buff distinction)_
 
 ## Tier 3 — Content Expansion
 
