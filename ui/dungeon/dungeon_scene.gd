@@ -1046,9 +1046,8 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 				boss_data = data_loader.get_boss(dungeon_state.rift_template.rift_id)
 			var boss_squad: Array[GlyphInstance] = _generate_boss(boss_data)
 			combat_requested.emit(boss_squad, boss_data)
-		"cache", "hidden":
+		"cache":
 			if room_data_local.get("cleared", false):
-				## Second click (Continue on result) — just dismiss
 				_state = UIState.EXPLORING
 			else:
 				var result: Dictionary = _pick_item()
@@ -1061,7 +1060,28 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 					_room_popup.show_result("Found: %s" % found_item.name, found_item.description)
 				else:
 					_room_popup.show_result("Cache Empty", "Nothing useful remains.")
-				## Stay in POPUP — next Continue click will dismiss
+		"hidden":
+			if room_data_local.get("cleared", false):
+				_state = UIState.EXPLORING
+			else:
+				var result: Dictionary = _pick_item()
+				_clear_current_room("Found hidden cache!")
+				## Hidden rooms also restore 15 hull HP as bonus
+				var hull_bonus: int = 15
+				if dungeon_state != null and dungeon_state.crawler != null:
+					var c: CrawlerState = dungeon_state.crawler
+					var healed: int = mini(hull_bonus, c.max_hull_hp - c.hull_hp)
+					c.hull_hp = mini(c.hull_hp + hull_bonus, c.max_hull_hp)
+					if healed > 0:
+						c.hull_changed.emit(c.hull_hp, c.max_hull_hp)
+				if result.get("full", false):
+					_show_swap_picker(result["item"], "cache")
+					return
+				elif result.get("item") != null:
+					var found_item: ItemDef = result["item"]
+					_room_popup.show_result("Hidden Cache: %s" % found_item.name, "%s\n+%d Hull HP restored!" % [found_item.description, hull_bonus])
+				else:
+					_room_popup.show_result("Hidden Cache", "+%d Hull HP restored!" % hull_bonus)
 		"puzzle":
 			_launch_puzzle(room_data_local)
 		"hazard":
