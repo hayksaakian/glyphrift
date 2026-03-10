@@ -781,9 +781,7 @@ func _on_room_entered(room: Dictionary) -> void:
 		elif room_type == "boss" and data_loader != null:
 			var boss_def: BossDef = data_loader.get_boss(dungeon_state.rift_template.rift_id)
 			if boss_def != null:
-				var species: GlyphSpecies = data_loader.get_species(boss_def.species_id)
-				if species != null:
-					extra = species.name
+				extra = boss_def.species_id
 		_room_popup.show_room(room, extra)
 	elif room_type == "exit":
 		## Exit handled via exit_reached signal → shows Descend/Stay popup

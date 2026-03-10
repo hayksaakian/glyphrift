@@ -47,6 +47,7 @@ var _button_row: VBoxContainer = null
 var _back_out_button: Button = null
 var _vbox: VBoxContainer = null
 var _enemy_preview: HBoxContainer = null
+var _boss_portrait_container: Control = null
 
 
 func _ready() -> void:
@@ -60,10 +61,17 @@ func show_room(p_room_data: Dictionary, extra_info: String = "") -> void:
 	var room_type: String = room_data.get("type", "empty")
 
 	var title: String = ROOM_TITLES.get(room_type, "Unknown Room")
-	if room_type == "boss" and extra_info != "":
-		title = "RIFT GUARDIAN: %s" % extra_info
+	if room_type == "boss" and extra_info != "" and data_loader != null:
+		var boss_species: GlyphSpecies = data_loader.get_species(extra_info)
+		if boss_species != null:
+			title = "RIFT GUARDIAN: %s" % boss_species.name
 
 	_title_label.text = title
+
+	## Boss portrait
+	_clear_boss_portrait()
+	if room_type == "boss" and extra_info != "" and data_loader != null:
+		_show_boss_portrait(extra_info)
 
 	## Show enemy preview if scan data has species IDs
 	var scan_species_ids: Array = room_data.get("scan_species_ids", [])
@@ -93,6 +101,7 @@ func show_result(title: String, description: String) -> void:
 	_description_label.text = description
 	_description_label.visible = true
 	_clear_enemy_preview()
+	_clear_boss_portrait()
 	_action_button.text = "Continue"
 	_formation_button.visible = false
 	_back_out_button.visible = false
@@ -169,6 +178,13 @@ func _build_ui() -> void:
 	_title_label.add_theme_color_override("font_color", Color("#FFD700"))
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_vbox.add_child(_title_label)
+
+	## Boss portrait (shown only for boss rooms)
+	_boss_portrait_container = Control.new()
+	_boss_portrait_container.custom_minimum_size = Vector2(0, 0)
+	_boss_portrait_container.visible = false
+	_boss_portrait_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_vbox.add_child(_boss_portrait_container)
 
 	## Description (hidden when enemy preview is shown)
 	_description_label = Label.new()
@@ -302,6 +318,43 @@ func _clear_enemy_preview() -> void:
 	for child: Node in _enemy_preview.get_children():
 		_enemy_preview.remove_child(child)
 		child.queue_free()
+
+
+func _show_boss_portrait(species_id: String) -> void:
+	var species: GlyphSpecies = data_loader.get_species(species_id)
+	if species == null:
+		return
+	var tex: Texture2D = GlyphArt.get_portrait(species_id)
+	if tex == null:
+		return
+
+	var aff: String = species.affinity
+	var portrait_bg: ColorRect = ColorRect.new()
+	portrait_bg.custom_minimum_size = Vector2(0, 100)
+	portrait_bg.color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"]).darkened(0.6)
+	portrait_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_portrait_container.add_child(portrait_bg)
+
+	var portrait: TextureRect = TextureRect.new()
+	portrait.texture = tex
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait_bg.add_child(portrait)
+
+	_boss_portrait_container.custom_minimum_size = Vector2(0, 100)
+	_boss_portrait_container.visible = true
+
+
+func _clear_boss_portrait() -> void:
+	if _boss_portrait_container == null:
+		return
+	for child: Node in _boss_portrait_container.get_children():
+		_boss_portrait_container.remove_child(child)
+		child.queue_free()
+	_boss_portrait_container.custom_minimum_size = Vector2(0, 0)
+	_boss_portrait_container.visible = false
 	_enemy_preview.visible = false
 
 

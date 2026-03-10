@@ -646,9 +646,10 @@ func _test_room_popup_types() -> void:
 func _test_room_popup_boss_name() -> void:
 	print("--- RoomPopup: Boss Name ---")
 	var popup: RoomPopup = RoomPopup.new()
+	popup.data_loader = _data_loader as DataLoader
 	root.add_child(popup)
 
-	popup.show_room({"type": "boss", "id": "boss_room"}, "Thunderclaw")
+	popup.show_room({"type": "boss", "id": "boss_room"}, "thunderclaw")
 	_assert("Thunderclaw" in popup.get_title_text(), "Boss popup includes species name")
 	_assert("RIFT GUARDIAN" in popup.get_title_text(), "Boss popup includes RIFT GUARDIAN")
 
