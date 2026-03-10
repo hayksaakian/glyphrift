@@ -34,6 +34,7 @@ var _current_rift_template: RiftTemplate = null
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	GameSettings.load_settings()
 	_build_scene_tree()
 	_connect_signals()
 

@@ -11,9 +11,11 @@ signal save_slot_loaded
 var _open: bool = false
 var _center: CenterContainer = null
 var _resume_btn: Button = null
+var _settings_btn: Button = null
 var _save_quit_btn: Button = null
 var _save_slots_btn: Button = null
 var _save_slots_popup: SaveSlotsPopup = null
+var _settings_popup: SettingsPopup = null
 
 ## When true, _unhandled_input is ignored (for headless tests)
 var instant_mode: bool = false
@@ -116,6 +118,13 @@ func _build_ui() -> void:
 	_resume_btn.pressed.connect(close)
 	vbox.add_child(_resume_btn)
 
+	_settings_btn = Button.new()
+	_settings_btn.name = "SettingsButton"
+	_settings_btn.text = "Settings"
+	_settings_btn.custom_minimum_size = Vector2(200, 36)
+	_settings_btn.pressed.connect(_on_settings)
+	vbox.add_child(_settings_btn)
+
 	_save_slots_btn = Button.new()
 	_save_slots_btn.name = "SaveSlotsButton"
 	_save_slots_btn.text = "Save Slots"
@@ -139,10 +148,19 @@ func _build_ui() -> void:
 	)
 	add_child(_save_slots_popup)
 
+	## Settings popup (embedded, hidden)
+	_settings_popup = SettingsPopup.new()
+	_settings_popup.name = "SettingsPopup"
+	add_child(_settings_popup)
+
 
 func _on_save_quit() -> void:
 	close()
 	save_and_quit_pressed.emit()
+
+
+func _on_settings() -> void:
+	_settings_popup.show_popup()
 
 
 func _on_save_slots() -> void:

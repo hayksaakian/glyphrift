@@ -78,7 +78,7 @@ func _play_next() -> void:
 		var cb: Callable = event["data"]["callback"]
 		cb.call()
 
-	var delay: float = event["delay"]
+	var delay: float = event["delay"] * GameSettings.get_delay_multiplier()
 	if delay > 0.0:
 		await get_tree().create_timer(delay).timeout
 

@@ -133,6 +133,14 @@ func _run_tests() -> void:
 	_test_crawler_bay_milestone_display()
 	_test_bastion_navigation_crawler_bay()
 
+	## Settings
+	_test_game_settings_default()
+	_test_game_settings_cycle()
+	_test_game_settings_delay_multiplier()
+	_test_settings_popup_construction()
+	_test_settings_popup_speed_cycle()
+	_test_pause_menu_settings_button()
+
 	print("")
 	print("========================================")
 	print("  RESULTS: %d passed, %d failed" % [pass_count, fail_count])
@@ -2092,3 +2100,90 @@ func _test_bastion_navigation_crawler_bay() -> void:
 	_assert(not bs._hub.visible, "hub hidden")
 
 	_cleanup_bastion(bs)
+
+
+# ==========================================================================
+# Settings Tests
+# ==========================================================================
+
+
+func _test_game_settings_default() -> void:
+	print("--- GameSettings: Default values ---")
+	GameSettings.battle_speed = "normal"
+	_assert(GameSettings.battle_speed == "normal", "default battle speed is normal")
+	_assert(GameSettings.get_delay_multiplier() == 1.0, "normal delay multiplier is 1.0")
+
+
+func _test_game_settings_cycle() -> void:
+	print("--- GameSettings: Speed values ---")
+	GameSettings.battle_speed = "fast"
+	_assert(GameSettings.battle_speed == "fast", "can set to fast")
+	GameSettings.battle_speed = "instant"
+	_assert(GameSettings.battle_speed == "instant", "can set to instant")
+	GameSettings.battle_speed = "normal"
+
+
+func _test_game_settings_delay_multiplier() -> void:
+	print("--- GameSettings: Delay multipliers ---")
+	GameSettings.battle_speed = "normal"
+	_assert(GameSettings.get_delay_multiplier() == 1.0, "normal = 1.0")
+	GameSettings.battle_speed = "fast"
+	_assert(GameSettings.get_delay_multiplier() == 0.4, "fast = 0.4")
+	GameSettings.battle_speed = "instant"
+	_assert(GameSettings.get_delay_multiplier() == 0.0, "instant = 0.0")
+	GameSettings.battle_speed = "normal"
+
+
+func _test_settings_popup_construction() -> void:
+	print("--- SettingsPopup: Construction ---")
+	var popup: SettingsPopup = SettingsPopup.new()
+	root.add_child(popup)
+	_assert(popup != null, "popup created")
+	_assert(not popup.visible, "popup hidden by default")
+	_assert(popup._speed_btn != null, "speed button exists")
+	_assert(popup._close_btn != null, "close button exists")
+	popup.show_popup()
+	_assert(popup.visible, "popup visible after show")
+	popup.hide_popup()
+	_assert(not popup.visible, "popup hidden after hide")
+	_cleanup_node(popup)
+
+
+func _test_settings_popup_speed_cycle() -> void:
+	print("--- SettingsPopup: Speed cycle ---")
+	GameSettings.battle_speed = "normal"
+	var popup: SettingsPopup = SettingsPopup.new()
+	root.add_child(popup)
+	popup.show_popup()
+
+	_assert(popup._speed_btn.text == "Normal", "initial label is Normal")
+	popup._cycle_speed()
+	_assert(GameSettings.battle_speed == "fast", "cycled to fast")
+	_assert(popup._speed_btn.text == "Fast (2x)", "label shows Fast (2x)")
+	popup._cycle_speed()
+	_assert(GameSettings.battle_speed == "instant", "cycled to instant")
+	_assert(popup._speed_btn.text == "Instant", "label shows Instant")
+	popup._cycle_speed()
+	_assert(GameSettings.battle_speed == "normal", "cycled back to normal")
+
+	_cleanup_node(popup)
+	GameSettings.battle_speed = "normal"
+
+
+func _test_pause_menu_settings_button() -> void:
+	print("--- PauseMenu: Settings button ---")
+	var menu: PauseMenu = PauseMenu.new()
+	menu.instant_mode = true
+	root.add_child(menu)
+
+	_assert(menu._settings_btn != null, "settings button exists")
+	_assert(menu._settings_popup != null, "settings popup exists")
+	_assert(not menu._settings_popup.visible, "settings popup hidden initially")
+
+	menu._settings_btn.pressed.emit()
+	_assert(menu._settings_popup.visible, "settings popup visible after click")
+
+	menu._settings_popup.hide_popup()
+	_assert(not menu._settings_popup.visible, "settings popup hidden after close")
+
+	_cleanup_node(menu)
