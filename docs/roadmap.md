@@ -84,7 +84,7 @@ Important but not urgent. Do these as the game stabilizes.
 - [x] **Save slot management** — currently single save; multiple slots or "are you sure?" on new game _(3 save slots + autosave implemented)_
 - [ ] **Settings screen** — no options menu (text speed, animation speed, controls)
 - [ ] **Accessibility** — no colorblind mode, font size options, or input remapping
-- [ ] **Endgame / post-apex** — what happens after clearing all 7 rifts? Credits? Codex completion reward?
+- [x] **Endgame / post-apex** — what happens after clearing all 7 rifts? _(Shows "ALL RIFTS CONQUERED!" message with codex discovery percentage when last rift is cleared. Player returns to bastion and can re-enter rifts for captures/completion.)_
 - [ ] **Crawler upgrade: Rift Transmitter** — when bench is full during capture, allow sending caught glyph directly to bastion reserves. Crawler upgrade (not default) — keeps early-game tension, gives late-game QoL.
 
 ## Art & Visual Pass

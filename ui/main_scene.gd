@@ -445,7 +445,13 @@ func _on_rift_completed(won: bool) -> void:
 
 	var msg: String = ""
 	if won:
-		msg = "Rift conquered! All glyphs healed."
+		## Check if all rifts are now cleared (endgame)
+		var total_rifts: int = data_loader.rift_templates.size() if data_loader != null else 8
+		if codex_state != null and codex_state.cleared_rift_count() >= total_rifts:
+			var discovery_pct: int = int(codex_state.get_discovery_percentage() * 100)
+			msg = "ALL RIFTS CONQUERED! Codex: %d%% discovered. The rifts are sealed... for now." % discovery_pct
+		else:
+			msg = "Rift conquered! All glyphs healed."
 	else:
 		msg = "Extracted from rift. All glyphs healed."
 
