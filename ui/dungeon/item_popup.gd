@@ -132,7 +132,7 @@ func _rebuild_list() -> void:
 		desc_label.text = item.description
 		desc_label.add_theme_font_size_override("font_size", 10)
 		desc_label.add_theme_color_override("font_color", Color("#AAAAAA"))
-		desc_label.max_lines = 2
+		desc_label.max_lines_visible = 2
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		desc_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		info_col.add_child(desc_label)

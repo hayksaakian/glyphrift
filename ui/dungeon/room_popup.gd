@@ -97,6 +97,7 @@ func show_room(p_room_data: Dictionary, extra_info: String = "") -> void:
 
 
 func show_result(title: String, description: String) -> void:
+	room_data = {}
 	_title_label.text = title
 	_description_label.text = description
 	_description_label.visible = true

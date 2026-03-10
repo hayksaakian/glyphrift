@@ -39,6 +39,11 @@ func _ready() -> void:
 	_connect_signals()
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		GlyphArt.clear_cache()
+
+
 func setup(
 	p_game_state: GameState,
 	p_roster_state: RosterState,

@@ -16,6 +16,24 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Fixed Bugs
 
+### BUG-011: Texture/RID leaks on exit (~8MB)
+- **Priority:** P3
+- **Status:** 🟢 Fixed
+- **Fix:** Added `_notification(NOTIFICATION_WM_CLOSE_REQUEST)` handler in MainScene that calls `GlyphArt.clear_cache()` to release cached portrait/silhouette textures before engine teardown. Remaining CanvasItem/Font leaks are likely Godot engine noise.
+- **Files:** `ui/main_scene.gd`
+
+### BUG-010: Invalid `max_lines` property on Label in ItemPopup
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Fix:** Replaced `max_lines` (doesn't exist in Godot 4.6) with `max_lines_visible` at `item_popup.gd:135`.
+- **Files:** `ui/dungeon/item_popup.gd`
+
+### BUG-009: Lore Fragment "Continue" can trigger a phantom combat encounter
+- **Priority:** P1
+- **Status:** 🟢 Fixed
+- **Fix:** `show_result()` now sets `room_data = {}` before displaying, so when Continue fires `_on_action_pressed`, the stale room type is gone and it falls through to the `"empty"` case (which just sets state to EXPLORING).
+- **Files:** `ui/dungeon/room_popup.gd`
+
 ### BUG-006: Save slot UI needs rework — naming, location, rename, 5 slots
 - **Priority:** P2
 - **Status:** 🟢 Fixed
