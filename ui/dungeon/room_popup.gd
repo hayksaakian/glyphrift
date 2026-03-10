@@ -324,24 +324,37 @@ func _show_boss_portrait(species_id: String) -> void:
 	var species: GlyphSpecies = data_loader.get_species(species_id)
 	if species == null:
 		return
-	var tex: Texture2D = GlyphArt.get_portrait(species_id)
-	if tex == null:
-		return
 
 	var aff: String = species.affinity
+	var aff_color: Color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
 	var portrait_bg: ColorRect = ColorRect.new()
 	portrait_bg.custom_minimum_size = Vector2(0, 100)
-	portrait_bg.color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"]).darkened(0.6)
+	portrait_bg.color = aff_color.darkened(0.6)
 	portrait_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_boss_portrait_container.add_child(portrait_bg)
 
-	var portrait: TextureRect = TextureRect.new()
-	portrait.texture = tex
-	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait_bg.add_child(portrait)
+	var tex: Texture2D = GlyphArt.get_portrait(species_id)
+	if tex != null:
+		var portrait: TextureRect = TextureRect.new()
+		portrait.texture = tex
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		portrait_bg.add_child(portrait)
+	else:
+		## Placeholder: species initial letter centered on affinity-colored backdrop
+		var letter: Label = Label.new()
+		letter.text = species.name[0].to_upper()
+		letter.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		letter.add_theme_font_size_override("font_size", 40)
+		letter.add_theme_color_override("font_color", Color.WHITE)
+		letter.add_theme_color_override("font_outline_color", Color.BLACK)
+		letter.add_theme_constant_override("outline_size", 3)
+		letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		portrait_bg.add_child(letter)
 
 	_boss_portrait_container.custom_minimum_size = Vector2(0, 100)
 	_boss_portrait_container.visible = true

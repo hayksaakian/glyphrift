@@ -190,7 +190,9 @@ func refresh() -> void:
 			_icon_label.modulate.a = 1.0
 			_type_label.modulate.a = 1.0
 			_border_panel.visible = false
-			mouse_default_cursor_shape = Control.CURSOR_ARROW
+			## Show pointer cursor if room is interactable (boss, puzzle, enemy)
+			var interactable: bool = not is_cleared and room_type in ["boss", "puzzle", "enemy"]
+			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if interactable else Control.CURSOR_ARROW
 			if has_scan and not is_cleared:
 				_update_scan_sprites()
 				_scan_container.modulate.a = 1.0

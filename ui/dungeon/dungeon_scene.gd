@@ -643,6 +643,11 @@ func _on_room_clicked(room_id: String) -> void:
 	## Clear any path preview
 	_floor_map.clear_path_preview()
 
+	## Re-engage current room if not cleared and interactable
+	if room_id == dungeon_state.current_room_id:
+		_re_engage_current_room()
+		return
+
 	## Direct adjacent move (fast path)
 	var adjacent_ids: Dictionary = {}
 	for room: Dictionary in dungeon_state.get_adjacent_rooms():
@@ -655,6 +660,25 @@ func _on_room_clicked(room_id: String) -> void:
 	if path.is_empty():
 		return
 	_walk_path(path)
+
+
+func _re_engage_current_room() -> void:
+	var room: Dictionary = dungeon_state.get_current_room()
+	if room.is_empty():
+		return
+	if room.get("cleared", false):
+		return
+	var room_type: String = room.get("type", "empty")
+	if room_type not in ["boss", "puzzle", "enemy"]:
+		return
+	## Re-show the popup with same logic as _on_room_entered
+	_state = UIState.POPUP
+	var extra: String = ""
+	if room_type == "boss" and data_loader != null:
+		var boss_def: BossDef = data_loader.get_boss(dungeon_state.rift_template.rift_id)
+		if boss_def != null:
+			extra = boss_def.species_id
+	_room_popup.show_room(room, extra)
 
 
 func _walk_path(path: Array[String]) -> void:
