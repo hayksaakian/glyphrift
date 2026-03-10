@@ -63,7 +63,7 @@ Broken into phases. Each phase builds on the last.
 
 ### Longer term: Narrative & lore
 - [x] **NPC dialogue expansion** — 3 NPCs with ~3 lines each feels sparse. _(Expanded to 5 phases with 2 lines each = 30 total lines (was 9). All 3 NPCs now have dialogue for phases 1-5. Randomly picks from available lines per phase for variety. Phase cap removed — phases 4-5 have unique content about Apex preparation and post-completion.)_
-- [ ] **NPC side quests** — GDD mentions Lira's "bring me a Water T2" quest type; not implemented
+- [x] **NPC side quests** — GDD mentions Lira's "bring me a Water T2" quest type; not implemented _(3 quests: Lira=discover 8 species→codex reveal, Kael=clear 3 rifts→+3 capacity, Maro=find 3 hidden rooms→+15 hull HP. Quest status in NPC panel with progress bar. Saved/loaded.)_
 - [x] **Lore objects** — GDD 7.8 mentions murals, data fragments, broken pods in rift rooms; no environmental storytelling currently _(Empty rooms now show lore fragments 50% of the time — murals, data terminals, researcher notes, warning beacons. 3-5 unique entries per rift tied to boss theme. Generic fallback pool for unlisted rifts.)_
 - [x] **Echo flavor text** — give echo encounters memory fragments or species lore snippets _(Done in Tier 2 echo encounters as mini-stories)_
 - [x] **Hidden room rewards** — hidden rooms exist but need more interesting/unique content _(Hidden rooms now give item + 15 hull HP restore bonus, differentiated from regular caches)_
