@@ -14,6 +14,7 @@ const POPUP_SIZE: Vector2 = Vector2(340, 280)
 
 var wild_glyph: GlyphInstance = null
 var capture_chance: float = 0.0
+var memory_fragment: String = ""  ## Echo lore fragment shown on capture result
 
 var _title_label: Label = null
 var _art_placeholder: ColorRect = null
@@ -28,6 +29,7 @@ var _release_button: Button = null
 var _result_label: Label = null
 var _button_container: HBoxContainer = null
 var _continue_button: Button = null
+var _fragment_label: Label = null
 var _swap_container: VBoxContainer = null
 var _abandon_btn: Button = null
 var _swap_new_glyph: GlyphInstance = null
@@ -68,6 +70,7 @@ func show_capture(glyph: GlyphInstance, chance: float, breakdown: Dictionary = {
 	_button_container.visible = true
 	_result_label.text = ""
 	_result_label.visible = false
+	_fragment_label.visible = false
 	_continue_button.visible = false
 	_swap_container.visible = false
 	_abandon_btn.visible = false
@@ -275,6 +278,16 @@ func _build_ui() -> void:
 	_result_label.visible = false
 	vbox.add_child(_result_label)
 
+	## Memory fragment (echo lore, shown below result)
+	_fragment_label = Label.new()
+	_fragment_label.add_theme_font_size_override("font_size", 11)
+	_fragment_label.add_theme_color_override("font_color", Color("#AACCFF"))
+	_fragment_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_fragment_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_fragment_label.custom_minimum_size = Vector2(300, 0)
+	_fragment_label.visible = false
+	vbox.add_child(_fragment_label)
+
 	## Continue button (shown after capture result)
 	_continue_button = Button.new()
 	_continue_button.name = "CaptureContinueButton"
@@ -305,10 +318,11 @@ func _build_ui() -> void:
 func _on_capture_pressed() -> void:
 	if wild_glyph == null:
 		return
-	## 100% chance — skip the roll confirmation, just capture and dismiss
+	## 100% chance — auto-capture, show result (with memory fragment if present)
 	if capture_chance >= 1.0:
-		capture_attempted.emit(wild_glyph, true)
-		dismissed.emit()
+		_capture_button.disabled = true
+		_release_button.visible = false
+		_show_capture_result(true)
 		return
 	var roll: float = randf()
 	var success: bool = roll <= capture_chance
@@ -342,10 +356,15 @@ func _show_capture_result(success: bool) -> void:
 		_result_label.text = "CAPTURED!"
 		_result_label.add_theme_color_override("font_color", Color("#44FF44"))
 		_play_capture_success()
+		## Show memory fragment if present (echo encounters)
+		if not memory_fragment.is_empty():
+			_fragment_label.text = memory_fragment
+			_fragment_label.visible = true
 	else:
 		_result_label.text = "ESCAPED!"
 		_result_label.add_theme_color_override("font_color", Color("#FF4444"))
 		_play_capture_failure()
+		_fragment_label.visible = false
 
 	capture_attempted.emit(wild_glyph, success)
 

@@ -177,6 +177,8 @@ func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3
 		if won and _echo_glyph != null:
 			## Free capture (100% chance) on echo win
 			_clear_current_room("Defeated echo glyph.")
+			## Set memory fragment for lore display on capture
+			_capture_popup.memory_fragment = _puzzle_echo.get_memory_fragment()
 			_show_capture_with_chance(_echo_glyph, 1.0)
 		else:
 			## Loss — apply GDD 8.13 penalty
@@ -1291,6 +1293,7 @@ func _on_result_continue() -> void:
 
 func _show_capture(glyph: GlyphInstance) -> void:
 	_state = UIState.CAPTURE
+	_capture_popup.memory_fragment = ""
 	if _is_tutorial_rift():
 		_show_tutorial_hint("capture", "Capture chance depends on battle speed. Finish faster for better odds!")
 	## Sum recruit uses for the glyph's species

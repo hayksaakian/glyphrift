@@ -16,7 +16,7 @@ These make the biggest difference in player experience.
 
 - [x] **Puzzle variety** — 3 puzzle types rotate fast. Add 2-3 more (riddle/trivia about species lore, tile-sliding, affinity-matching minigame) to keep dungeon rooms fresh. _(4 puzzle types: sequence, conduit, echo, quiz)_
 
-- [ ] **Echo encounters as mini-stories** — echoes are compelling 1v1 duels; give them flavor text, unique movesets, or "memory fragment" lore drops that build a side narrative.
+- [x] **Echo encounters as mini-stories** — echoes are compelling 1v1 duels; give them flavor text, unique movesets, or "memory fragment" lore drops that build a side narrative. _(All 15 species have unique encounter flavor text and memory fragment lore. Encounter text replaces generic "A ghostly echo..." with species-specific atmospheric descriptions. Memory fragments appear on the capture result screen as blue lore text. 100% captures now show result screen instead of auto-dismissing.)_
 
 - [x] **Crawler upgrades feel good** — lean into chassis identity; more meaningful chassis-specific abilities or passives beyond stat bonuses. _(Milestones, chassis selection, upgrade notifications, status panel — all done)_ Future direction: **3 equipment slots** on each crawler, equipped before entering a rift:
 
