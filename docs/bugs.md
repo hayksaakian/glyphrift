@@ -16,6 +16,19 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Fixed Bugs
 
+### BUG-013: Benched glyphs intermittently lost on save/load (mid-rift)
+- **Priority:** P1
+- **Status:** 🟢 Fixed
+- **Root cause:** Manual saves from the pause menu (`SaveSlotsPopup._on_save`) called `save_to_slot` without passing bench glyphs, defaulting to `[]`. Auto-saves worked correctly because `_auto_save()` in MainScene calls `_get_bench_glyphs()`. Only manual mid-rift saves were affected.
+- **Fix:** Added `bench_provider: Callable` to SaveSlotsPopup. MainScene wires it to `_get_bench_glyphs()` at setup time. Manual saves now pass bench glyphs to `save_to_slot`. Also added 7 targeted bench edge case tests (full bench, post-capture, post-swap, damaged HP, identity preservation, empty bench, roster growth).
+- **Files:** `ui/bastion/save_slots_popup.gd`, `ui/main_scene.gd`, `tests/test_save_load.gd`
+
+### BUG-012: AoE/multi-target attacks visually overlap with next glyph's turn
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Fix:** Option 1 (turn boundary markers). Added `turn_ended` signal to CombatEngine, emitted after each turn's actions + status ticks complete but before advancing the turn queue. BattleScene connects it and enqueues a `turn_barrier` event with 0.3s delay into AnimationQueue. This creates a visual pause between turns, ensuring AoE multi-hit animations fully resolve before the next turn's events begin. Engine remains synchronous — fix is purely at the presentation layer.
+- **Files:** `core/combat/combat_engine.gd`, `ui/battle/battle_scene.gd`
+
 ### BUG-011: Texture/RID leaks on exit (~8MB)
 - **Priority:** P3
 - **Status:** 🟢 Fixed

@@ -65,6 +65,15 @@ func _run_tests() -> void:
 	_test_mid_rift_room_state_preserved()
 	_test_no_dungeon_means_bastion()
 
+	## BUG-013: Bench glyph edge cases
+	_test_bench_full_two_glyphs()
+	_test_bench_after_capture_mid_rift()
+	_test_bench_after_squad_swap()
+	_test_bench_glyph_with_damage()
+	_test_bench_identity_preserved()
+	_test_bench_empty_when_no_bench_glyphs()
+	_test_bench_indices_stable_after_roster_growth()
+
 	print("")
 	print("========================================")
 	var total: int = _pass_count + _fail_count
@@ -998,5 +1007,294 @@ func _test_no_dungeon_means_bastion() -> void:
 	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
 	_assert(gs2.current_state == GameState.State.BASTION, "no dungeon: state is BASTION")
 	_assert(not SaveManager.last_load_rift_data.get("in_rift", false), "no dungeon: no rift data")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+## --- BUG-013: Bench glyph edge case tests ---
+
+
+func _test_bench_full_two_glyphs() -> void:
+	print("")
+	print("--- Bench: full bench (2/2) round-trip ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	## Build squad of 3 + bench of 2
+	var squad1: GlyphInstance = _make_glyph("zapplet")
+	var squad2: GlyphInstance = _make_glyph("sparkfin")
+	var squad3: GlyphInstance = _make_glyph("stonepaw")
+	var bench1: GlyphInstance = _make_glyph("mossling")
+	var bench2: GlyphInstance = _make_glyph("driftwisp")
+
+	for g: GlyphInstance in [squad1, squad2, squad3, bench1, bench2]:
+		rs1.add_glyph(g)
+	rs1.active_squad = [squad1, squad2, squad3]
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+
+	var bench: Array[GlyphInstance] = [bench1, bench2]
+	SaveManager.save_game(gs1, rs1, cs1, crs1, bench)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+
+	var loaded_bench: Array = SaveManager.last_load_rift_data.get("rift_bench", [])
+	_assert(loaded_bench.size() == 2, "full bench: 2 glyphs loaded")
+	_assert((loaded_bench[0] as GlyphInstance).species.id == "mossling", "full bench: first is mossling")
+	_assert((loaded_bench[1] as GlyphInstance).species.id == "driftwisp", "full bench: second is driftwisp")
+	_assert(rs2.active_squad.size() == 3, "full bench: squad still 3")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_bench_after_capture_mid_rift() -> void:
+	print("")
+	print("--- Bench: capture adds to bench mid-rift ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	## Full squad, empty bench
+	var squad1: GlyphInstance = _make_glyph("zapplet")
+	var squad2: GlyphInstance = _make_glyph("sparkfin")
+	var squad3: GlyphInstance = _make_glyph("stonepaw")
+	for g: GlyphInstance in [squad1, squad2, squad3]:
+		rs1.add_glyph(g)
+	rs1.active_squad = [squad1, squad2, squad3]
+
+	## Simulate capture: add new glyph to roster (bench candidate)
+	var captured: GlyphInstance = _make_glyph("glitchkit")
+	rs1.add_glyph(captured)
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+
+	## Save with captured glyph on bench
+	var bench: Array[GlyphInstance] = [captured]
+	SaveManager.save_game(gs1, rs1, cs1, crs1, bench)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+
+	var loaded_bench: Array = SaveManager.last_load_rift_data.get("rift_bench", [])
+	_assert(loaded_bench.size() == 1, "capture bench: 1 glyph")
+	_assert((loaded_bench[0] as GlyphInstance).species.id == "glitchkit", "capture bench: glitchkit")
+	## Verify bench glyph is same object as in roster
+	_assert(loaded_bench[0] == rs2.all_glyphs[3], "capture bench: same object as roster[3]")
+	_assert(rs2.all_glyphs.size() == 4, "capture bench: roster has 4 total")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_bench_after_squad_swap() -> void:
+	print("")
+	print("--- Bench: swap squad<->bench then save ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	## Squad of 3, bench of 1
+	var squad1: GlyphInstance = _make_glyph("zapplet")
+	var squad2: GlyphInstance = _make_glyph("sparkfin")
+	var squad3: GlyphInstance = _make_glyph("stonepaw")
+	var bench1: GlyphInstance = _make_glyph("mossling")
+	for g: GlyphInstance in [squad1, squad2, squad3, bench1]:
+		rs1.add_glyph(g)
+	rs1.active_squad = [squad1, squad2, squad3]
+
+	## Simulate swap: squad3 goes to bench, bench1 goes to squad
+	rs1.active_squad = [squad1, squad2, bench1]
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+
+	## After swap: stonepaw is now on bench
+	var bench: Array[GlyphInstance] = [squad3]
+	SaveManager.save_game(gs1, rs1, cs1, crs1, bench)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+
+	var loaded_bench: Array = SaveManager.last_load_rift_data.get("rift_bench", [])
+	_assert(loaded_bench.size() == 1, "swap bench: 1 glyph")
+	_assert((loaded_bench[0] as GlyphInstance).species.id == "stonepaw", "swap bench: stonepaw on bench")
+	_assert(rs2.active_squad.size() == 3, "swap bench: squad still 3")
+	_assert(rs2.active_squad[2].species.id == "mossling", "swap bench: mossling now in squad")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_bench_glyph_with_damage() -> void:
+	print("")
+	print("--- Bench: damaged bench glyph HP preserved ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	var squad1: GlyphInstance = _make_glyph("zapplet")
+	var bench1: GlyphInstance = _make_glyph("sparkfin")
+	bench1.current_hp = 5  ## Badly damaged
+	for g: GlyphInstance in [squad1, bench1]:
+		rs1.add_glyph(g)
+	rs1.active_squad = [squad1]
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+
+	var bench: Array[GlyphInstance] = [bench1]
+	SaveManager.save_game(gs1, rs1, cs1, crs1, bench)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+
+	var loaded_bench: Array = SaveManager.last_load_rift_data.get("rift_bench", [])
+	_assert(loaded_bench.size() == 1, "damaged bench: 1 glyph")
+	_assert((loaded_bench[0] as GlyphInstance).current_hp == 5, "damaged bench: HP=5 preserved")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_bench_identity_preserved() -> void:
+	print("")
+	print("--- Bench: species, mastery, techniques preserved ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	var squad1: GlyphInstance = _make_glyph("zapplet")
+	var bench1: GlyphInstance = _make_glyph("ironbark")
+	bench1.is_mastered = true
+	bench1.mastery_bonus_applied = true
+	bench1.current_hp = bench1.max_hp
+	for g: GlyphInstance in [squad1, bench1]:
+		rs1.add_glyph(g)
+	rs1.active_squad = [squad1]
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+
+	var bench: Array[GlyphInstance] = [bench1]
+	SaveManager.save_game(gs1, rs1, cs1, crs1, bench)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+
+	var loaded_bench: Array = SaveManager.last_load_rift_data.get("rift_bench", [])
+	_assert(loaded_bench.size() == 1, "identity bench: 1 glyph")
+	var bg: GlyphInstance = loaded_bench[0] as GlyphInstance
+	_assert(bg.species.id == "ironbark", "identity bench: species=ironbark")
+	_assert(bg.is_mastered == true, "identity bench: mastered")
+	_assert(bg.mastery_bonus_applied == true, "identity bench: mastery bonus applied")
+	_assert(bg.techniques.size() > 0, "identity bench: has techniques")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_bench_empty_when_no_bench_glyphs() -> void:
+	print("")
+	print("--- Bench: empty bench saves correctly ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	var squad1: GlyphInstance = _make_glyph("zapplet")
+	rs1.add_glyph(squad1)
+	rs1.active_squad = [squad1]
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+
+	var bench: Array[GlyphInstance] = []
+	SaveManager.save_game(gs1, rs1, cs1, crs1, bench)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+
+	var loaded_bench: Array = SaveManager.last_load_rift_data.get("rift_bench", [])
+	_assert(loaded_bench.size() == 0, "empty bench: 0 glyphs")
+	_assert(rs2.active_squad.size() == 1, "empty bench: squad=1")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_bench_indices_stable_after_roster_growth() -> void:
+	print("")
+	print("--- Bench: indices stable when roster grows before save ---")
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+	gs1.data_loader = _data_loader
+	gs1.crawler_state = crs1
+
+	## Start with squad of 2 + bench of 1
+	var squad1: GlyphInstance = _make_glyph("zapplet")
+	var squad2: GlyphInstance = _make_glyph("sparkfin")
+	var bench1: GlyphInstance = _make_glyph("stonepaw")
+	for g: GlyphInstance in [squad1, squad2, bench1]:
+		rs1.add_glyph(g)
+	rs1.active_squad = [squad1, squad2]
+
+	## Simulate: player captures another glyph (added to roster via transmitter)
+	var transmitted: GlyphInstance = _make_glyph("mossling")
+	rs1.add_glyph(transmitted)
+
+	var ds1: DungeonState = _make_dungeon_state(crs1)
+	gs1.current_dungeon = ds1
+
+	## Bench still just stonepaw (transmitted went to reserves, not rift pool)
+	var bench: Array[GlyphInstance] = [bench1]
+	SaveManager.save_game(gs1, rs1, cs1, crs1, bench)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+
+	var loaded_bench: Array = SaveManager.last_load_rift_data.get("rift_bench", [])
+	_assert(loaded_bench.size() == 1, "roster growth bench: 1 glyph")
+	_assert((loaded_bench[0] as GlyphInstance).species.id == "stonepaw", "roster growth bench: stonepaw")
+	_assert(rs2.all_glyphs.size() == 4, "roster growth bench: 4 total glyphs")
+	_assert(loaded_bench[0] == rs2.all_glyphs[2], "roster growth bench: correct roster index")
 
 	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])

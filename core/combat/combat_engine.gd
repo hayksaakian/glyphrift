@@ -21,6 +21,7 @@ signal phase_transition(boss: GlyphInstance, changes: Dictionary)
 signal burn_damage(glyph: GlyphInstance, damage: int)
 signal round_started(round_number: int)
 signal recruit_performed(actor: GlyphInstance, target: GlyphInstance, count: int)
+signal turn_ended()
 
 enum BattlePhase { INACTIVE, FORMATION, TURN_ACTIVE, ANIMATING, VICTORY, DEFEAT }
 
@@ -220,6 +221,7 @@ func _execute_action(actor: GlyphInstance, action: Dictionary) -> void:
 		status_expired.emit(actor, expired_id)
 	_check_ko(actor, null)
 
+	turn_ended.emit()
 	turn_queue.advance()
 	_advance_turn()
 

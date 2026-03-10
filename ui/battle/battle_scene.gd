@@ -364,6 +364,7 @@ func _connect_engine_signals() -> void:
 		["burn_damage", _on_burn_damage],
 		["round_started", _on_round_started],
 		["recruit_performed", _on_recruit_performed],
+		["turn_ended", _on_turn_ended],
 	]
 
 	for conn: Array in connections:
@@ -460,6 +461,12 @@ func _on_battle_started(p_squad: Array[GlyphInstance], e_squad: Array[GlyphInsta
 
 func _on_turn_started(glyph: GlyphInstance, turn_index: int) -> void:
 	_animation_queue.enqueue("turn_started", {"glyph": glyph, "turn_index": turn_index}, 0.2)
+
+
+func _on_turn_ended() -> void:
+	## Barrier between turns — ensures AoE/multi-hit visuals fully resolve
+	## before the next turn's events begin playing.
+	_animation_queue.enqueue("turn_barrier", {}, 0.3)
 
 
 func _on_technique_used(user: GlyphInstance, technique: TechniqueDef, target: GlyphInstance, damage: int) -> void:

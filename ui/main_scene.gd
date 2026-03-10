@@ -70,6 +70,10 @@ func setup(
 	_dungeon_scene.roster_state = roster_state
 	_dungeon_scene.codex_state = codex_state
 	_dungeon_scene._pause_menu.setup_save_slots(game_state, roster_state, codex_state, crawler_state, data_loader)
+	## Wire bench provider so manual saves include bench glyphs mid-rift
+	var bench_fn: Callable = func() -> Array[GlyphInstance]:
+		return _get_bench_glyphs() if game_state.current_dungeon != null and _dungeon_scene != null else [] as Array[GlyphInstance]
+	_dungeon_scene._pause_menu._save_slots_popup.bench_provider = bench_fn
 	_battle_scene.combat_engine = combat_engine
 	_battle_scene.mastery_tracker = mastery_tracker
 
