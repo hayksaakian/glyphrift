@@ -23,6 +23,12 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Fixed Bugs
 
+### BUG-018: NPC quest skips introduction, jumps straight to progress dialogue
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Fix:** Used existing `npc_read_quest` dict to detect first visit. If the player has never seen an NPC's quest (`npc_read_quest` is "" or "locked"), `accept_dialogue` is shown regardless of progress. On subsequent visits, `progress_dialogue` is shown with current progress. No new state needed — piggybacks on the quest state tracking added for the unified indicator.
+- **Files:** `ui/bastion/npc_panel.gd`
+
 ### BUG-017: NPC Phase 5 dialogue claims "every rift sealed" when 2 rifts remain
 - **Priority:** P2
 - **Status:** 🟢 Fixed

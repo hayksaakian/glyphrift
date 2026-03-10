@@ -62,7 +62,7 @@ func _run_tests() -> void:
 
 	## NPC Quests
 	_test_quest_data_loaded()
-	_test_quest_locked_before_phase()
+	_test_quest_active_from_phase_1()
 	_test_quest_active_state()
 	_test_quest_complete_and_reward()
 	_test_quest_panel_display()
@@ -1353,16 +1353,16 @@ func _test_quest_data_loaded() -> void:
 	_assert(lira_q.get("condition", "") == "codex_discoveries_8", "Lira quest condition correct")
 
 
-func _test_quest_locked_before_phase() -> void:
-	print("--- Quests: Locked before min phase ---")
+func _test_quest_active_from_phase_1() -> void:
+	print("--- Quests: Active from phase 1 ---")
 	var gs: GameState = _make_game_state()
 	var cx: CodexState = _make_codex_state()
 	gs.data_loader = _data_loader
 	gs.codex_state = cx
-	gs.game_phase = 1  ## Quests require phase 2
+	gs.game_phase = 1  ## Quests available from phase 1
 
 	var status: Dictionary = gs.check_quest_status("lira")
-	_assert(status.get("state", "") == "locked", "Lira quest locked at phase 1")
+	_assert(status.get("state", "") == "active", "Lira quest active at phase 1")
 
 	_cleanup_node(gs)
 	_cleanup_node(cx)

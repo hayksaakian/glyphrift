@@ -51,10 +51,8 @@ var _npc_lira_btn: Button = null
 var _npc_maro_btn: Button = null
 
 ## Indicator labels on NPC portrait art (keyed by npc_id)
-## _npc_indicators: chat bubble for unread dialogue
-## _npc_quest_indicators: exclamation for claimable quest reward
+## Shows chat bubble when NPC has news (new dialogue, quest update, reward ready)
 var _npc_indicators: Dictionary = {}
-var _npc_quest_indicators: Dictionary = {}
 
 
 func _ready() -> void:
@@ -446,34 +444,42 @@ func _on_squad_card_clicked(g: GlyphInstance) -> void:
 
 
 func _open_npc(npc_id: String) -> void:
-	if game_state != null:
-		game_state.npc_read_phase[npc_id] = mini(game_state.game_phase, 3)
 	_npc_panel.show_npc(npc_id)
+	if game_state != null:
+		game_state.npc_read_phase[npc_id] = game_state.game_phase
+		var quest_status: Dictionary = game_state.check_quest_status(npc_id)
+		game_state.npc_read_quest[npc_id] = quest_status.get("state", "")
 	_update_npc_indicators()
+
+
+func _npc_has_news(npc_id: String) -> bool:
+	## True if the NPC has anything new the player hasn't seen.
+	if game_state == null:
+		return false
+	## New phase dialogue?
+	var read_phase: int = game_state.npc_read_phase.get(npc_id, 0)
+	if game_state.game_phase > read_phase:
+		return true
+	## Quest state changed since last visit?
+	var quest_status: Dictionary = game_state.check_quest_status(npc_id)
+	var current_quest_state: String = quest_status.get("state", "")
+	var seen_quest_state: String = game_state.npc_read_quest.get(npc_id, "")
+	if current_quest_state != "" and current_quest_state != seen_quest_state:
+		return true
+	return false
 
 
 func _update_npc_indicators() -> void:
 	if game_state == null:
 		return
-	var phase: int = game_state.game_phase
 	for npc_id: String in _npc_indicators:
-		## Chat bubble for unread dialogue
 		var indicator: Label = _npc_indicators[npc_id] as Label
-		if indicator != null:
-			var read_phase: int = game_state.npc_read_phase.get(npc_id, 0)
-			var should_show: bool = phase > read_phase
-			indicator.visible = should_show
-			if should_show and indicator.is_inside_tree():
-				_start_bob_tween(indicator)
-
-		## Quest reward exclamation
-		var quest_ind: Label = _npc_quest_indicators.get(npc_id) as Label
-		if quest_ind != null:
-			var quest_status: Dictionary = game_state.check_quest_status(npc_id)
-			var quest_ready: bool = quest_status.get("state", "") == "complete"
-			quest_ind.visible = quest_ready
-			if quest_ready and quest_ind.is_inside_tree():
-				_start_bob_tween(quest_ind)
+		if indicator == null:
+			continue
+		var should_show: bool = _npc_has_news(npc_id)
+		indicator.visible = should_show
+		if should_show and indicator.is_inside_tree():
+			_start_bob_tween(indicator)
 
 
 const SCREEN_HINTS: Dictionary = {
@@ -572,19 +578,6 @@ func _build_npc_card(parent: Control, npc_name: String, npc_title: String, npc_c
 	indicator.visible = false
 	art.add_child(indicator)
 	_npc_indicators[npc_name.to_lower()] = indicator
-
-	## Quest reward indicator (top-left of portrait, gold exclamation)
-	var quest_indicator: Label = Label.new()
-	quest_indicator.text = "!"
-	quest_indicator.add_theme_font_size_override("font_size", 18)
-	quest_indicator.add_theme_color_override("font_color", Color("#FFD700"))
-	quest_indicator.add_theme_color_override("font_outline_color", Color.BLACK)
-	quest_indicator.add_theme_constant_override("outline_size", 4)
-	quest_indicator.position = Vector2(-4, -6)
-	quest_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	quest_indicator.visible = false
-	art.add_child(quest_indicator)
-	_npc_quest_indicators[npc_name.to_lower()] = quest_indicator
 
 	## Name
 	var name_label: Label = Label.new()

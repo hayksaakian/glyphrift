@@ -16,6 +16,7 @@ var current_dungeon: DungeonState = null
 var mastery_tracker: MasteryTracker = null
 var game_phase: int = 1
 var npc_read_phase: Dictionary = {"kael": 0, "lira": 0, "maro": 0}
+var npc_read_quest: Dictionary = {"kael": "", "lira": "", "maro": ""}  ## quest state last seen
 var completed_quests: Dictionary = {}  ## quest_id → true
 
 ## Injectable dependencies
@@ -67,6 +68,7 @@ func start_new_game() -> void:
 	crawler_state.active_chassis = "standard"
 	crawler_state.unlocked_chassis = ["standard"]
 	npc_read_phase = {"kael": 0, "lira": 0, "maro": 0}
+	npc_read_quest = {"kael": "", "lira": "", "maro": ""}
 	completed_quests.clear()
 	crawler_state.has_rift_transmitter = false
 	## Reset milestones

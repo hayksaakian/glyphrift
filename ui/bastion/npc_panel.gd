@@ -95,7 +95,9 @@ func show_npc(npc_id: String) -> void:
 		var quest: Dictionary = quest_status["quest"]
 		var progress: int = quest_status.get("progress", 0)
 		var total: int = quest_status.get("total", 1)
-		dialogue_text = quest.get("accept_dialogue", dialogue_text) if progress == 0 else quest.get("progress_dialogue", dialogue_text) % progress
+		var seen_quest: String = game_state.npc_read_quest.get(npc_id, "")
+		var first_visit: bool = seen_quest == "" or seen_quest == "locked"
+		dialogue_text = quest.get("accept_dialogue", dialogue_text) if first_visit else quest.get("progress_dialogue", dialogue_text) % progress
 		_quest_label.text = "Quest: %s (%d/%d)" % [quest.get("name", ""), progress, total]
 		_quest_label.add_theme_color_override("font_color", Color("#FFCC00"))
 		_quest_label.visible = true

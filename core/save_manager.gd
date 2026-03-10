@@ -276,6 +276,7 @@ static func _serialize_game_state(gs: GameState) -> Dictionary:
 	return {
 		"game_phase": gs.game_phase,
 		"npc_read_phase": gs.npc_read_phase.duplicate(),
+		"npc_read_quest": gs.npc_read_quest.duplicate(),
 		"completed_quests": gs.completed_quests.duplicate(),
 	}
 
@@ -286,6 +287,9 @@ static func _deserialize_game_state(data: Dictionary, gs: GameState) -> void:
 	var npc_data: Dictionary = data.get("npc_read_phase", {})
 	for npc_id: String in gs.npc_read_phase:
 		gs.npc_read_phase[npc_id] = int(npc_data.get(npc_id, 0))
+	var npc_quest_data: Dictionary = data.get("npc_read_quest", {})
+	for npc_id: String in gs.npc_read_quest:
+		gs.npc_read_quest[npc_id] = str(npc_quest_data.get(npc_id, ""))
 	var quest_data: Dictionary = data.get("completed_quests", {})
 	gs.completed_quests.clear()
 	for quest_id: String in quest_data:
