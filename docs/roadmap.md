@@ -96,6 +96,9 @@ _What exists: 15 glyph portraits + 15 silhouettes in `assets/sprites/glyphs/`. G
 - [x] Silhouettes load in: codex (undiscovered), quiz puzzle
 - [x] Current fallback if PNG missing: affinity-colored square + species initial letter with black outline
 
+**Art cleanup needed:**
+- [ ] **Transparency 2nd pass** — `scripts/process_sprites.sh` only flood-fills from the 4 image edges (lines 87-94), so enclosed white pockets between limbs/body parts survive. Affected: ironbark (arm/torso gap), thunderclaw (tail/hind leg gap), likely others. Enhancement: after the edge flood-fill, add a 2nd pass that finds remaining white/near-white connected regions and removes any that are below a size threshold (small interior pockets). ImageMagick approach: `-connected-components` to identify white regions, filter by area and border-touching, then fill small interior ones with `none`. Must be careful not to remove intentional white features (eyes, teeth, lightning) — threshold by region size (e.g. <5% of image area = interior pocket → transparent).
+
 **No assets exist — placeholder only:**
 - [ ] **NPC portraits** (Kael/Lira/Maro) — 80x80 in dialogue modal, 48x48 on bastion hub cards; colored squares with K/L/M letters
 - [ ] **Status effect icons** — 22x22 colored letter badges; functional but not visually distinct at a glance
