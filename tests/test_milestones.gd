@@ -88,7 +88,7 @@ func _cleanup_crawler(mt: MilestoneTracker) -> void:
 func _test_initialization() -> void:
 	print("--- Initialization ---")
 	var mt: MilestoneTracker = _make_tracker()
-	_assert(mt._upgrades.size() == 7, "Loaded 7 upgrade definitions (got %d)" % mt._upgrades.size())
+	_assert(mt._upgrades.size() == 8, "Loaded 8 upgrade definitions (got %d)" % mt._upgrades.size())
 	_assert(mt.completed_milestones.is_empty(), "No milestones completed initially")
 	_assert(mt.hidden_rooms_found == 0, "Hidden rooms starts at 0")
 	_cleanup_crawler(mt)

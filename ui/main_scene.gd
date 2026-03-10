@@ -355,9 +355,12 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 			## Bench full — show swap UI (release a bench glyph to make room)
 			var bench_glyphs: Array[GlyphInstance] = _get_bench_glyphs()
 			var popup: CapturePopup = _dungeon_scene._capture_popup
-			popup.show_bench_swap(wild_glyph, bench_glyphs)
+			var has_transmitter: bool = crawler_state.has_rift_transmitter if crawler_state != null else false
+			popup.show_bench_swap(wild_glyph, bench_glyphs, has_transmitter)
 			if not popup.bench_swap_chosen.is_connected(_on_bench_swap):
 				popup.bench_swap_chosen.connect(_on_bench_swap)
+			if has_transmitter and not popup.transmitter_send.is_connected(_on_transmitter_send):
+				popup.transmitter_send.connect(_on_transmitter_send)
 			return
 
 		roster_state.add_glyph(wild_glyph)
@@ -428,6 +431,26 @@ func _on_bench_swap(keep_glyph: GlyphInstance, release_glyph: GlyphInstance) -> 
 		game_state.notify_capture(keep_glyph)
 
 	_append_room_history("Captured %s (released %s)." % [keep_glyph.species.name, release_glyph.species.name])
+	_squad_overlay.refresh()
+
+
+func _on_transmitter_send(glyph: GlyphInstance) -> void:
+	## Send captured glyph directly to bastion reserves (not rift pool)
+	glyph.side = "player"
+	glyph.reset_combat_state()
+	glyph.current_hp = glyph.max_hp
+	glyph.mastery_objectives = MasteryTracker.build_mastery_track(
+		glyph.species, data_loader.mastery_pools
+	)
+	roster_state.add_glyph(glyph)
+	codex_state.discover_species(glyph.species.id)
+
+	if mastery_tracker != null:
+		mastery_tracker.notify_capture(roster_state.active_squad)
+	if game_state != null:
+		game_state.notify_capture(glyph)
+
+	_append_room_history("Transmitted %s to reserves." % glyph.species.name)
 	_squad_overlay.refresh()
 
 

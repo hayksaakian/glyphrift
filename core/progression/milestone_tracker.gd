@@ -57,6 +57,10 @@ func on_rift_completed(rift_template: RiftTemplate, is_first_clear: bool) -> voi
 	if rift_template != null and rift_template.tier == "major":
 		_award_milestone("seal_major_rift")
 
+	## Check apex rift milestone
+	if rift_template != null and rift_template.tier == "apex":
+		_award_milestone("seal_apex_rift")
+
 	## Check all-affinities (end of run is also a valid check point)
 	_check_all_affinities()
 

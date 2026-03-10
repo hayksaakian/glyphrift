@@ -9,6 +9,7 @@ var slots: int = 3                         ## Number of Glyphs in active battle 
 var bench_slots: int = 2                   ## Max non-active glyphs during a rift run
 var active_chassis: String = "standard"
 var unlocked_chassis: Array[String] = ["standard"]
+var has_rift_transmitter: bool = false
 
 ## Per-run state (reset each dungeon entry)
 var hull_hp: int = 100
@@ -118,3 +119,5 @@ func apply_upgrade(upgrade: Dictionary) -> void:
 			var chassis_id: String = upgrade.get("chassis_id", "")
 			if chassis_id != "" and not unlocked_chassis.has(chassis_id):
 				unlocked_chassis.append(chassis_id)
+		"rift_transmitter":
+			has_rift_transmitter = true

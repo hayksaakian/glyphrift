@@ -50,5 +50,12 @@
     "type": "capacity",
     "value": 2,
     "description": "+2 Capacity (CP)"
+  },
+  {
+    "id": "seal_apex_rift",
+    "milestone": "Seal the Apex Rift",
+    "type": "rift_transmitter",
+    "value": 0,
+    "description": "Rift Transmitter — send captures to reserves when bench is full"
   }
 ]

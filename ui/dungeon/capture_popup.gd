@@ -7,6 +7,7 @@ extends PanelContainer
 signal capture_attempted(glyph: GlyphInstance, success: bool)
 signal capture_released(glyph: GlyphInstance)
 signal bench_swap_chosen(keep_glyph: GlyphInstance, release_glyph: GlyphInstance)
+signal transmitter_send(glyph: GlyphInstance)
 signal dismissed()
 
 const POPUP_SIZE: Vector2 = Vector2(340, 280)
@@ -101,7 +102,7 @@ func hide_popup() -> void:
 	visible = false
 
 
-func show_bench_swap(new_glyph: GlyphInstance, bench: Array[GlyphInstance]) -> void:
+func show_bench_swap(new_glyph: GlyphInstance, bench: Array[GlyphInstance], has_transmitter: bool = false) -> void:
 	_swap_new_glyph = new_glyph
 
 	_title_label.text = "Bench Full!"
@@ -127,6 +128,19 @@ func show_bench_swap(new_glyph: GlyphInstance, bench: Array[GlyphInstance]) -> v
 		_swap_container.remove_child(child)
 		child.queue_free()
 
+	## Rift Transmitter: send directly to bastion reserves
+	if has_transmitter:
+		var transmit_btn: Button = Button.new()
+		transmit_btn.name = "TransmitButton"
+		transmit_btn.text = "Send to Reserves"
+		transmit_btn.custom_minimum_size = Vector2(200, 32)
+		var transmit_style: StyleBoxFlat = StyleBoxFlat.new()
+		transmit_style.bg_color = Color("#2E5090")
+		transmit_style.set_corner_radius_all(4)
+		transmit_btn.add_theme_stylebox_override("normal", transmit_style)
+		transmit_btn.pressed.connect(_on_transmitter_send)
+		_swap_container.add_child(transmit_btn)
+
 	## Add a release button for each bench glyph
 	for bench_glyph: GlyphInstance in bench:
 		var btn: Button = Button.new()
@@ -151,6 +165,18 @@ func _on_swap_release(released: GlyphInstance) -> void:
 	_breakdown_label.visible = false
 	_result_label.text = "CAPTURED!\nSwapped with %s." % released.species.name
 	_result_label.add_theme_color_override("font_color", Color("#44FF44"))
+	_result_label.visible = true
+	_continue_button.visible = true
+
+
+func _on_transmitter_send() -> void:
+	transmitter_send.emit(_swap_new_glyph)
+	_swap_container.visible = false
+	_abandon_btn.visible = false
+	_chance_label.visible = false
+	_breakdown_label.visible = false
+	_result_label.text = "TRANSMITTED!\nSent to bastion reserves."
+	_result_label.add_theme_color_override("font_color", Color("#44AAFF"))
 	_result_label.visible = true
 	_continue_button.visible = true
 

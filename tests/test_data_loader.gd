@@ -271,11 +271,11 @@ func _run_tests() -> void:
 
 	# --- Crawler Upgrades ---
 	var upgrade_count: int = _data_loader.crawler_upgrades.size()
-	if upgrade_count == 7:
-		print("[PASS] Crawler upgrades loaded: %d (expected 7)" % upgrade_count)
+	if upgrade_count == 8:
+		print("[PASS] Crawler upgrades loaded: %d (expected 8)" % upgrade_count)
 		pass_count += 1
 	else:
-		print("[FAIL] Crawler upgrades loaded: %d (expected 7)" % upgrade_count)
+		print("[FAIL] Crawler upgrades loaded: %d (expected 8)" % upgrade_count)
 		fail_count += 1
 
 	# --- Specific Species Stat Validation ---
