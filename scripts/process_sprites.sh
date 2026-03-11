@@ -68,6 +68,89 @@ normalize_filename() {
   echo "$base"
 }
 
+remove_interior_pockets() {
+  ## 2nd-pass: Remove small white/near-white connected regions inside the creature.
+  ## After edge flood-fill, any remaining white pockets are interior (between limbs, etc).
+  ## Large white features (eyes, teeth, lightning) are preserved via size threshold.
+  local img="$1"
+  local tmp_mask="/tmp/sprite_mask_$$.png"
+  local tmp_cc="/tmp/sprite_cc_$$.txt"
+
+  ## Get image dimensions
+  local dims
+  dims="$(magick identify -format '%w %h' "$img")"
+  local w h
+  w="$(echo "$dims" | cut -d' ' -f1)"
+  h="$(echo "$dims" | cut -d' ' -f2)"
+  local total_pixels=$((w * h))
+  local max_pocket_area=$((total_pixels * 5 / 100))  ## 5% threshold
+
+  ## Create binary mask: white = near-white AND opaque pixels, black = everything else.
+  ## This isolates remaining white regions that survived the edge flood-fill.
+  magick "$img" \
+    -channel RGB -separate -evaluate-sequence max -threshold 90% \
+    \( "$img" -alpha extract -threshold 78% \) \
+    -compose multiply -composite \
+    "$tmp_mask" 2>/dev/null || { rm -f "$tmp_mask"; return; }
+
+  ## Get connected components on the mask
+  magick "$tmp_mask" \
+    -define connected-components:verbose=true \
+    -define connected-components:area-threshold=500 \
+    -connected-components 8 \
+    null: > "$tmp_cc" 2>&1 || { rm -f "$tmp_mask" "$tmp_cc"; return; }
+
+  ## Parse connected components: find small white regions not touching edges
+  local pockets_found=0
+
+  while IFS= read -r line; do
+    ## Parse lines like: "2: 89x297+642+927 690.0,1065.2 16274 gray(255)"
+    ## Match: WxH+X+Y ... AREA gray(255) or srgb(255,255,255)
+    local cw ch cx cy area
+
+    if [[ "$line" =~ ([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+).*\ ([0-9]+)\ gray\(255\) ]]; then
+      cw="${BASH_REMATCH[1]}"
+      ch="${BASH_REMATCH[2]}"
+      cx="${BASH_REMATCH[3]}"
+      cy="${BASH_REMATCH[4]}"
+      area="${BASH_REMATCH[5]}"
+    elif [[ "$line" =~ ([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+).*\ ([0-9]+)\ srgb\(255,255,255\) ]]; then
+      cw="${BASH_REMATCH[1]}"
+      ch="${BASH_REMATCH[2]}"
+      cx="${BASH_REMATCH[3]}"
+      cy="${BASH_REMATCH[4]}"
+      area="${BASH_REMATCH[5]}"
+    else
+      continue
+    fi
+
+    ## Skip if touches image border (not an interior pocket)
+    if [[ "$cx" -le 0 || "$cy" -le 0 || $((cx + cw)) -ge $w || $((cy + ch)) -ge $h ]]; then
+      continue
+    fi
+
+    ## Skip if too large (likely intentional white feature like eyes/teeth)
+    if [[ "$area" -gt "$max_pocket_area" ]]; then
+      continue
+    fi
+
+    ## Interior pocket found — flood-fill it transparent from its centroid
+    local fill_x=$((cx + cw / 2))
+    local fill_y=$((cy + ch / 2))
+    magick "$img" \
+      -fuzz "$FUZZ" -fill none \
+      -floodfill "+${fill_x}+${fill_y}" white \
+      "$img" 2>/dev/null && pockets_found=$((pockets_found + 1))
+  done < "$tmp_cc"
+
+  if [[ $pockets_found -gt 0 ]]; then
+    echo "  interior pockets removed: $pockets_found"
+  fi
+
+  rm -f "$tmp_mask" "$tmp_cc"
+}
+
+
 process_one() {
   local src="$1"
   local species_id="$2"
@@ -84,20 +167,33 @@ process_one() {
   ## The bordercolor+border+floodfill+shave trick seeds the flood from a
   ## 1px border frame, ensuring all four edges are reached even if the
   ## creature is near one side.
+  ## Use image dimensions for border flood-fill coordinates
+  local src_dims
+  src_dims="$(magick identify -format '%w %h' "$src")"
+  local src_w src_h
+  src_w="$(echo "$src_dims" | cut -d' ' -f1)"
+  src_h="$(echo "$src_dims" | cut -d' ' -f2)"
+  local br_x=$((src_w))  ## +1 border offset handled by border command
+  local br_y=$((src_h))
+
   magick "$src" \
     -bordercolor white -border 1 \
     -fuzz "$FUZZ" -fill none \
     -floodfill +0+0 white \
-    -floodfill +0+513 white \
-    -floodfill +513+0 white \
-    -floodfill +513+513 white \
+    -floodfill "+0+${br_y}" white \
+    -floodfill "+${br_x}+0" white \
+    -floodfill "+${br_x}+${br_y}" white \
     -shave 1x1 \
     -trim +repage \
     -resize "${TARGET_SIZE}x${TARGET_SIZE}" \
     -gravity center -background none -extent "${TARGET_SIZE}x${TARGET_SIZE}" \
     "$portrait"
 
-  ## Step 2: Generate silhouette (solid dark shape preserving alpha)
+  ## Step 2: Remove interior white pockets (between limbs, body parts)
+  ## Runs on the resized 512x512 portrait for performance
+  remove_interior_pockets "$portrait"
+
+  ## Step 3: Generate silhouette (solid dark shape preserving alpha)
   magick "$portrait" \
     -fill "rgb(30,30,40)" -colorize 100% \
     "$silhouette"
