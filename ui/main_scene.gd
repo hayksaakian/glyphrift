@@ -323,15 +323,17 @@ func _on_battle_finished(won: bool, was_forfeit: bool = false) -> void:
 	var enemies: Array[GlyphInstance] = []
 	var turns: int = 3
 	var recruit_counts: Dictionary = {}
+	var ko_list: Array[GlyphInstance] = []
 	if combat_engine != null:
 		enemies = combat_engine.enemy_squad
 		turns = combat_engine.turn_count
 		recruit_counts = combat_engine.recruit_counts.duplicate()
+		ko_list = combat_engine.ko_list.duplicate()
 
 	_fade_to(func() -> void:
 		_show_dungeon()
 		_squad_overlay.refresh()
-		_dungeon_scene.on_combat_finished(won, enemies, turns, recruit_counts, was_forfeit)
+		_dungeon_scene.on_combat_finished(won, enemies, turns, recruit_counts, was_forfeit, ko_list)
 	)
 
 

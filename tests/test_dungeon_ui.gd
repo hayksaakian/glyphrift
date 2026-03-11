@@ -88,6 +88,7 @@ func _run_tests() -> void:
 	_test_battle_loss_hull_zero_extracts()
 	_test_battle_flee_no_penalty()
 	_test_battle_loss_retains_scan_info()
+	_test_capture_target_priority()
 
 	_test_pause_menu_exists()
 	_test_pause_save_and_quit_signal()
@@ -1940,3 +1941,55 @@ func _test_battle_loss_retains_scan_info() -> void:
 	_cleanup_node(rn)
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)
+
+
+# ==========================================================================
+# BUG-030: Capture target prioritizes recruit count, then KO order
+# ==========================================================================
+
+func _test_capture_target_priority() -> void:
+	print("--- BUG-030: Capture Target Priority ---")
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	scene.instant_mode = true
+	root.add_child(scene)
+
+	var e1: GlyphInstance = _make_glyph("zapplet")
+	var e2: GlyphInstance = _make_glyph("sparkfin")
+	var e3: GlyphInstance = _make_glyph("stonepaw")
+	e1.side = "enemy"
+	e2.side = "enemy"
+	e3.side = "enemy"
+
+	## Test 1: No recruits, no KOs — picks first candidate
+	scene._last_recruit_counts = {}
+	scene._last_ko_list = [] as Array[GlyphInstance]
+	var candidates: Array[GlyphInstance] = [e1, e2, e3]
+	var pick: GlyphInstance = scene._pick_capture_target(candidates)
+	_assert(pick == e1, "BUG030: no data → picks first candidate")
+
+	## Test 2: Recruit on e2 — picks e2
+	scene._last_recruit_counts = {"sparkfin": 2}
+	scene._last_ko_list = [e1, e2, e3] as Array[GlyphInstance]
+	pick = scene._pick_capture_target(candidates)
+	_assert(pick == e2, "BUG030: highest recruit → sparkfin")
+
+	## Test 3: Equal recruits, KO order breaks tie — last KO'd wins
+	scene._last_recruit_counts = {"zapplet": 1, "stonepaw": 1}
+	scene._last_ko_list = [e1, e3] as Array[GlyphInstance]
+	pick = scene._pick_capture_target(candidates)
+	_assert(pick == e3, "BUG030: tied recruit, last KO'd → stonepaw")
+
+	## Test 4: Recruit always beats KO order
+	scene._last_recruit_counts = {"zapplet": 1}
+	scene._last_ko_list = [e1, e2, e3] as Array[GlyphInstance]
+	pick = scene._pick_capture_target(candidates)
+	_assert(pick == e1, "BUG030: recruit beats later KO → zapplet")
+
+	## Test 5: No recruits, KO order only — last KO'd wins
+	scene._last_recruit_counts = {}
+	scene._last_ko_list = [e3, e1, e2] as Array[GlyphInstance]
+	pick = scene._pick_capture_target(candidates)
+	_assert(pick == e2, "BUG030: no recruits, last KO'd → sparkfin")
+
+	_cleanup_node(scene)

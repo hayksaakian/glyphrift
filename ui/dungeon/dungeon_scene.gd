@@ -122,6 +122,7 @@ var _damage_boost_amounts: Dictionary = {}  ## GlyphInstance → int (ATK added)
 var _last_enemy_count: int = 1
 var _last_turns: int = 3
 var _last_recruit_counts: Dictionary = {}  ## species_id → recruit uses
+var _last_ko_list: Array[GlyphInstance] = []  ## KO order (first KO'd → last KO'd)
 var _boss_capture_pending: bool = false  ## Show rift result after boss capture dismissal
 
 var _background: ColorRect = null
@@ -220,12 +221,13 @@ func get_ui_state() -> UIState:
 	return _state
 
 
-func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3, recruit_counts: Dictionary = {}, was_forfeit: bool = false) -> void:
+func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3, recruit_counts: Dictionary = {}, was_forfeit: bool = false, ko_list: Array[GlyphInstance] = []) -> void:
 	## Called by parent after combat ends
 	_clear_damage_boost()
 	_last_enemy_count = maxi(1, enemies.size())
 	_last_turns = turns
 	_last_recruit_counts = recruit_counts
+	_last_ko_list = ko_list
 
 	## Consume ward charm (single-use per battle)
 	if _ward_charm_active:
@@ -291,20 +293,43 @@ func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3
 		_show_result(true)
 		return
 
-	## Wild encounter — offer capture for first non-boss enemy
+	## Wild encounter — offer capture for best candidate (BUG-030)
+	## Priority: highest recruit count, then last KO'd
 	if enemies.size() > 0:
-		var capturable: GlyphInstance = null
+		var candidates: Array[GlyphInstance] = []
 		for enemy: GlyphInstance in enemies:
 			if not enemy.is_boss:
-				capturable = enemy
-				break
-		if capturable != null:
-			_show_capture(capturable)
+				candidates.append(enemy)
+		if not candidates.is_empty():
+			var best: GlyphInstance = _pick_capture_target(candidates)
+			_show_capture(best)
 			return
 
 	## No capture — back to exploring
 	_state = UIState.EXPLORING
 	_room_popup.hide_popup()
+
+
+func _pick_capture_target(candidates: Array[GlyphInstance]) -> GlyphInstance:
+	## Sort by: recruit count desc, then KO order desc (last KO'd first)
+	var best: GlyphInstance = candidates[0]
+	var best_recruit: int = _last_recruit_counts.get(best.species.id, 0) if best.species != null else 0
+	var best_ko_idx: int = _last_ko_list.find(best)
+
+	for i: int in range(1, candidates.size()):
+		var c: GlyphInstance = candidates[i]
+		var c_recruit: int = _last_recruit_counts.get(c.species.id, 0) if c.species != null else 0
+		var c_ko_idx: int = _last_ko_list.find(c)
+
+		if c_recruit > best_recruit:
+			best = c
+			best_recruit = c_recruit
+			best_ko_idx = c_ko_idx
+		elif c_recruit == best_recruit and c_ko_idx > best_ko_idx:
+			best = c
+			best_recruit = c_recruit
+			best_ko_idx = c_ko_idx
+	return best
 
 
 func on_capture_done() -> void:
