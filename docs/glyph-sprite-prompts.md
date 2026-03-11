@@ -213,3 +213,43 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep void indigo, dark teal, pale cyan weave-strands, white dimensional highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. Despite being complex in concept, the silhouette should be bold and readable. No thin lines or intricate patterns.
 >
 > Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+
+---
+
+## T1 — NEUTRAL
+
+### 16. Gritstone
+
+> Design a small creature called "Gritstone" for a 2D top-down RPG called Glyphrift. Gritstone is a Tier 1 Neutral-type starter monster — a dense, sturdy melee fighter. It tackles enemies head-on and can brace itself into a defensive stance. Neutral-type creatures are the raw material of the rift — ancient, stable, and adaptable.
+>
+> Personality and shape: a small, compact creature made of smooth grey stone with faint silver-white rune lines etched across its surface. Stocky build, low to the ground, dense and heavy-looking despite its small size. Rounded body with angular edges — like a river stone that's been carved by ancient forces. Small determined eyes that glow faintly silver. Stubby powerful limbs with stone-knuckle fists. It should feel solid, reliable, and primordial — like a fragment of the rift's foundation that gained awareness.
+>
+> Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — slate grey body, charcoal outlines, silver/pale blue accent marks (rune lines, crystalline veins). Monochrome arcane aesthetic. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
+>
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+
+---
+
+### 17. Shimmer
+
+> Design a small creature called "Shimmer" for a 2D top-down RPG called Glyphrift. Shimmer is a Tier 1 Neutral-type starter monster — a wispy, agile support creature. It can tackle at range and soothe allies with a gentle pulse of neutral energy. Neutral-type creatures are the raw material of the rift — ancient, stable, and adaptable.
+>
+> Personality and shape: a small, floating wisp-like creature with a translucent silvery body that catches light like a soap bubble or heat mirage. No legs — it hovers just above the ground. A soft, amorphous form with trailing wisps of pale energy. Large gentle eyes that shimmer between silver and pale blue. Faint crystalline facets visible within its body, like embedded quartz. It should feel ethereal, calming, and mysterious — like a fragment of moonlight that drifted into the rift.
+>
+> Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — pale silver-grey body, charcoal outlines, pale blue/white shimmer accents. Monochrome arcane aesthetic. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
+>
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+
+---
+
+## T2 — NEUTRAL
+
+### 18. Monolith
+
+> Design a creature called "Monolith" for a 2D top-down RPG called Glyphrift. Monolith is a Tier 2 Neutral-type — a balanced generalist born from fusing two T1 neutral creatures. It tackles enemies, braces defensively, soothes allies with healing energy, and can project a ward pulse that shields the entire squad. Neutral-type creatures are the raw material of the rift — ancient, stable, and adaptable.
+>
+> Personality and shape: a medium-sized, upright monolithic creature that resembles a standing stone or obelisk that grew limbs. Its body is a single smooth slab of grey stone with silver rune-lines that pulse faintly with energy. Broad shoulders, thick arms ending in flat stone hands. A head that is more carved-face-in-stone than organic — simple features etched into rock. Eyes that glow with a calm silver light. Geometric patterns and crystalline veins running through its surface. It should feel ancient, balanced, and quietly powerful — a living monument to the rift's neutral foundation.
+>
+> Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — slate grey body, charcoal outlines, silver/pale blue rune accents, faint white crystalline highlights. Monochrome arcane aesthetic. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
+>
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.

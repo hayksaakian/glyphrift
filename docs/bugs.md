@@ -10,6 +10,13 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
+### BUG-026: Sprite pocket removal misses some gaps, damages some features
+- **Priority:** P3
+- **Status:** 🔴 Open
+- **Observed:** Thunderclaw's tail/hind-leg gap still has white pocket after processing. Previous version was too aggressive (deleted zapplet's eye white). Current proximity-based approach (Disk:15 dilation) is better but not perfect — some pockets are just far enough from the edge to survive.
+- **Suggested fix:** May need per-sprite manual masks or a more sophisticated approach (e.g. morphological closing on the alpha channel, or a multi-radius proximity check). Could also add an optional exclusion/inclusion zone parameter per species.
+- **Files:** `scripts/process_sprites.sh` (`remove_interior_pockets`)
+
 ### BUG-025: Save Slots popup too narrow — names truncate
 - **Priority:** P3
 - **Status:** 🔴 Open
