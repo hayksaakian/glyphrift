@@ -382,7 +382,7 @@
     "tier": "standard",
     "hazard_damage": 15,
     "enemy_tier_pool": [2],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "thunderclaw", "ironbark", "stormfang", "terradon", "voltarion", "lithosurge"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "thunderclaw", "ironbark", "terradon", "voltarion", "lithosurge"],
     "floors": [
       {
         "floor_number": 0,
@@ -509,7 +509,7 @@
     "tier": "standard",
     "hazard_damage": 15,
     "enemy_tier_pool": [2],
-    "wild_glyph_pool": ["stonepaw", "mossling", "driftwisp", "glitchkit", "ironbark", "vortail", "terradon", "riftmaw", "lithosurge", "nullweaver"],
+    "wild_glyph_pool": ["stonepaw", "mossling", "driftwisp", "glitchkit", "ironbark", "vortail", "riftmaw", "lithosurge", "nullweaver"],
     "floors": [
       {
         "floor_number": 0,
@@ -629,7 +629,7 @@
     "tier": "major",
     "hazard_damage": 20,
     "enemy_tier_pool": [2, 3],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit", "thunderclaw", "vortail", "stormfang", "riftmaw", "voltarion", "nullweaver"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit", "thunderclaw", "vortail", "stormfang", "voltarion", "nullweaver"],
     "floors": [
       {
         "floor_number": 0,
@@ -781,7 +781,7 @@
     "tier": "apex",
     "hazard_damage": 25,
     "enemy_tier_pool": [3, 4],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit", "thunderclaw", "vortail", "stormfang", "riftmaw", "voltarion", "nullweaver"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit", "thunderclaw", "vortail", "stormfang", "riftmaw", "voltarion"],
     "floors": [
       {
         "floor_number": 0,
