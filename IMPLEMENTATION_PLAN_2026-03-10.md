@@ -184,9 +184,9 @@
 
 ---
 
-## Stage 8: Sprite Generation Pipeline + Neutral Sprites (DEFERRED — needs billing upgrade)
+## Stage 8: Sprite Generation Pipeline + Neutral Sprites
 **Goal**: Build automated sprite generation script, generate sprites for the 3 new neutral species
-**Status**: Blocked — free tier rate limits. Hayk to link Google Cloud billing for Tier 1 access.
+**Status**: Complete (commits 71d7003, 64f9a7a)
 
 ### Setup:
 - Gemini API key stored in `.env` (gitignored)
