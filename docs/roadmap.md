@@ -18,7 +18,9 @@ These make the biggest difference in player experience.
 
 - [x] **Echo encounters as mini-stories** — echoes are compelling 1v1 duels; give them flavor text, unique movesets, or "memory fragment" lore drops that build a side narrative. _(All 15 species have unique encounter flavor text and memory fragment lore. Encounter text replaces generic "A ghostly echo..." with species-specific atmospheric descriptions. Memory fragments appear on the capture result screen as blue lore text. 100% captures now show result screen instead of auto-dismissing.)_
 
-- [x] **Crawler upgrades feel good** — lean into chassis identity; more meaningful chassis-specific abilities or passives beyond stat bonuses. _(Milestones, chassis selection, upgrade notifications, status panel — all done)_ Future direction: **3 equipment slots** on each crawler, equipped before entering a rift:
+- [x] **Crawler upgrades feel good** — lean into chassis identity; more meaningful chassis-specific abilities or passives beyond stat bonuses. _(Milestones, chassis selection, upgrade notifications, status panel — all done)_
+
+- [ ] **Crawler equipment slots** — 3 equipment slots on each crawler, equipped before entering a rift. Gives pre-rift loadout decisions without adding combat complexity.
 
   **Crawler Bay UI layout:** `[Chassis] [Computer] [Accessory] [Crawler Stats]`
 
@@ -33,7 +35,7 @@ These make the biggest difference in player experience.
     - Cargo Rack — +1 Bench slot
     - Repair Drone — Auto-heal 20% of Hull HP per floor transition
     - Trophy Mount — +20% capture chance
-  - Parts found as rare cache drops or milestone rewards. Chassis identity could come from more or less slots of a given type. This gives pre-rift loadout decisions without adding combat complexity.
+  - Parts found as rare cache drops or milestone rewards. Chassis identity could come from more or less slots of a given type.
 
 - [x] **Status effect clarity** — 6 status types with single-letter icons; tooltip on hover works but in-battle readability could improve. _(Status badges now show letter+turns remaining (e.g. "B3", "S1"), rich tooltips with effect description and duration, red/cyan border for debuff/buff distinction)_
 

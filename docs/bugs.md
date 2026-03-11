@@ -10,6 +10,27 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
+### BUG-028: Enemy room reverts to "Wild Glyph" after losing a battle
+- **Priority:** P2
+- **Status:** 🔴 Open
+- **Steps:** Enter an enemy room, lose the battle, return to the dungeon map
+- **Expected:** The room node should show the revealed enemy species name (since you just fought them and know what's there)
+- **Actual:** The room node reverts to showing "Wild Glyph" with the generic `!` icon, as if you'd never seen the encounter
+- **Root cause:** After a battle loss, the room's `cleared` flag isn't set (correct — you didn't win), but the room's scan/reveal state also appears to reset. The room should retain its revealed info (species name from scan or from having fought there).
+- **Suggested fix:** When returning from a lost battle, mark the room as "revealed" (scanned) if it isn't already. The player has seen the enemies — hiding that info again is unintuitive. Could set a `scanned` or `revealed` flag on the room dict that persists through battle losses.
+- **Files:** `ui/dungeon/dungeon_scene.gd` (battle loss handler), `ui/dungeon/room_node.gd` (display logic), possibly `core/dungeon/dungeon_state.gd` (room state)
+
+### BUG-027: Neutral type aesthetic too similar to Ground — needs visual redesign
+- **Priority:** P2
+- **Status:** 🔴 Open
+- **Issue:** The 3 neutral species (Gritstone, Shimmer, Monolith) lack a distinct visual identity. Gritstone and Monolith lean heavily into rocks/stone/slate (colliding with Ground type). Shimmer leans into a generic "spirit" look. The grey/silver/slate palette blends with Ground's earthy browns rather than standing out as its own type.
+- **Action needed:**
+  1. **Define a distinct neutral aesthetic** — something that reads as "raw rift energy / primordial / adaptable" without overlapping stone (Ground) or wispy (Water). Ideas: geometric/crystalline/prismatic, rune-covered, phase-shifting, or biomechanical rift constructs.
+  2. **Revise the 3 neutral prompts** in `docs/glyph-sprite-prompts.md` — update personality descriptions, color palettes, and shape language to match the new aesthetic. Current prompts use "slate grey", "charcoal", "crystalline veins" which all read as Ground.
+  3. **Re-generate sprites** via `scripts/generate_sprites.py` for gritstone, shimmer, monolith with updated prompts.
+  4. **Process** through `scripts/process_sprites.sh` as usual.
+- **Files:** `docs/glyph-sprite-prompts.md` (prompts 16-18), `scripts/generate_sprites.py`, `assets/sprites/glyphs/portraits/`
+
 ### BUG-026: Sprite pocket removal misses some gaps, damages some features
 - **Priority:** P3
 - **Status:** 🔴 Open
