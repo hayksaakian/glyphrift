@@ -87,6 +87,7 @@ func _run_tests() -> void:
 	_test_battle_loss_pushback()
 	_test_battle_loss_hull_zero_extracts()
 	_test_battle_flee_no_penalty()
+	_test_battle_loss_retains_scan_info()
 
 	_test_pause_menu_exists()
 	_test_pause_save_and_quit_signal()
@@ -1864,3 +1865,78 @@ func _test_encounter_pool_exclusion() -> void:
 		_cleanup_node(ds.crawler)
 
 	_assert(not got_electric, "minor_01: zero Electric species in 200 runs")
+
+
+# ==========================================================================
+# BUG-028: Enemy room retains scan info after battle loss
+# ==========================================================================
+
+func _test_battle_loss_retains_scan_info() -> void:
+	print("--- BUG-028: Enemy room retains scan info after battle loss ---")
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "enemy", "visited": false, "revealed": true},
+		],
+		"connections": [["r0", "r1"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+
+	## Set up roster with a squad
+	var roster: RosterState = RosterState.new()
+	var g1: GlyphInstance = _make_glyph("sparkfin")
+	var g2: GlyphInstance = _make_glyph("zapplet")
+	roster.active_squad.append(g1)
+	roster.active_squad.append(g2)
+	scene.roster_state = roster
+
+	scene.start_rift(ds)
+
+	## Navigate to enemy room
+	scene._on_room_clicked("r1")
+	_assert(ds.current_room_id == "r1", "BUG028: Moved to r1")
+
+	## Verify room has no scan info before combat
+	var room: Dictionary = ds._get_room(0, "r1")
+	var scan_before: Array = room.get("scan_species_ids", [])
+	_assert(scan_before.is_empty(), "BUG028: No scan_species_ids before combat")
+
+	## Enter combat via popup action — this should store species on room
+	scene._on_popup_action("enemy", room)
+	_assert(scene.get_ui_state() == DungeonScene.UIState.COMBAT, "BUG028: In combat state")
+
+	## After entering combat, room should now have scan_species_ids
+	var scan_after: Array = room.get("scan_species_ids", [])
+	_assert(not scan_after.is_empty(), "BUG028: scan_species_ids stored on room after combat start")
+	_assert(room.get("scan_info", "") != "", "BUG028: scan_info stored on room after combat start")
+
+	## Simulate losing the battle
+	var enemies: Array[GlyphInstance] = [_make_glyph("zapplet")]
+	enemies[0].side = "enemy"
+	g1.current_hp = 0
+	g1.is_knocked_out = true
+	g2.current_hp = 3
+	scene.on_combat_finished(false, enemies, 3)
+
+	## Room should still have scan_species_ids after loss
+	var scan_post_loss: Array = room.get("scan_species_ids", [])
+	_assert(not scan_post_loss.is_empty(), "BUG028: scan_species_ids retained after battle loss")
+	_assert(not room.get("cleared", false), "BUG028: Room not cleared after loss")
+
+	## Verify RoomNode would show species info (not generic "Wild Glyph")
+	var rn: RoomNode = RoomNode.new()
+	root.add_child(rn)
+	rn.setup(room)
+	rn.set_state(RoomNode.RoomState.VISITED)
+	## With scan_species_ids, display_name should reflect count
+	var expected_name: String = "Wild Glyphs" if scan_post_loss.size() > 1 else "Wild Glyph"
+	_assert(rn._type_label.text == expected_name or rn._scan_container.visible, "BUG028: RoomNode shows species info, not generic icon")
+
+	_cleanup_node(rn)
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)

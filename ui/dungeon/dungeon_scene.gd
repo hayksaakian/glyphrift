@@ -1123,6 +1123,19 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 			_state = UIState.COMBAT
 			var scan_ids: Array = room_data_local.get("scan_species_ids", [])
 			var enemies: Array[GlyphInstance] = _generate_wild_enemies(scan_ids)
+			## Store enemy species on room so it shows names after battle loss (BUG-028)
+			if scan_ids.is_empty() and not enemies.is_empty():
+				var species_ids: Array[String] = []
+				for e: GlyphInstance in enemies:
+					if e.species != null:
+						species_ids.append(e.species.id)
+				if not species_ids.is_empty():
+					room_data_local["scan_species_ids"] = species_ids
+					var names: PackedStringArray = PackedStringArray()
+					for sid: String in species_ids:
+						var sp: GlyphSpecies = data_loader.get_species(sid) if data_loader != null else null
+						names.append(sp.name if sp != null else sid)
+					room_data_local["scan_info"] = ", ".join(names)
 			_apply_damage_boost()
 			combat_requested.emit(enemies, null)
 		"boss":
