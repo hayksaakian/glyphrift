@@ -70,11 +70,15 @@ normalize_filename() {
 }
 
 remove_interior_pockets() {
-  ## 2nd-pass: Remove small white/near-white connected regions inside the creature.
-  ## After edge flood-fill, any remaining white pockets are interior (between limbs, etc).
-  ## Large white features (eyes, teeth, lightning) are preserved via size threshold.
+  ## 2nd-pass: Remove white pockets between limbs/body parts that survived edge flood-fill.
+  ##
+  ## Strategy: only remove white regions that are NEAR the transparent background (i.e.,
+  ## close to the creature's silhouette edge). Eye whites, teeth, and other intentional
+  ## features are deep inside the creature, far from any transparency. We detect proximity
+  ## by dilating the transparent areas and checking overlap with each white region.
   local img="$1"
   local tmp_mask="/tmp/sprite_mask_$$.png"
+  local tmp_edge="/tmp/sprite_edge_$$.png"
   local tmp_cc="/tmp/sprite_cc_$$.txt"
 
   ## Get image dimensions
@@ -87,26 +91,31 @@ remove_interior_pockets() {
   local max_pocket_area=$((total_pixels * 5 / 100))  ## 5% threshold
 
   ## Create binary mask: white = near-white AND opaque pixels, black = everything else.
-  ## This isolates remaining white regions that survived the edge flood-fill.
   magick "$img" \
     -channel RGB -separate -evaluate-sequence max -threshold 90% \
     \( "$img" -alpha extract -threshold 78% \) \
     -compose multiply -composite \
     "$tmp_mask" 2>/dev/null || { rm -f "$tmp_mask"; return; }
 
-  ## Get connected components on the mask
+  ## Create edge proximity mask: dilate transparent regions by ~15px.
+  ## White pixels in this mask = "near the creature's edge / transparent background."
+  ## Regions far from any transparency (eyes, teeth) won't overlap with this.
+  magick "$img" -alpha extract -negate \
+    -morphology Dilate Disk:15 \
+    "$tmp_edge" 2>/dev/null || { rm -f "$tmp_mask" "$tmp_edge"; return; }
+
+  ## Get connected components on the white mask
   magick "$tmp_mask" \
     -define connected-components:verbose=true \
     -define connected-components:area-threshold=500 \
     -connected-components 8 \
-    null: > "$tmp_cc" 2>&1 || { rm -f "$tmp_mask" "$tmp_cc"; return; }
+    null: > "$tmp_cc" 2>&1 || { rm -f "$tmp_mask" "$tmp_edge" "$tmp_cc"; return; }
 
-  ## Parse connected components: find small white regions not touching edges
+  ## Parse connected components: find white regions near transparency edge
   local pockets_found=0
 
   while IFS= read -r line; do
     ## Parse lines like: "2: 89x297+642+927 690.0,1065.2 16274 gray(255)"
-    ## Match: WxH+X+Y ... AREA gray(255) or srgb(255,255,255)
     local cw ch cx cy area
 
     if [[ "$line" =~ ([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+).*\ ([0-9]+)\ gray\(255\) ]]; then
@@ -125,30 +134,40 @@ remove_interior_pockets() {
       continue
     fi
 
-    ## Skip if touches image border (not an interior pocket)
+    ## Skip if touches image border
     if [[ "$cx" -le 0 || "$cy" -le 0 || $((cx + cw)) -ge $w || $((cy + ch)) -ge $h ]]; then
       continue
     fi
 
-    ## Skip if too large (likely intentional white feature like eyes/teeth)
+    ## Skip if too large
     if [[ "$area" -gt "$max_pocket_area" ]]; then
       continue
     fi
 
-    ## Interior pocket found — flood-fill it transparent from its centroid
-    local fill_x=$((cx + cw / 2))
-    local fill_y=$((cy + ch / 2))
-    magick "$img" \
-      -fuzz "$FUZZ" -fill none \
-      -floodfill "+${fill_x}+${fill_y}" white \
-      "$img" 2>/dev/null && pockets_found=$((pockets_found + 1))
+    ## Check if this region's centroid is near transparent background.
+    ## Sample the edge proximity mask at the centroid — white (255) means near edge.
+    local sample_x=$((cx + cw / 2))
+    local sample_y=$((cy + ch / 2))
+    local edge_val
+    edge_val="$(magick "$tmp_edge" -crop "1x1+${sample_x}+${sample_y}" +repage \
+      -format '%[fx:intensity]' info: 2>/dev/null)" || continue
+
+    ## Only remove if near transparency (edge_val > 0.5 means within dilated region)
+    if (( $(echo "$edge_val > 0.5" | bc -l 2>/dev/null || echo "0") )); then
+      local fill_x=$sample_x
+      local fill_y=$sample_y
+      magick "$img" \
+        -fuzz "$FUZZ" -fill none \
+        -floodfill "+${fill_x}+${fill_y}" white \
+        "$img" 2>/dev/null && pockets_found=$((pockets_found + 1))
+    fi
   done < "$tmp_cc"
 
   if [[ $pockets_found -gt 0 ]]; then
     echo "  interior pockets removed: $pockets_found"
   fi
 
-  rm -f "$tmp_mask" "$tmp_cc"
+  rm -f "$tmp_mask" "$tmp_edge" "$tmp_cc"
 }
 
 
