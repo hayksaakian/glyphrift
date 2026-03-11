@@ -5,7 +5,7 @@ extends Control
 ## wires CombatEngine signals, manages UI state machine.
 ## Pure presentation layer — all logic lives in CombatEngine.
 
-signal battle_finished(won: bool)
+signal battle_finished(won: bool, was_forfeit: bool)
 
 enum UIState {
 	WAITING,
@@ -1230,8 +1230,9 @@ func _on_panel_clicked(g: GlyphInstance) -> void:
 
 func _on_continue_pressed() -> void:
 	var won: bool = combat_engine.phase == combat_engine.BattlePhase.VICTORY
+	var forfeit: bool = combat_engine.was_forfeit
 	_result_screen.hide_result()
-	battle_finished.emit(won)
+	battle_finished.emit(won, forfeit)
 
 
 static func _apply_button_fx(btn: Button) -> void:

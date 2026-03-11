@@ -49,6 +49,9 @@ var is_boss_battle: bool = false
 ## Recruit action tracking: species_id → number of recruit uses
 var recruit_counts: Dictionary = {}
 
+## True when battle ended via forfeit (flee), not squad wipe
+var was_forfeit: bool = false
+
 
 func _ready() -> void:
 	if has_node("/root/DataLoader"):
@@ -62,6 +65,7 @@ func start_battle(p_squad: Array[GlyphInstance], e_squad: Array[GlyphInstance], 
 	round_number = 0
 	ko_list.clear()
 	recruit_counts.clear()
+	was_forfeit = false
 	_boss = null
 	_boss_def = boss_def
 	is_boss_battle = boss_def != null
@@ -543,6 +547,7 @@ func _get_enemies_alive(side: String) -> Array[GlyphInstance]:
 
 
 func forfeit() -> void:
+	was_forfeit = true
 	phase = BattlePhase.DEFEAT
 	battle_lost.emit(player_squad)
 

@@ -153,8 +153,8 @@ var _exit_target_floor: int = -1
 
 var _pre_combat_room_id: String = ""
 
-const BATTLE_LOSS_HULL_DAMAGE: int = 15
-const BATTLE_LOSS_REVIVE_PCT: float = 0.3
+var _forced_repair: bool = false  ## When true, repair picker requires at least 1 heal before closing
+var _forced_repair_healed: bool = false  ## Tracks whether player healed at least once in forced mode
 
 var _walk_queue: Array[String] = []
 var _walking_path: bool = false  ## True during multi-room pathfinding walk
@@ -220,7 +220,7 @@ func get_ui_state() -> UIState:
 	return _state
 
 
-func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3, recruit_counts: Dictionary = {}) -> void:
+func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3, recruit_counts: Dictionary = {}, was_forfeit: bool = false) -> void:
 	## Called by parent after combat ends
 	_clear_damage_boost()
 	_last_enemy_count = maxi(1, enemies.size())
@@ -243,8 +243,12 @@ func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3
 			## Set memory fragment for lore display on capture
 			_capture_popup.memory_fragment = _puzzle_echo.get_memory_fragment()
 			_show_capture_with_chance(_echo_glyph, 1.0)
+		elif was_forfeit:
+			## Fled echo — room stays, no penalty
+			_room_popup.hide_popup()
+			_state = UIState.EXPLORING
 		else:
-			## Loss — apply GDD 8.13 penalty
+			## Echo loss — apply loss penalty (forced heal or extraction)
 			_clear_current_room("Echo faded away.")
 			_room_popup.hide_popup()
 			_apply_battle_loss_penalty()
@@ -260,7 +264,10 @@ func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3
 
 	if not won:
 		_room_popup.hide_popup()
-		if was_boss:
+		if was_forfeit:
+			## Fled — room stays uncleared, no penalty, return to map
+			_state = UIState.EXPLORING
+		elif was_boss:
 			## Boss loss → auto Emergency Warp (no retry within a run)
 			_clear_current_room("Guardian stands.")
 			_warped_out = true
@@ -1462,31 +1469,46 @@ func _is_squad_wiped() -> bool:
 
 
 func _apply_battle_loss_penalty() -> void:
-	## GDD 8.13: Revive KO'd glyphs at 30%, take 15 hull damage, push back to previous room
-	if roster_state != null:
-		for g: GlyphInstance in roster_state.active_squad:
-			if g.is_knocked_out:
-				g.is_knocked_out = false
-				g.current_hp = maxi(1, int(float(g.max_hp) * BATTLE_LOSS_REVIVE_PCT))
-		squad_changed.emit()
-
-	## Hull damage
-	if dungeon_state != null and dungeon_state.crawler != null:
-		dungeon_state.crawler.take_hull_damage(BATTLE_LOSS_HULL_DAMAGE)
-		_crawler_hud.refresh()
-
-		## If hull destroyed → forced extraction
-		if dungeon_state.crawler.hull_hp <= 0:
-			_warped_out = false
-			_show_result(false)
-			return
+	## Battle loss: no free revives. Player must spend energy to heal via forced repair picker.
+	## If not enough energy for even one repair → emergency warp out.
 
 	## Push back to pre-combat room (enemy resets by staying uncleared)
 	if _pre_combat_room_id != "" and dungeon_state != null and _pre_combat_room_id != dungeon_state.current_room_id:
 		dungeon_state.current_room_id = _pre_combat_room_id
 		_floor_map.set_current_room(_pre_combat_room_id)
 
-	_state = UIState.EXPLORING
+	## Check if player has energy to heal at least one glyph
+	var repair_cost: int = 10
+	if dungeon_state != null and dungeon_state.crawler != null:
+		repair_cost = dungeon_state.crawler.get_ability_cost("field_repair")
+
+	var has_damaged: bool = _has_damaged_glyphs()
+	if not has_damaged:
+		## Everyone is at full HP somehow — just return to exploring
+		_state = UIState.EXPLORING
+		return
+
+	if dungeon_state != null and dungeon_state.crawler != null and dungeon_state.crawler.energy < repair_cost:
+		## Not enough energy for repair → emergency warp
+		_warped_out = true
+		_show_result(false)
+		return
+
+	## Force open repair picker — player must heal at least one glyph
+	_show_repair_picker(true)
+
+
+func _has_damaged_glyphs() -> bool:
+	## Check if any squad or bench glyphs need healing
+	if roster_state == null:
+		return false
+	for g: GlyphInstance in roster_state.active_squad:
+		if g.current_hp < g.max_hp:
+			return true
+	for g: GlyphInstance in rift_pool:
+		if g not in roster_state.active_squad and g.current_hp < g.max_hp:
+			return true
+	return false
 
 
 func _get_lore_text() -> String:
@@ -1754,13 +1776,18 @@ func _pick_item() -> Dictionary:
 
 ## --- Repair picker ---
 
-func _show_repair_picker() -> void:
+func _show_repair_picker(forced: bool = false) -> void:
 	if roster_state == null or dungeon_state == null:
 		return
 
-	## Check energy first
+	## Track forced mode state
+	if forced and not _forced_repair:
+		_forced_repair = true
+		_forced_repair_healed = false
+
+	## Check energy first (voluntary repair only)
 	var cost: int = dungeon_state.crawler.get_ability_cost("field_repair")
-	if dungeon_state.crawler.energy < cost:
+	if not _forced_repair and dungeon_state.crawler.energy < cost:
 		return
 
 	## Build list of damaged squad members
@@ -1769,11 +1796,24 @@ func _show_repair_picker() -> void:
 		child.queue_free()
 
 	var header: Label = Label.new()
-	header.text = "Field Repair — Pick a Glyph"
+	if _forced_repair:
+		header.text = "Battle Lost — Heal a Glyph to Continue"
+		header.add_theme_color_override("font_color", Color("#FF6B6B"))
+	else:
+		header.text = "Field Repair — Pick a Glyph"
+		header.add_theme_color_override("font_color", Color("#4CAF50"))
 	header.add_theme_font_size_override("font_size", 15)
-	header.add_theme_color_override("font_color", Color("#4CAF50"))
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_repair_vbox.add_child(header)
+
+	## Show energy cost info
+	if _forced_repair:
+		var info: Label = Label.new()
+		info.text = "Each heal costs %d energy (you have %d)" % [cost, dungeon_state.crawler.energy]
+		info.add_theme_font_size_override("font_size", 12)
+		info.add_theme_color_override("font_color", Color("#AAAAAA"))
+		info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_repair_vbox.add_child(info)
 
 	var has_targets: bool = false
 	for g: GlyphInstance in roster_state.active_squad:
@@ -1806,13 +1846,25 @@ func _show_repair_picker() -> void:
 		no_targets.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_repair_vbox.add_child(no_targets)
 
-	var cancel_btn: Button = Button.new()
-	cancel_btn.name = "CancelRepairButton"
-	cancel_btn.text = "Cancel"
-	cancel_btn.custom_minimum_size = Vector2(80, 28)
-	cancel_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	cancel_btn.pressed.connect(_hide_repair_picker)
-	_repair_vbox.add_child(cancel_btn)
+	## In forced mode: show Done button only after at least 1 heal; no Cancel
+	## In voluntary mode: show Cancel button
+	if _forced_repair:
+		if _forced_repair_healed:
+			var done_btn: Button = Button.new()
+			done_btn.name = "DoneRepairButton"
+			done_btn.text = "Done"
+			done_btn.custom_minimum_size = Vector2(80, 28)
+			done_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			done_btn.pressed.connect(_hide_repair_picker)
+			_repair_vbox.add_child(done_btn)
+	else:
+		var cancel_btn: Button = Button.new()
+		cancel_btn.name = "CancelRepairButton"
+		cancel_btn.text = "Cancel"
+		cancel_btn.custom_minimum_size = Vector2(80, 28)
+		cancel_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		cancel_btn.pressed.connect(_hide_repair_picker)
+		_repair_vbox.add_child(cancel_btn)
 
 	_state = UIState.POPUP
 	_repair_overlay.visible = true
@@ -1840,6 +1892,10 @@ func _on_repair_target_selected(target: GlyphInstance) -> void:
 	## Always sync KO flag with HP
 	target.is_knocked_out = target.current_hp <= 0
 
+	## Track forced repair progress
+	if _forced_repair:
+		_forced_repair_healed = true
+
 	_crawler_hud.refresh()
 	squad_changed.emit()
 
@@ -1852,11 +1908,16 @@ func _on_repair_target_selected(target: GlyphInstance) -> void:
 			break
 	if has_damaged and dungeon_state.crawler.energy >= cost:
 		_show_repair_picker()  ## Rebuild with updated HP values
+	elif _forced_repair:
+		## No more energy or targets — close forced picker
+		_hide_repair_picker()
 	else:
 		_hide_repair_picker()
 
 
 func _hide_repair_picker() -> void:
+	_forced_repair = false
+	_forced_repair_healed = false
 	_repair_overlay.visible = false
 	_state = UIState.EXPLORING
 

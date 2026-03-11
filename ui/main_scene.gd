@@ -317,7 +317,7 @@ func _on_combat_requested(enemies: Array[GlyphInstance], boss_def: BossDef) -> v
 	)
 
 
-func _on_battle_finished(won: bool) -> void:
+func _on_battle_finished(won: bool, was_forfeit: bool = false) -> void:
 	## Get combat stats for capture calculation
 	var enemies: Array[GlyphInstance] = []
 	var turns: int = 3
@@ -330,7 +330,7 @@ func _on_battle_finished(won: bool) -> void:
 	_fade_to(func() -> void:
 		_show_dungeon()
 		_squad_overlay.refresh()
-		_dungeon_scene.on_combat_finished(won, enemies, turns, recruit_counts)
+		_dungeon_scene.on_combat_finished(won, enemies, turns, recruit_counts, was_forfeit)
 	)
 
 

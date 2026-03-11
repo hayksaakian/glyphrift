@@ -86,6 +86,7 @@ func _run_tests() -> void:
 
 	_test_battle_loss_pushback()
 	_test_battle_loss_hull_zero_extracts()
+	_test_battle_flee_no_penalty()
 
 	_test_pause_menu_exists()
 	_test_pause_save_and_quit_signal()
@@ -1526,7 +1527,7 @@ func _test_boss_no_capture_on_first_clear() -> void:
 # ==========================================================================
 
 func _test_battle_loss_pushback() -> void:
-	print("--- BattleLoss: Pushback + revive + hull damage ---")
+	print("--- BattleLoss: Pushback + forced repair picker ---")
 	var floor_data: Dictionary = {
 		"floor_number": 0,
 		"rooms": [
@@ -1559,29 +1560,36 @@ func _test_battle_loss_pushback() -> void:
 	scene._on_popup_action("enemy", {"type": "enemy", "id": "r1"})
 	_assert(scene._pre_combat_room_id == "r0", "Pre-combat room saved as r0 (got %s)" % scene._pre_combat_room_id)
 
-	## KO one glyph
+	## KO one glyph — damage the other
 	g1.current_hp = 0
 	g1.is_knocked_out = true
+	g2.current_hp = 3
 
-	var initial_hull: int = ds.crawler.hull_hp
-
-	## Simulate losing the battle
+	## Simulate losing the battle (with enough energy for repair)
 	var enemies: Array[GlyphInstance] = [_make_glyph("zapplet")]
 	scene.on_combat_finished(false, enemies, 3)
 
-	## Assertions
+	## Assertions: pushed back, no free revives, forced repair picker opens
 	_assert(ds.current_room_id == "r0", "Pushed back to previous room r0 (got %s)" % ds.current_room_id)
-	_assert(not g1.is_knocked_out, "KO'd glyph revived")
-	_assert(g1.current_hp == maxi(1, int(float(g1.max_hp) * 0.3)), "Revived at 30%% HP (got %d, expected %d)" % [g1.current_hp, maxi(1, int(float(g1.max_hp) * 0.3))])
-	_assert(ds.crawler.hull_hp == initial_hull - 15, "Hull took 15 damage (got %d, expected %d)" % [ds.crawler.hull_hp, initial_hull - 15])
-	_assert(scene.get_ui_state() == DungeonScene.UIState.EXPLORING, "Back to EXPLORING state")
+	_assert(g1.is_knocked_out, "KO'd glyph NOT revived (no free revives)")
+	_assert(g1.current_hp == 0, "KO'd glyph HP still 0")
+	_assert(scene._forced_repair, "Forced repair mode is active")
+	_assert(scene.get_ui_state() == DungeonScene.UIState.POPUP, "Repair picker open (POPUP state)")
+
+	## Simulate healing one glyph
+	scene._on_repair_target_selected(g2)
+	_assert(scene._forced_repair_healed, "Forced repair tracked heal")
+
+	## Close the repair picker
+	scene._hide_repair_picker()
+	_assert(scene.get_ui_state() == DungeonScene.UIState.EXPLORING, "Back to EXPLORING after repair")
 
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)
 
 
 func _test_battle_loss_hull_zero_extracts() -> void:
-	print("--- BattleLoss: Hull zero → forced extraction ---")
+	print("--- BattleLoss: No energy → emergency warp ---")
 	var floor_data: Dictionary = {
 		"floor_number": 0,
 		"rooms": [
@@ -1599,6 +1607,7 @@ func _test_battle_loss_hull_zero_extracts() -> void:
 	## Set up roster with a squad
 	var roster: RosterState = RosterState.new()
 	var g1: GlyphInstance = _make_glyph("sparkfin")
+	g1.current_hp = 3  ## Damaged so loss penalty finds targets
 	roster.active_squad.append(g1)
 	scene.roster_state = roster
 
@@ -1608,16 +1617,61 @@ func _test_battle_loss_hull_zero_extracts() -> void:
 	scene._on_room_clicked("r1")
 	scene._on_popup_action("enemy", {"type": "enemy", "id": "r1"})
 
-	## Set hull very low (< 15 so loss penalty destroys it)
-	ds.crawler.hull_hp = 10
+	## Drain energy so repair is impossible
+	ds.crawler.energy = 0
 
 	## Simulate losing the battle
 	var enemies: Array[GlyphInstance] = [_make_glyph("zapplet")]
 	scene.on_combat_finished(false, enemies, 3)
 
-	## Hull should be 0 and result overlay shown (forced extraction)
-	_assert(ds.crawler.hull_hp == 0, "Hull reduced to 0")
-	_assert(scene.get_ui_state() == DungeonScene.UIState.RESULT, "Forced extraction → RESULT state")
+	## Not enough energy for repair → emergency warp
+	_assert(scene.get_ui_state() == DungeonScene.UIState.RESULT, "No energy → emergency warp → RESULT state")
+
+	_cleanup_node(scene)
+	_cleanup_node(ds.crawler)
+
+
+func _test_battle_flee_no_penalty() -> void:
+	print("--- BattleFlee: Room stays, no penalty ---")
+	var floor_data: Dictionary = {
+		"floor_number": 0,
+		"rooms": [
+			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "enemy", "visited": false, "revealed": true},
+		],
+		"connections": [["r0", "r1"]],
+	}
+	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
+	var scene: DungeonScene = DungeonScene.new()
+	scene.data_loader = _data_loader
+	root.add_child(scene)
+	scene.instant_mode = true
+
+	## Set up roster with a squad
+	var roster: RosterState = RosterState.new()
+	var g1: GlyphInstance = _make_glyph("sparkfin")
+	g1.current_hp = 5  ## Damaged from battle
+	roster.active_squad.append(g1)
+	scene.roster_state = roster
+
+	scene.start_rift(ds)
+
+	## Navigate to enemy room and enter combat
+	scene._on_room_clicked("r1")
+	scene._on_popup_action("enemy", {"type": "enemy", "id": "r1"})
+
+	var initial_energy: int = ds.crawler.energy
+
+	## Simulate fleeing (was_forfeit=true)
+	var enemies: Array[GlyphInstance] = [_make_glyph("zapplet")]
+	scene.on_combat_finished(false, enemies, 3, {}, true)
+
+	## Assertions: no penalty, room stays uncleared, back to exploring
+	_assert(scene.get_ui_state() == DungeonScene.UIState.EXPLORING, "Back to EXPLORING after flee")
+	_assert(ds.crawler.energy == initial_energy, "Energy unchanged after flee")
+	## Room should still be enemy type (uncleared)
+	var room: Dictionary = ds.get_room("r1")
+	_assert(room.get("type", "") == "enemy", "Room stays as enemy type after flee (got %s)" % room.get("type", ""))
 
 	_cleanup_node(scene)
 	_cleanup_node(ds.crawler)
