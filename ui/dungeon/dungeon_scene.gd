@@ -231,7 +231,7 @@ func on_combat_finished(won: bool, enemies: Array[GlyphInstance], turns: int = 3
 	if _ward_charm_active:
 		_ward_charm_active = false
 		_crawler_hud.remove_active_effect("status_immunity")
-		if roster_state != null and not roster_state.active_squad.is_empty():
+		if _squad_overlay != null and roster_state != null and not roster_state.active_squad.is_empty():
 			_squad_overlay.clear_glyph_effect(roster_state.active_squad[0])
 
 	## Handle echo battle flow
@@ -1300,7 +1300,8 @@ func _on_item_used(item: ItemDef) -> void:
 			var target: GlyphInstance = roster_state.active_squad[0]
 			for status_id: String in ["burn", "stun", "slow", "weaken", "corrode"]:
 				target.status_immunities[status_id] = 1
-			_squad_overlay.set_glyph_effect(target, "\U0001f6e1", "Ward: blocks next status effect")
+			if _squad_overlay != null:
+				_squad_overlay.set_glyph_effect(target, "\U0001f6e1", "Ward: blocks next status effect")
 		_crawler_hud.add_active_effect("status_immunity",
 			"Ward Charm",
 			"Next status effect on %s will be blocked." % (

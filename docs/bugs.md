@@ -10,6 +10,28 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
+### BUG-021: Fusion Chamber technique list has no hover tooltips
+- **Priority:** P3
+- **Status:** 🔴 Open
+- **Steps:** Open Fusion Chamber → select two mastered parents → look at the "Inherit techniques" list in the preview panel → hover over a technique
+- **Expected:** Tooltip shows technique details (description, category, cooldown, etc.) like in battle
+- **Actual:** No tooltip on hover. The technique rows show name/power/cooldown but no additional info on mouseover. In battle, technique buttons have rich tooltips — this screen should match.
+- **Suggested fix:** Add `tooltip_text` to the technique rows in the fusion preview, using the same format as `TechniqueButton` tooltips in battle (description, affinity, category, cooldown turns).
+- **Files:** `ui/bastion/fusion_chamber.gd` (technique preview row construction)
+
+### BUG-019: Conduit puzzle gives no reward when all species are discovered
+- **Priority:** P2
+- **Status:** 🔴 Open
+- **Steps:** Complete the conduit puzzle after discovering all 15 species
+- **Expected:** Some meaningful reward — the puzzle still takes effort to solve
+- **Actual:** Shows "All species already discovered!" and gives nothing. Feels bad — the puzzle is wasted.
+- **Suggested fix:** When all species are already discovered, give an alternate reward instead of nothing. Options:
+  1. **Random item drop** — treat it like a cache room (pick from item pool)
+  2. **Energy restore** — small energy refund (10-15) as a "conduit resonance" bonus
+  3. **Hull repair** — small hull HP restore
+  - Recommendation: option 1 (item drop) — most exciting, reuses existing `_pick_item` logic. Message could be "All species discovered! The conduit's energy crystallizes into..." + item name.
+- **Files:** `ui/dungeon/dungeon_scene.gd` (conduit reward logic), `ui/dungeon/puzzle_conduit.gd`
+
 ---
 
 ## Fixed Bugs
@@ -20,6 +42,12 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 - **Root cause:** "Heal Glyph" is the `field_repair` crawler ability, not an inventory item. The repair picker overlay (`_on_repair_target_selected`) called `_hide_repair_picker()` immediately after healing one glyph. Was searching in item_popup.gd — wrong file entirely.
 - **Fix:** After healing, check if there are more damaged glyphs and enough energy. If so, rebuild the picker with updated HP values. Only auto-close when no more targets or insufficient energy.
 - **Files:** `ui/dungeon/dungeon_scene.gd`
+
+### BUG-020: Ward Charm crashes — `_squad_overlay` is null in DungeonScene
+- **Priority:** P0
+- **Status:** 🟢 Fixed
+- **Fix:** MainScene never wired `_squad_overlay` to DungeonScene. Added `_dungeon_scene._squad_overlay = _squad_overlay` in MainScene setup (same pattern as `data_loader`, `roster_state`). Also added null guards at both call sites in dungeon_scene.gd (lines 235 and 1303) for safety.
+- **Files:** `ui/main_scene.gd`, `ui/dungeon/dungeon_scene.gd`
 
 ### BUG-018: NPC quest skips introduction, jumps straight to progress dialogue
 - **Priority:** P2

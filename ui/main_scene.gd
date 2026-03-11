@@ -69,6 +69,7 @@ func setup(
 	_dungeon_scene.data_loader = data_loader
 	_dungeon_scene.roster_state = roster_state
 	_dungeon_scene.codex_state = codex_state
+	_dungeon_scene._squad_overlay = _squad_overlay
 	_dungeon_scene._pause_menu.setup_save_slots(game_state, roster_state, codex_state, crawler_state, data_loader)
 	## Wire save_fn so manual saves go through the same path as auto-saves
 	_dungeon_scene._pause_menu._save_slots_popup.save_fn = _save_to_slot
