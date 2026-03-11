@@ -22,3 +22,4 @@ Thumbs.db
 # Raw assets and screenshots
 raw/
 screenshots/
+.cursor/
