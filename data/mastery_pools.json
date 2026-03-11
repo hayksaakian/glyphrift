@@ -55,9 +55,9 @@
   ],
   "3": [
     {
-      "type": "solo_win",
-      "params": {},
-      "description": "Win a battle using only this Glyph (solo)."
+      "type": "solo_win_min_tier",
+      "params": {"min_enemy_tier": 2},
+      "description": "Win a battle solo against all T2+ enemies."
     },
     {
       "type": "squad_no_ko",

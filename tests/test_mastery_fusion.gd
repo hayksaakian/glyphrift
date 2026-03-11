@@ -65,6 +65,7 @@ func _run_tests() -> void:
 	_test_mastery_objective_vs_3_enemies()
 	_test_mastery_objective_squad_no_ko()
 	_test_mastery_objective_solo_win()
+	_test_mastery_objective_solo_win_min_tier()
 	_test_mastery_objective_boss_win()
 	_test_mastery_objective_first_turn()
 	_test_mastery_objective_win_in_turns()
@@ -406,6 +407,96 @@ func _test_mastery_objective_solo_win() -> void:
 
 	_assert(glyph.mastery_objectives[0]["completed"], "solo_win completed (only participant)")
 	tracker.disconnect_from_combat()
+	print("")
+
+
+func _test_mastery_objective_solo_win_min_tier() -> void:
+	print("--- Mastery: solo_win_min_tier ---")
+
+	## Test 1: Fails against T1 enemies (mossling is T1)
+	var tracker1: MasteryTracker = MasteryTracker.new()
+	tracker1.connect_to_combat(_engine)
+
+	var glyph1: GlyphInstance = _make_test_glyph("terradon", [
+		{"type": "solo_win_min_tier", "params": {"min_enemy_tier": 2}, "completed": false, "description": "Win solo vs T2+"},
+	] as Array[Dictionary])
+
+	var enemy1: GlyphInstance = _make_weak_enemy()  ## mossling is T1
+	_run_quick_battle([glyph1] as Array[GlyphInstance], [enemy1] as Array[GlyphInstance])
+
+	_assert(not glyph1.mastery_objectives[0]["completed"], "solo_win_min_tier NOT completed vs T1 enemy")
+	tracker1.disconnect_from_combat()
+
+	## Test 2: Succeeds against T2 enemy
+	var tracker2: MasteryTracker = MasteryTracker.new()
+	tracker2.connect_to_combat(_engine)
+
+	var glyph2: GlyphInstance = _make_test_glyph("terradon", [
+		{"type": "solo_win_min_tier", "params": {"min_enemy_tier": 2}, "completed": false, "description": "Win solo vs T2+"},
+	] as Array[Dictionary])
+
+	var enemy2: GlyphInstance = GlyphInstance.new()
+	enemy2.species = _data_loader.get_species("ironbark")  ## T2
+	enemy2.techniques = [_data_loader.get_technique("iron_ram")]
+	enemy2.max_hp = 1
+	enemy2.current_hp = 1
+	enemy2.atk = 1
+	enemy2.def_stat = 1
+	enemy2.spd = 1
+	enemy2.res = 1
+	_run_quick_battle([glyph2] as Array[GlyphInstance], [enemy2] as Array[GlyphInstance])
+
+	_assert(glyph2.mastery_objectives[0]["completed"], "solo_win_min_tier completed vs T2 enemy")
+	tracker2.disconnect_from_combat()
+
+	## Test 3: Fails if one enemy is T1 even if another is T2
+	var tracker3: MasteryTracker = MasteryTracker.new()
+	tracker3.connect_to_combat(_engine)
+
+	var glyph3: GlyphInstance = _make_test_glyph("terradon", [
+		{"type": "solo_win_min_tier", "params": {"min_enemy_tier": 2}, "completed": false, "description": "Win solo vs T2+"},
+	] as Array[Dictionary])
+
+	var enemy3a: GlyphInstance = GlyphInstance.new()
+	enemy3a.species = _data_loader.get_species("ironbark")  ## T2
+	enemy3a.techniques = [_data_loader.get_technique("iron_ram")]
+	enemy3a.max_hp = 1
+	enemy3a.current_hp = 1
+	enemy3a.atk = 1
+	enemy3a.def_stat = 1
+	enemy3a.spd = 1
+	enemy3a.res = 1
+	var enemy3b: GlyphInstance = _make_weak_enemy()  ## T1 mossling
+	_run_quick_battle([glyph3] as Array[GlyphInstance], [enemy3a, enemy3b] as Array[GlyphInstance])
+
+	_assert(not glyph3.mastery_objectives[0]["completed"], "solo_win_min_tier NOT completed when one enemy is T1")
+	tracker3.disconnect_from_combat()
+
+	## Test 4: Fails if not solo (even vs T2+)
+	var tracker4: MasteryTracker = MasteryTracker.new()
+	tracker4.connect_to_combat(_engine)
+
+	var glyph4: GlyphInstance = _make_test_glyph("terradon", [
+		{"type": "solo_win_min_tier", "params": {"min_enemy_tier": 2}, "completed": false, "description": "Win solo vs T2+"},
+	] as Array[Dictionary])
+	var ally4: GlyphInstance = _make_test_glyph("ironbark", [] as Array[Dictionary])
+
+	var enemy4: GlyphInstance = GlyphInstance.new()
+	enemy4.species = _data_loader.get_species("ironbark")  ## T2
+	enemy4.techniques = [_data_loader.get_technique("iron_ram")]
+	enemy4.max_hp = 9999
+	enemy4.current_hp = 9999
+	enemy4.atk = 1
+	enemy4.def_stat = 1
+	enemy4.spd = 1
+	enemy4.res = 1
+	_run_quick_battle([glyph4, ally4] as Array[GlyphInstance], [enemy4] as Array[GlyphInstance])
+
+	## Both glyphs should have participated
+	var both_participated: bool = glyph4.took_turn_this_battle and ally4.took_turn_this_battle
+	_assert(both_participated, "solo_win_min_tier: both glyphs took a turn")
+	_assert(not glyph4.mastery_objectives[0]["completed"], "solo_win_min_tier NOT completed when not solo")
+	tracker4.disconnect_from_combat()
 	print("")
 
 

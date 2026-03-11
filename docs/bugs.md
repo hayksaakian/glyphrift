@@ -21,22 +21,15 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ### BUG-024: Terradon solo mastery objective too easy to cheese
 - **Priority:** P3
-- **Status:** 🔴 Open
-- **Steps:** Take Terradon to a T1 dungeon solo → trivially clear the objective
-- **Expected:** Solo mastery should feel like a meaningful challenge befitting a T3 glyph
-- **Actual:** "Win a battle using only this Glyph (solo)" can be cleared against T1 enemies in the tutorial rift with zero risk
-- **Suggested fix:** Change the objective to "Win a battle solo against all T2+ enemies" — still the same solo fantasy but requires facing enemies that can actually threaten a T3. Needs a check in the mastery evaluation that all enemies in the battle were T2 or higher.
-- **Files:** `data/glyphs.json` (terradon mastery objectives), `core/glyph/mastery_tracker.gd` (add tier check to solo win evaluation)
+- **Status:** 🟢 Fixed
+- **Fix:** Replaced `solo_win` in T3 mastery pool with `solo_win_min_tier` (params: `min_enemy_tier: 2`). Added `min_enemy_tier` computation in `_on_battle_won` and new `solo_win_min_tier` objective evaluation in `_check_objective`. Solo win now requires all enemies to be T2+.
+- **Files:** `data/mastery_pools.json`, `core/glyph/mastery_tracker.gd`
 
 ### BUG-023: KO'd attacker's move still resolves after interrupt kills them
 - **Priority:** P1
-- **Status:** 🔴 Open
-- **Steps:** Enemy attacks a guarding glyph with `static_guard` interrupt → interrupt damage KOs the attacker → attacker's move still resolves and deals damage
-- **Expected:** If the interrupt KOs the attacker, their attack should be cancelled
-- **Actual:** Combat log shows: "Vortail is knocked out!" → "Thunderclaw dealt the finishing blow to Vortail!" → "Vortail uses Warp Claw on Terradon for 13 damage!" — a dead glyph attacking.
-- **Root cause:** `combat_engine.gd:416-429` — `_resolve_interrupt` for `static_guard` calls `_check_ko(attacker, defender)` but always returns `false` (attack proceeds). It doesn't check if the attacker was KO'd by the interrupt damage.
-- **Fix:** After `_check_ko(attacker, defender)` on line 428, check `if attacker.is_knocked_out: return true` to cancel the attack. This should also be checked for `null_counter` (line ~439) and any other interrupt that deals damage to the attacker.
-- **Files:** `core/combat/combat_engine.gd` (`_resolve_interrupt`, line ~429)
+- **Status:** 🟢 Fixed
+- **Fix:** Added `if attacker.is_knocked_out: return true` after `_check_ko(attacker, defender)` in both `static_guard` and `null_counter` interrupt paths in `_resolve_interrupt`. This cancels the attack when the interrupt KOs the attacker. Added 9 tests covering both interrupt types (lethal and non-lethal) plus a full integration test.
+- **Files:** `core/combat/combat_engine.gd`, `tests/test_combat.gd`
 
 ---
 

@@ -426,6 +426,8 @@ func _resolve_interrupt(defender: GlyphInstance, int_tech: TechniqueDef, attacke
 				attacker.current_hp = 0
 			technique_used.emit(defender, int_tech, attacker, int_damage)
 			_check_ko(attacker, defender)
+			if attacker.is_knocked_out:
+				return true  ## Attacker KO'd by interrupt — cancel attack
 			return false  ## Attack still proceeds (guard provides 50% reduction)
 		"stone_wall":
 			## Blocks the incoming attack entirely
@@ -444,6 +446,8 @@ func _resolve_interrupt(defender: GlyphInstance, int_tech: TechniqueDef, attacke
 				attacker.current_hp = 0
 			technique_used.emit(defender, int_tech, attacker, int_damage)
 			_check_ko(attacker, defender)
+			if attacker.is_knocked_out:
+				return true  ## Attacker KO'd by interrupt — cancel attack
 			return false
 		"tremor_response":
 			## Applies Slow to attacker

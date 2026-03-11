@@ -40,6 +40,7 @@ func _run_tests() -> void:
 	_test_turn_queue()
 	_test_status_manager()
 	_test_ai_controller()
+	_test_interrupt_ko()
 	_test_auto_battle()
 	_test_boss_variety()
 
@@ -453,6 +454,98 @@ func _test_ai_controller() -> void:
 	else:
 		_assert(true, "AI picked non-melee so back-row targeting is valid")
 	target2.row_position = "front"
+
+	print("")
+
+
+# --- Interrupt KO Tests (BUG-023) ---
+
+func _test_interrupt_ko() -> void:
+	print("--- Interrupt KO (BUG-023) ---")
+
+	## Test 1: static_guard interrupt KOs attacker — attack should be cancelled
+	## Use _resolve_interrupt directly to test the return value
+	var attacker: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("zapplet"), _data_loader)
+	attacker.side = "player"
+	attacker.row_position = "front"
+	attacker.current_hp = 1  ## Will die to static_guard counter damage
+
+	var defender: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("thunderclaw"), _data_loader)
+	defender.side = "enemy"
+	defender.row_position = "front"
+	defender.is_guarding = true
+
+	var static_guard_tech: TechniqueDef = _data_loader.get_technique("static_guard")
+	var attack_tech: TechniqueDef = _data_loader.get_technique("vine_lash")  ## melee, triggers ON_MELEE
+
+	var cancelled: bool = _engine._resolve_interrupt(defender, static_guard_tech, attacker, attack_tech)
+	_assert(attacker.is_knocked_out, "static_guard KO: attacker is KO'd by interrupt damage")
+	_assert(cancelled, "static_guard KO: _resolve_interrupt returns true (attack cancelled)")
+
+	## Test 2: null_counter interrupt KOs attacker — attack should be cancelled
+	var attacker2: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("mossling"), _data_loader)
+	attacker2.side = "player"
+	attacker2.row_position = "front"
+	attacker2.current_hp = 1  ## Will die to null_counter
+
+	var nullweaver: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("nullweaver"), _data_loader)
+	nullweaver.side = "enemy"
+	nullweaver.row_position = "front"
+	nullweaver.is_guarding = true
+
+	var null_counter_tech: TechniqueDef = _data_loader.get_technique("null_counter")
+
+	var cancelled2: bool = _engine._resolve_interrupt(nullweaver, null_counter_tech, attacker2, attack_tech)
+	_assert(attacker2.is_knocked_out, "null_counter KO: attacker is KO'd by interrupt damage")
+	_assert(cancelled2, "null_counter KO: _resolve_interrupt returns true (attack cancelled)")
+
+	## Test 3: static_guard interrupt that does NOT KO attacker — attack should still proceed
+	var attacker3: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("stonepaw"), _data_loader)
+	attacker3.side = "player"
+	attacker3.row_position = "front"
+	## Stonepaw has high HP (15), won't be KO'd by static_guard
+
+	var defender3: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("thunderclaw"), _data_loader)
+	defender3.side = "enemy"
+	defender3.row_position = "front"
+	defender3.is_guarding = true
+
+	var cancelled3: bool = _engine._resolve_interrupt(defender3, static_guard_tech, attacker3, attack_tech)
+	_assert(not attacker3.is_knocked_out, "non-lethal static_guard: attacker survives interrupt")
+	_assert(not cancelled3, "non-lethal static_guard: _resolve_interrupt returns false (attack proceeds)")
+
+	## Test 4: Full integration — static_guard KOs attacker, target takes no damage
+	## Use start_battle + _execute_attack to test the full flow
+	## Must use a melee attack technique since static_guard triggers ON_MELEE
+	var atk4: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("zapplet"), _data_loader)
+	var def4: GlyphInstance = GlyphInstance.create_from_species(_data_loader.get_species("thunderclaw"), _data_loader)
+
+	var p_squad: Array[GlyphInstance] = [atk4]
+	var e_squad: Array[GlyphInstance] = [def4]
+	_engine.start_battle(p_squad, e_squad)
+	## Manually set state instead of set_formation (which starts turns)
+	_engine.phase = _engine.BattlePhase.TURN_ACTIVE
+	atk4.row_position = "front"
+	def4.row_position = "front"
+	def4.is_guarding = true
+	## Set HP to 1 AFTER start_battle (which resets combat state including HP)
+	atk4.current_hp = 1
+
+	var melee_tech: TechniqueDef = _data_loader.get_technique("jolt_rush")
+	var def4_hp_before: int = def4.current_hp
+	var tracking: Dictionary = {"tech_count": 0}
+	var tech_handler: Callable = func(_u: GlyphInstance, _t: TechniqueDef, _tgt: GlyphInstance, _d: int) -> void:
+		tracking["tech_count"] += 1
+	_engine.technique_used.connect(tech_handler)
+
+	_engine._execute_attack(atk4, melee_tech, def4)
+
+	_assert(atk4.is_knocked_out, "full flow: attacker KO'd by static_guard interrupt")
+	_assert(def4.current_hp == def4_hp_before, "full flow: target takes no damage when attacker KO'd by interrupt")
+	## Only the interrupt technique fires, not the attack
+	_assert(tracking["tech_count"] == 1, "full flow: only 1 technique_used (interrupt), got %d" % tracking["tech_count"])
+
+	_engine.technique_used.disconnect(tech_handler)
 
 	print("")
 

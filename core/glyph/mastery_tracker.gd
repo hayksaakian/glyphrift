@@ -125,6 +125,12 @@ func _on_battle_won(
 			func(g: GlyphInstance) -> bool: return g.took_turn_this_battle
 		)
 
+		## Find minimum enemy tier for solo_win_min_tier check
+		var min_enemy_tier: int = 99
+		for enemy: GlyphInstance in _enemy_squad:
+			if enemy.species.tier < min_enemy_tier:
+				min_enemy_tier = enemy.species.tier
+
 		## Check if this glyph took the most damage on the team
 		var my_damage: int = _damage_taken.get(glyph.instance_id, 0)
 		var took_most_damage: bool = my_damage > 0
@@ -154,6 +160,7 @@ func _on_battle_won(
 			"killed_burned_target": flags.get("killed_burned_target", false),
 			"killed_stunned_target": flags.get("killed_stunned_target", false),
 			"null_beam_on_weakened": flags.get("null_beam_on_weakened", false),
+			"min_enemy_tier": min_enemy_tier,
 		})
 
 
@@ -336,6 +343,11 @@ func _check_objective(
 
 		"solo_win":
 			return event_type == "battle_won" and event_data.get("solo", false)
+
+		"solo_win_min_tier":
+			return (event_type == "battle_won"
+				and event_data.get("solo", false)
+				and event_data.get("min_enemy_tier", 0) >= params.get("min_enemy_tier", 2))
 
 		"squad_no_ko":
 			return event_type == "battle_won" and event_data.get("squad_no_ko", false)
