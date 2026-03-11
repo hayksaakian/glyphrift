@@ -1209,10 +1209,15 @@ func _on_ability_pressed(ability_name: String) -> void:
 
 	dungeon_state.use_crawler_ability(ability_name)
 	_crawler_hud.refresh()
-	_floor_map.refresh_all()
 
-	if ability_name == "scan" and not instant_mode:
-		_play_scan_ripple()
+	if ability_name == "scan":
+		## Generate scan info for adjacent rooms that were already revealed
+		## (room_revealed only fires for newly revealed rooms)
+		_scan_already_revealed_rooms()
+		if not instant_mode:
+			_play_scan_ripple()
+
+	_floor_map.refresh_all()
 
 
 func _on_capture_attempted(glyph: GlyphInstance, success: bool) -> void:
@@ -1565,6 +1570,21 @@ func _pick_enemy_species(count: int) -> Array[String]:
 				break
 		picked.append(choice)
 	return picked
+
+
+func _scan_already_revealed_rooms() -> void:
+	## For rooms adjacent to the player that were already revealed before scan,
+	## generate scan info if they don't have it yet.
+	if dungeon_state == null:
+		return
+	for room: Dictionary in dungeon_state.get_adjacent_rooms():
+		var room_id: String = room.get("id", "")
+		var room_type: String = room.get("type", "")
+		if room.get("scan_species_ids", []).is_empty():
+			if room_type == "enemy":
+				_generate_scan_info(room_id)
+			elif room_type == "boss":
+				_generate_boss_scan_info(room_id)
 
 
 func _generate_scan_info(room_id: String) -> void:

@@ -63,7 +63,7 @@ static func save_to_slot(
 	var location: String = get_location_string(game_state)
 	var data: Dictionary = {
 		"version": SAVE_VERSION,
-		"timestamp": Time.get_datetime_string_from_system(true),
+		"timestamp": Time.get_datetime_string_from_system(false),
 		"label": label,
 		"save_name": save_name,
 		"location": location,

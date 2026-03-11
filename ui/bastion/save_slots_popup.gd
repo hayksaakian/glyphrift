@@ -256,9 +256,7 @@ func _refresh_row(row: Dictionary) -> void:
 		var location: String = info.get("location", "")
 		var phase: int = info.get("phase", 1)
 		var glyphs: int = info.get("glyph_count", 0)
-		var ts: String = info.get("timestamp", "")
-		if ts.length() > 10:
-			ts = ts.substr(0, 10)
+		var ts: String = _format_timestamp(info.get("timestamp", ""))
 		var parts: Array[String] = []
 		if location != "":
 			parts.append(location)
@@ -375,6 +373,25 @@ func _hide_rename() -> void:
 		_rename_edit.queue_free()
 		_rename_edit = null
 	_rename_slot = ""
+
+
+func _format_timestamp(ts: String) -> String:
+	## "2026-03-10T14:23:05" → "3/10 2:23 PM"
+	if ts.length() < 16:
+		return ts.substr(0, 10) if ts.length() >= 10 else ts
+	var date_part: String = ts.substr(0, 10)  ## "2026-03-10"
+	var time_part: String = ts.substr(11, 5)  ## "14:23"
+	var date_bits: PackedStringArray = date_part.split("-")
+	var time_bits: PackedStringArray = time_part.split(":")
+	var month: String = str(int(date_bits[1])) if date_bits.size() >= 2 else ""
+	var day: String = str(int(date_bits[2])) if date_bits.size() >= 3 else ""
+	var hour_24: int = int(time_bits[0]) if time_bits.size() >= 1 else 0
+	var minute: String = time_bits[1] if time_bits.size() >= 2 else "00"
+	var ampm: String = "AM" if hour_24 < 12 else "PM"
+	var hour_12: int = hour_24 % 12
+	if hour_12 == 0:
+		hour_12 = 12
+	return "%s/%s %d:%s %s" % [month, day, hour_12, minute, ampm]
 
 
 func _gui_input(event: InputEvent) -> void:
