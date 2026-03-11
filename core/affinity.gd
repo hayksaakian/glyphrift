@@ -7,7 +7,7 @@ const COLORS: Dictionary = {
 	"electric": Color("#FFD700"),
 	"ground": Color("#C2855A"),
 	"water": Color("#00ACC1"),
-	"neutral": Color("#888888"),
+	"neutral": Color("#A0A8B0"),
 }
 
 const EMOJI: Dictionary = {

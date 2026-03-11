@@ -327,11 +327,11 @@ func _test_codex_glyph_registry_all_undiscovered() -> void:
 	cb.setup(_data_loader, cx, gs)
 	cb.refresh()
 
-	_assert(cb._glyph_grid.get_child_count() == 15, "15 species panels")
+	_assert(cb._glyph_grid.get_child_count() == 18, "18 species panels")
 	## All should show "???" name
 	var first_panel: Control = cb._glyph_grid.get_child(0)
 	_assert(first_panel.get_meta("is_discovered") == false, "first panel undiscovered")
-	_assert(cb._glyph_counter.text == "0/15 Discovered", "counter shows 0")
+	_assert(cb._glyph_counter.text == "0/18 Discovered", "counter shows 0")
 
 	_cleanup_node(cb)
 	_cleanup_node(gs)
@@ -382,7 +382,7 @@ func _test_codex_discovery_counter() -> void:
 	cb.setup(_data_loader, cx, gs)
 	cb.refresh()
 
-	_assert(cb._glyph_counter.text == "3/15 Discovered", "counter shows 3/15")
+	_assert(cb._glyph_counter.text == "3/18 Discovered", "counter shows 3/18")
 
 	_cleanup_node(cb)
 	_cleanup_node(gs)

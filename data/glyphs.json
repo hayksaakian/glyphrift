@@ -373,5 +373,80 @@
         "description": "Win a battle where all enemies had a status effect when KO'd."
       }
     ]
+  },
+  {
+    "id": "gritstone",
+    "name": "Gritstone",
+    "tier": 1,
+    "affinity": "neutral",
+    "gp_cost": 2,
+    "base_hp": 13,
+    "base_atk": 11,
+    "base_def": 10,
+    "base_spd": 10,
+    "base_res": 9,
+    "technique_ids": ["tackle", "brace"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "use_technique_count",
+        "params": {"technique_id": "tackle", "target": 3, "current": 0},
+        "description": "Use Tackle 3 times."
+      },
+      {
+        "type": "guard_count",
+        "params": {"min_count": 1},
+        "description": "Win a battle using Guard."
+      }
+    ]
+  },
+  {
+    "id": "shimmer",
+    "name": "Shimmer",
+    "tier": 1,
+    "affinity": "neutral",
+    "gp_cost": 2,
+    "base_hp": 10,
+    "base_atk": 9,
+    "base_def": 8,
+    "base_spd": 13,
+    "base_res": 11,
+    "technique_ids": ["tackle", "soothe"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "use_technique_count",
+        "params": {"technique_id": "soothe", "target": 2, "current": 0},
+        "description": "Use Soothe 2 times."
+      },
+      {
+        "type": "heal_low_hp_ally",
+        "params": {"hp_threshold": 0.5},
+        "description": "Heal an ally below 50% HP."
+      }
+    ]
+  },
+  {
+    "id": "monolith",
+    "name": "Monolith",
+    "tier": 2,
+    "affinity": "neutral",
+    "gp_cost": 3,
+    "base_hp": 22,
+    "base_atk": 17,
+    "base_def": 18,
+    "base_spd": 16,
+    "base_res": 17,
+    "technique_ids": ["tackle", "brace", "soothe", "ward_pulse"],
+    "fixed_mastery_objectives": [
+      {
+        "type": "use_technique_count",
+        "params": {"technique_id": "ward_pulse", "target": 2, "current": 0},
+        "description": "Use Ward Pulse 2 times."
+      },
+      {
+        "type": "squad_no_ko",
+        "params": {},
+        "description": "Win a battle with no squad KOs."
+      }
+    ]
   }
 ]

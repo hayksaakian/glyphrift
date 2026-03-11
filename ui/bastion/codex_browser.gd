@@ -208,7 +208,7 @@ func _refresh_glyph_registry() -> void:
 		child.queue_free()
 
 	if data_loader == null or codex_state == null:
-		_glyph_counter.text = "0/15 Discovered"
+		_glyph_counter.text = "0/0 Discovered"
 		return
 
 	## Build sorted species list
@@ -221,8 +221,9 @@ func _refresh_glyph_registry() -> void:
 		return a.name < b.name
 	)
 
+	var total_species: int = all_species.size()
 	var discovered_count: int = codex_state.get_discovery_count()
-	_glyph_counter.text = "%d/15 Discovered" % discovered_count
+	_glyph_counter.text = "%d/%d Discovered" % [discovered_count, total_species]
 
 	for sp: GlyphSpecies in all_species:
 		var panel: Control = _build_species_panel(sp)

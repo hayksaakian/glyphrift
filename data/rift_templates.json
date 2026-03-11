@@ -5,7 +5,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "gritstone", "shimmer"],
     "floors": [
       {
         "floor_number": 0,
@@ -75,7 +75,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["stonepaw", "mossling", "driftwisp", "glitchkit"],
+    "wild_glyph_pool": ["stonepaw", "mossling", "driftwisp", "glitchkit", "gritstone", "shimmer"],
     "floors": [
       {
         "floor_number": 0,
@@ -177,7 +177,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit", "gritstone", "shimmer"],
     "floors": [
       {
         "floor_number": 0,
@@ -279,7 +279,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "gritstone", "shimmer"],
     "floors": [
       {
         "floor_number": 0,

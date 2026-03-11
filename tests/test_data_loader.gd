@@ -29,19 +29,19 @@ func _run_tests() -> void:
 
 	# --- Species ---
 	var species_count: int = _data_loader.species.size()
-	## GDD Appendix A defines 15 species (6 T1 + 3 T2 + 3 T3 + 3 T4)
-	if species_count == 15:
-		print("[PASS] Species loaded: %d (expected 15)" % species_count)
+	## 18 species: 8 T1 (6 elemental + 2 neutral) + 4 T2 (3 elemental + 1 neutral) + 3 T3 + 3 T4
+	if species_count == 18:
+		print("[PASS] Species loaded: %d (expected 18)" % species_count)
 		pass_count += 1
 	else:
-		print("[FAIL] Species loaded: %d (expected 15)" % species_count)
+		print("[FAIL] Species loaded: %d (expected 18)" % species_count)
 		fail_count += 1
 
 	# Verify each tier has correct count
 	var tier_counts: Dictionary = {1: 0, 2: 0, 3: 0, 4: 0}
 	for sp: GlyphSpecies in _data_loader.species.values():
 		tier_counts[sp.tier] += 1
-	var expected_tiers: Dictionary = {1: 6, 2: 3, 3: 3, 4: 3}
+	var expected_tiers: Dictionary = {1: 8, 2: 4, 3: 3, 4: 3}
 	var tiers_ok: bool = true
 	for tier: int in expected_tiers:
 		if tier_counts[tier] != expected_tiers[tier]:
@@ -53,17 +53,18 @@ func _run_tests() -> void:
 		pass_count += 1
 
 	# Verify affinity distribution
-	var affinity_counts: Dictionary = {"electric": 0, "ground": 0, "water": 0}
+	var affinity_counts: Dictionary = {"electric": 0, "ground": 0, "water": 0, "neutral": 0}
 	for sp: GlyphSpecies in _data_loader.species.values():
 		affinity_counts[sp.affinity] += 1
 	var affinities_ok: bool = true
 	for aff: String in affinity_counts:
-		if affinity_counts[aff] < 4:
-			print("[FAIL] Affinity '%s' has only %d species (expected 4+)" % [aff, affinity_counts[aff]])
+		var min_expected: int = 3 if aff == "neutral" else 4
+		if affinity_counts[aff] < min_expected:
+			print("[FAIL] Affinity '%s' has only %d species (expected %d+)" % [aff, affinity_counts[aff], min_expected])
 			fail_count += 1
 			affinities_ok = false
 	if affinities_ok:
-		print("[PASS] Affinity distribution: Electric=%d Ground=%d Water=%d" % [affinity_counts["electric"], affinity_counts["ground"], affinity_counts["water"]])
+		print("[PASS] Affinity distribution: Electric=%d Ground=%d Water=%d Neutral=%d" % [affinity_counts["electric"], affinity_counts["ground"], affinity_counts["water"], affinity_counts["neutral"]])
 		pass_count += 1
 
 	# Verify all species have technique_ids that exist
@@ -117,11 +118,11 @@ func _run_tests() -> void:
 			sorted_key = parts[1] + "|" + parts[0]
 		unique_pairs[sorted_key] = _data_loader.fusion_table[key]
 	var fusion_pair_count: int = unique_pairs.size()
-	if fusion_pair_count >= 30:
-		print("[PASS] Fusion pairs loaded: %d unique (expected 30+)" % fusion_pair_count)
+	if fusion_pair_count >= 33:
+		print("[PASS] Fusion pairs loaded: %d unique (expected 33+)" % fusion_pair_count)
 		pass_count += 1
 	else:
-		print("[FAIL] Fusion pairs loaded: %d unique (expected 30+)" % fusion_pair_count)
+		print("[FAIL] Fusion pairs loaded: %d unique (expected 33+)" % fusion_pair_count)
 		fail_count += 1
 
 	# Verify order independence
@@ -249,11 +250,11 @@ func _run_tests() -> void:
 	# --- Codex Entries ---
 	var codex_count: int = _data_loader.codex_entries.size()
 	## Should have entries for all non-T4 or all species. We have 15 entries (all except maybe some)
-	if codex_count >= 15:
-		print("[PASS] Codex entries loaded: %d (expected 15+)" % codex_count)
+	if codex_count >= 18:
+		print("[PASS] Codex entries loaded: %d (expected 18+)" % codex_count)
 		pass_count += 1
 	else:
-		print("[FAIL] Codex entries loaded: %d (expected 15+)" % codex_count)
+		print("[FAIL] Codex entries loaded: %d (expected 18+)" % codex_count)
 		fail_count += 1
 
 	# --- NPC Dialogue ---
@@ -301,6 +302,102 @@ func _run_tests() -> void:
 		pass_count += 1
 	else:
 		print("[FAIL] Nullweaver stats do not match GDD")
+		fail_count += 1
+
+	# --- Neutral Species ---
+	print("")
+	print("--- Neutral species and fusion wildcard ---")
+
+	var gritstone: GlyphSpecies = _data_loader.get_species("gritstone")
+	var grit_ok: bool = (
+		gritstone.base_hp == 13 and gritstone.base_atk == 11 and gritstone.base_def == 10
+		and gritstone.base_spd == 10 and gritstone.base_res == 9 and gritstone.gp_cost == 2
+		and gritstone.tier == 1 and gritstone.affinity == "neutral"
+	)
+	if grit_ok:
+		print("[PASS] Gritstone stats match design")
+		pass_count += 1
+	else:
+		print("[FAIL] Gritstone stats do not match design")
+		fail_count += 1
+
+	var shimmer_sp: GlyphSpecies = _data_loader.get_species("shimmer")
+	var shimmer_ok: bool = (
+		shimmer_sp.base_hp == 10 and shimmer_sp.base_atk == 9 and shimmer_sp.base_def == 8
+		and shimmer_sp.base_spd == 13 and shimmer_sp.base_res == 11 and shimmer_sp.gp_cost == 2
+		and shimmer_sp.tier == 1 and shimmer_sp.affinity == "neutral"
+	)
+	if shimmer_ok:
+		print("[PASS] Shimmer stats match design")
+		pass_count += 1
+	else:
+		print("[FAIL] Shimmer stats do not match design")
+		fail_count += 1
+
+	var monolith_sp: GlyphSpecies = _data_loader.get_species("monolith")
+	var mono_ok: bool = (
+		monolith_sp.base_hp == 22 and monolith_sp.base_atk == 17 and monolith_sp.base_def == 18
+		and monolith_sp.base_spd == 16 and monolith_sp.base_res == 17 and monolith_sp.gp_cost == 3
+		and monolith_sp.tier == 2 and monolith_sp.affinity == "neutral"
+	)
+	if mono_ok:
+		print("[PASS] Monolith stats match design")
+		pass_count += 1
+	else:
+		print("[FAIL] Monolith stats do not match design")
+		fail_count += 1
+
+	# Neutral-to-neutral fusion (explicit table entry)
+	var neutral_fusion: String = _data_loader.lookup_fusion("gritstone", "shimmer")
+	if neutral_fusion == "monolith":
+		print("[PASS] Gritstone + Shimmer → Monolith")
+		pass_count += 1
+	else:
+		print("[FAIL] Gritstone + Shimmer → '%s' (expected 'monolith')" % neutral_fusion)
+		fail_count += 1
+
+	# Neutral wildcard fusion: neutral + elemental → same as elemental + elemental
+	var wildcard_1: String = _data_loader.lookup_fusion("gritstone", "zapplet")
+	if wildcard_1 == "thunderclaw":
+		print("[PASS] Neutral wildcard: Gritstone + Zapplet → Thunderclaw")
+		pass_count += 1
+	else:
+		print("[FAIL] Neutral wildcard: Gritstone + Zapplet → '%s' (expected 'thunderclaw')" % wildcard_1)
+		fail_count += 1
+
+	var wildcard_2: String = _data_loader.lookup_fusion("shimmer", "stonepaw")
+	if wildcard_2 == "ironbark":
+		print("[PASS] Neutral wildcard: Shimmer + Stonepaw → Ironbark")
+		pass_count += 1
+	else:
+		print("[FAIL] Neutral wildcard: Shimmer + Stonepaw → '%s' (expected 'ironbark')" % wildcard_2)
+		fail_count += 1
+
+	# Verify new techniques exist
+	var soothe_tech: TechniqueDef = _data_loader.get_technique("soothe")
+	var soothe_ok: bool = (
+		soothe_tech.category == "support" and soothe_tech.affinity == "neutral"
+		and soothe_tech.support_effect == "heal_percent" and soothe_tech.support_value > 0.29
+		and soothe_tech.cooldown == 2
+	)
+	if soothe_ok:
+		print("[PASS] Soothe technique loaded correctly")
+		pass_count += 1
+	else:
+		print("[FAIL] Soothe technique has incorrect properties")
+		fail_count += 1
+
+	var ward_pulse_tech: TechniqueDef = _data_loader.get_technique("ward_pulse")
+	var wp_ok: bool = (
+		ward_pulse_tech.category == "support" and ward_pulse_tech.affinity == "neutral"
+		and ward_pulse_tech.support_effect == "shield_all" and ward_pulse_tech.range_type == "aoe"
+		and ward_pulse_tech.cooldown == 3
+	)
+	if wp_ok:
+		print("[PASS] Ward Pulse technique loaded correctly")
+		pass_count += 1
+	else:
+		print("[FAIL] Ward Pulse technique has incorrect properties")
 		fail_count += 1
 
 	# --- Summary ---

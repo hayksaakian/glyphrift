@@ -23,7 +23,8 @@ SILHOUETTE_DIR="$PROJECT_DIR/assets/sprites/glyphs/silhouettes"
 ## Valid species IDs (from data/glyphs.json)
 VALID_IDS=(
   zapplet sparkfin stonepaw mossling driftwisp glitchkit
-  thunderclaw ironbark vortail stormfang terradon riftmaw
+  gritstone shimmer
+  thunderclaw ironbark vortail monolith stormfang terradon riftmaw
   voltarion lithosurge nullweaver
 )
 

@@ -352,6 +352,12 @@ func _execute_support(actor: GlyphInstance, technique: TechniqueDef, target: Gly
 			## Revisit with proper buff system for duration tracking later
 			target.atk += int(float(target.atk) * technique.support_value)
 			technique_used.emit(actor, technique, target, 0)
+		"shield_all":
+			var allies: Array[GlyphInstance] = _get_squad_alive(actor.side)
+			for ally: GlyphInstance in allies:
+				StatusManager.apply(ally, "shield")
+				status_applied.emit(ally, "shield")
+				technique_used.emit(actor, technique, ally, 0)
 		"status_immunity":
 			## Grant immunity to all status types
 			for status_id: String in StatusManager.DURATIONS:
