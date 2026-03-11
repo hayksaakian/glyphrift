@@ -90,7 +90,7 @@
 
 ## Stage 4: Neutral Affinity Type
 **Goal**: Add 2 neutral T1 species that fuse into 1 neutral T2
-**Status**: Not Started
+**Status**: Complete (commit b2290ac)
 
 ### Design (confirmed with Hayk):
 
@@ -150,7 +150,7 @@
 
 ## Stage 6: Font Size Setting
 **Goal**: Add font size accessibility option
-**Status**: Not Started
+**Status**: Complete (commit 276bd0a)
 
 ### Implementation:
 1. `core/game_settings.gd` — Add `font_size` setting (Small/Normal/Large) with values like 0.85/1.0/1.2
@@ -164,7 +164,7 @@
 
 ## Stage 7: Neutral Boss Rift
 **Goal**: Add a new minor rift with the neutral T2 as boss
-**Status**: Not Started
+**Status**: Complete (commit 4e917ab)
 
 ### Design:
 - Tier: minor (same as minor_01 through minor_03)
