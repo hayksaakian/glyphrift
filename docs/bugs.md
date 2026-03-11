@@ -10,18 +10,16 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
-### BUG-015: "Heal Glyph" action auto-closes after one use
-- **Priority:** P2
-- **Status:** 🟡 In Progress (cannot reproduce)
-- **Steps:** Open items menu → use a Heal Glyph item
-- **Expected:** Item popup stays open so the player can heal additional glyphs with more items
-- **Actual:** Popup closes after a single heal, requiring player to reopen items menu to use another
-- **Investigation:** Code review shows `_on_use_pressed` calls `_rebuild_list()` which refreshes contents but does NOT hide the popup. No `visible = false` or `hide()` call found in the use path. The popup only closes via the Close button or `dismissed` signal. May need runtime testing to reproduce — could be a focus/input issue rather than explicit close.
-- **Files:** `ui/dungeon/item_popup.gd`
-
 ---
 
 ## Fixed Bugs
+
+### BUG-015: "Heal Glyph" action auto-closes after one use
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Root cause:** "Heal Glyph" is the `field_repair` crawler ability, not an inventory item. The repair picker overlay (`_on_repair_target_selected`) called `_hide_repair_picker()` immediately after healing one glyph. Was searching in item_popup.gd — wrong file entirely.
+- **Fix:** After healing, check if there are more damaged glyphs and enough energy. If so, rebuild the picker with updated HP values. Only auto-close when no more targets or insufficient energy.
+- **Files:** `ui/dungeon/dungeon_scene.gd`
 
 ### BUG-018: NPC quest skips introduction, jumps straight to progress dialogue
 - **Priority:** P2

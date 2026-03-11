@@ -8,6 +8,13 @@ extends PanelContainer
 signal item_used(item: ItemDef)
 signal closed()
 
+
+## DEBUG: Track what hides the popup (investigating BUG-015)
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED and not visible:
+		print("[ItemPopup] hidden — stack trace:")
+		print_stack()
+
 const ITEM_COLORS: Dictionary = {
 	"repair_hull": Color("#4CAF50"),
 	"restore_energy": Color("#2196F3"),

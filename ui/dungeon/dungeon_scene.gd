@@ -460,11 +460,11 @@ func _build_scene_tree() -> void:
 
 	var swap_panel: PanelContainer = PanelContainer.new()
 	swap_panel.set_anchors_preset(Control.PRESET_CENTER)
-	swap_panel.custom_minimum_size = Vector2(320, 240)
-	swap_panel.offset_left = -160.0
-	swap_panel.offset_right = 160.0
-	swap_panel.offset_top = -120.0
-	swap_panel.offset_bottom = 120.0
+	swap_panel.custom_minimum_size = Vector2(340, 240)
+	swap_panel.offset_left = -170.0
+	swap_panel.offset_right = 170.0
+	swap_panel.offset_top = -200.0
+	swap_panel.offset_bottom = 200.0
 	var swap_style: StyleBoxFlat = StyleBoxFlat.new()
 	swap_style.bg_color = Color("#1A1A2E")
 	swap_style.set_corner_radius_all(8)
@@ -1799,9 +1799,20 @@ func _on_repair_target_selected(target: GlyphInstance) -> void:
 	## Always sync KO flag with HP
 	target.is_knocked_out = target.current_hp <= 0
 
-	_hide_repair_picker()
 	_crawler_hud.refresh()
 	squad_changed.emit()
+
+	## Stay open if there are more damaged glyphs and enough energy
+	var cost: int = dungeon_state.crawler.get_ability_cost("field_repair")
+	var has_damaged: bool = false
+	for g: GlyphInstance in roster_state.active_squad:
+		if g.current_hp < g.max_hp:
+			has_damaged = true
+			break
+	if has_damaged and dungeon_state.crawler.energy >= cost:
+		_show_repair_picker()  ## Rebuild with updated HP values
+	else:
+		_hide_repair_picker()
 
 
 func _hide_repair_picker() -> void:
@@ -1851,10 +1862,20 @@ func _show_swap_picker(new_item: ItemDef, source: String) -> void:
 	hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_swap_vbox.add_child(hint_label)
 
+	var swap_scroll: ScrollContainer = ScrollContainer.new()
+	swap_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	swap_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_swap_vbox.add_child(swap_scroll)
+
+	var item_list: VBoxContainer = VBoxContainer.new()
+	item_list.add_theme_constant_override("separation", 6)
+	item_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	swap_scroll.add_child(item_list)
+
 	for item: ItemDef in dungeon_state.crawler.items:
 		var row: HBoxContainer = HBoxContainer.new()
 		row.add_theme_constant_override("separation", 6)
-		_swap_vbox.add_child(row)
+		item_list.add_child(row)
 
 		row.add_child(ItemPopup.create_item_icon(item))
 
@@ -1873,6 +1894,8 @@ func _show_swap_picker(new_item: ItemDef, source: String) -> void:
 		item_desc.add_theme_font_size_override("font_size", 10)
 		item_desc.add_theme_color_override("font_color", Color("#AAAAAA"))
 		item_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		item_desc.max_lines_visible = 2
+		item_desc.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		info_col.add_child(item_desc)
 
 		var use_btn: Button = Button.new()
