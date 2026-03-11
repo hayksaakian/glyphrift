@@ -10,15 +10,6 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
-### BUG-028: Enemy room reverts to "Wild Glyph" after losing a battle
-- **Priority:** P2
-- **Status:** 🔴 Open
-- **Steps:** Enter an enemy room, lose the battle, return to the dungeon map
-- **Expected:** The room node should show the revealed enemy species name (since you just fought them and know what's there)
-- **Actual:** The room node reverts to showing "Wild Glyph" with the generic `!` icon, as if you'd never seen the encounter
-- **Root cause:** After a battle loss, the room's `cleared` flag isn't set (correct — you didn't win), but the room's scan/reveal state also appears to reset. The room should retain its revealed info (species name from scan or from having fought there).
-- **Suggested fix:** When returning from a lost battle, mark the room as "revealed" (scanned) if it isn't already. The player has seen the enemies — hiding that info again is unintuitive. Could set a `scanned` or `revealed` flag on the room dict that persists through battle losses.
-- **Files:** `ui/dungeon/dungeon_scene.gd` (battle loss handler), `ui/dungeon/room_node.gd` (display logic), possibly `core/dungeon/dungeon_state.gd` (room state)
 
 ### BUG-027: Neutral type aesthetic too similar to Ground — needs visual redesign
 - **Priority:** P2
@@ -40,12 +31,9 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ### BUG-025: Save Slots popup too narrow — names truncate
 - **Priority:** P3
-- **Status:** 🔴 Open
-- **Steps:** Open save slots from Menu
-- **Expected:** Save names and details are fully readable
-- **Actual:** Save names truncate with "..." (e.g. "Petrified Depth...", "all fusions unlo..."). The popup is too narrow for the content, especially with the 4-button row (Save/Load/Rename/Del).
-- **Suggested fix:** Increase popup width by ~50% (1.5x current). The screen has plenty of horizontal space — the popup only uses about 40% of viewport width currently.
-- **Files:** `ui/bastion/save_slots_popup.gd` (popup size / `custom_minimum_size`)
+- **Status:** 🟢 Fixed
+- **Fix:** Increased popup width from 540px to 810px (1.5x) so save names and info lines display without truncation.
+- **Files:** `ui/bastion/save_slots_popup.gd`
 
 ### BUG-024: Terradon solo mastery objective too easy to cheese
 - **Priority:** P3
@@ -62,6 +50,12 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 ---
 
 ## Fixed Bugs
+
+### BUG-028: Enemy room reverts to "Wild Glyph" after losing a battle
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Fix:** In `_on_popup_action` for enemy rooms, store generated enemy species IDs (`scan_species_ids` and `scan_info`) back on the room dict when entering combat for the first time (i.e., when no scan data existed). This ensures that after a battle loss, the room retains species info and the RoomNode displays species portraits instead of the generic `!` icon.
+- **Files:** `ui/dungeon/dungeon_scene.gd`
 
 ### BUG-022: Heal Glyph (Field Repair) ignores benched glyphs
 - **Priority:** P1

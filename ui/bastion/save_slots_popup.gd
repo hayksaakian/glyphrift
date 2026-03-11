@@ -63,9 +63,9 @@ func hide_popup() -> void:
 func _build_ui() -> void:
 	_panel = PanelContainer.new()
 	_panel.set_anchors_preset(Control.PRESET_CENTER)
-	_panel.custom_minimum_size = Vector2(540, 420)
-	_panel.offset_left = -270.0
-	_panel.offset_right = 270.0
+	_panel.custom_minimum_size = Vector2(810, 420)
+	_panel.offset_left = -405.0
+	_panel.offset_right = 405.0
 	_panel.offset_top = -210.0
 	_panel.offset_bottom = 210.0
 	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
