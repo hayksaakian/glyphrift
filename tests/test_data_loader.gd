@@ -188,11 +188,11 @@ func _run_tests() -> void:
 
 	# --- Rift Templates ---
 	var template_count: int = _data_loader.rift_templates.size()
-	if template_count == 8:
-		print("[PASS] Rift templates loaded: %d (expected 8)" % template_count)
+	if template_count == 9:
+		print("[PASS] Rift templates loaded: %d (expected 9)" % template_count)
 		pass_count += 1
 	else:
-		print("[FAIL] Rift templates loaded: %d (expected 8)" % template_count)
+		print("[FAIL] Rift templates loaded: %d (expected 9)" % template_count)
 		fail_count += 1
 
 	# Verify floor counts per tier
@@ -218,11 +218,11 @@ func _run_tests() -> void:
 
 	# --- Bosses ---
 	var boss_count: int = _data_loader.bosses.size()
-	if boss_count == 8:
-		print("[PASS] Bosses loaded: %d (expected 8)" % boss_count)
+	if boss_count == 9:
+		print("[PASS] Bosses loaded: %d (expected 9)" % boss_count)
 		pass_count += 1
 	else:
-		print("[FAIL] Bosses loaded: %d (expected 8)" % boss_count)
+		print("[FAIL] Bosses loaded: %d (expected 9)" % boss_count)
 		fail_count += 1
 
 	# Verify boss species references exist

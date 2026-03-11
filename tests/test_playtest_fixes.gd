@@ -376,9 +376,9 @@ func _test_minor_03_loads() -> void:
 			has_minor_03 = true
 	_assert(has_minor_03, "Phase 2 includes minor_03 rift")
 
-	## Total rift count: 8 templates, 8 bosses
-	_assert(_data_loader.rift_templates.size() == 8, "8 rift templates loaded (got %d)" % _data_loader.rift_templates.size())
-	_assert(_data_loader.bosses.size() == 8, "8 boss defs loaded (got %d)" % _data_loader.bosses.size())
+	## Total rift count: 9 templates, 9 bosses
+	_assert(_data_loader.rift_templates.size() == 9, "9 rift templates loaded (got %d)" % _data_loader.rift_templates.size())
+	_assert(_data_loader.bosses.size() == 9, "9 boss defs loaded (got %d)" % _data_loader.bosses.size())
 
 
 # ==========================================================

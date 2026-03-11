@@ -956,7 +956,7 @@ func _test_rift_gate_list() -> void:
 
 	gs.game_phase = 2
 	rg.refresh()
-	_assert(rg._rift_panels.size() == 4, "phase 2 shows 4 rifts")
+	_assert(rg._rift_panels.size() == 5, "phase 2 shows 5 rifts")
 
 	_cleanup_node(rg)
 	_cleanup_node(gs)

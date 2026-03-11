@@ -575,25 +575,25 @@ func _test_phase_progression_rifts() -> void:
 	_assert(rifts1.size() == 1, "Phase 1: 1 rift (tutorial)")
 	_assert(rifts1[0].id == "tutorial_01", "Phase 1: tutorial_01")
 
-	## Phase 2: tutorial + 2 minor = 3
+	## Phase 2: tutorial + 4 minor = 5
 	gs.game_phase = 2
 	var rifts2: Array[RiftTemplate] = gs.get_available_rifts()
-	_assert(rifts2.size() == 3, "Phase 2: 3 rifts (tutorial + 2 minor)")
+	_assert(rifts2.size() == 5, "Phase 2: 5 rifts (tutorial + 4 minor)")
 
-	## Phase 3: + 2 standard = 5
+	## Phase 3: + 2 standard = 7
 	gs.game_phase = 3
 	var rifts3: Array[RiftTemplate] = gs.get_available_rifts()
-	_assert(rifts3.size() == 5, "Phase 3: 5 rifts (+2 standard)")
+	_assert(rifts3.size() == 7, "Phase 3: 7 rifts (+2 standard)")
 
-	## Phase 4: + 1 major = 6
+	## Phase 4: + 1 major = 8
 	gs.game_phase = 4
 	var rifts4: Array[RiftTemplate] = gs.get_available_rifts()
-	_assert(rifts4.size() == 6, "Phase 4: 6 rifts (+1 major)")
+	_assert(rifts4.size() == 8, "Phase 4: 8 rifts (+1 major)")
 
-	## Phase 5: + 1 apex = 7
+	## Phase 5: + 1 apex = 9
 	gs.game_phase = 5
 	var rifts5: Array[RiftTemplate] = gs.get_available_rifts()
-	_assert(rifts5.size() == 7, "Phase 5: 7 rifts (+1 apex)")
+	_assert(rifts5.size() == 9, "Phase 5: 9 rifts (+1 apex)")
 
 	_cleanup_node(gs)
 	_cleanup_node(rs)
