@@ -139,6 +139,8 @@ func _run_tests() -> void:
 	_test_game_settings_delay_multiplier()
 	_test_settings_popup_construction()
 	_test_settings_popup_speed_cycle()
+	_test_settings_popup_font_size()
+	_test_game_settings_font_scale()
 	_test_pause_menu_settings_button()
 
 	print("")
@@ -2168,6 +2170,56 @@ func _test_settings_popup_speed_cycle() -> void:
 
 	_cleanup_node(popup)
 	GameSettings.battle_speed = "normal"
+
+
+func _test_settings_popup_font_size() -> void:
+	print("--- SettingsPopup: Font size cycle ---")
+	GameSettings.font_size = "normal"
+	var popup: SettingsPopup = SettingsPopup.new()
+	root.add_child(popup)
+	popup.show_popup()
+
+	_assert(popup._font_btn != null, "font button exists")
+	_assert(popup._font_btn.text == "Normal", "initial font label is Normal")
+	popup._cycle_font_size()
+	_assert(GameSettings.font_size == "large", "cycled to large")
+	_assert(popup._font_btn.text == "Large", "label shows Large")
+	popup._cycle_font_size()
+	_assert(GameSettings.font_size == "small", "cycled to small")
+	_assert(popup._font_btn.text == "Small", "label shows Small")
+	popup._cycle_font_size()
+	_assert(GameSettings.font_size == "normal", "cycled back to normal")
+
+	_cleanup_node(popup)
+	GameSettings.font_size = "normal"
+
+
+func _test_game_settings_font_scale() -> void:
+	print("--- GameSettings: Font scale values ---")
+	GameSettings.font_size = "small"
+	_assert(GameSettings.get_font_scale() == 0.85, "small = 0.85")
+	GameSettings.font_size = "normal"
+	_assert(GameSettings.get_font_scale() == 1.0, "normal = 1.0")
+	GameSettings.font_size = "large"
+	_assert(GameSettings.get_font_scale() == 1.2, "large = 1.2")
+
+	## Test apply_font_scale
+	var ctrl: Control = Control.new()
+	root.add_child(ctrl)
+	GameSettings.apply_font_scale(ctrl)
+	_assert(ctrl.theme != null, "theme created")
+	_assert(ctrl.theme.default_font_size == 19, "large font size = 19")
+
+	GameSettings.font_size = "small"
+	GameSettings.apply_font_scale(ctrl)
+	_assert(ctrl.theme.default_font_size == 13, "small font size = 13")
+
+	GameSettings.font_size = "normal"
+	GameSettings.apply_font_scale(ctrl)
+	_assert(ctrl.theme.default_font_size == 16, "normal font size = 16")
+
+	_cleanup_node(ctrl)
+	GameSettings.font_size = "normal"
 
 
 func _test_pause_menu_settings_button() -> void:

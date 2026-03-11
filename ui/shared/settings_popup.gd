@@ -7,6 +7,7 @@ signal closed
 
 var _panel: PanelContainer = null
 var _speed_btn: Button = null
+var _font_btn: Button = null
 var _close_btn: Button = null
 
 const SPEED_OPTIONS: Array[String] = ["normal", "fast", "instant"]
@@ -14,6 +15,13 @@ const SPEED_LABELS: Dictionary = {
 	"normal": "Normal",
 	"fast": "Fast (2x)",
 	"instant": "Instant",
+}
+
+const FONT_OPTIONS: Array[String] = ["small", "normal", "large"]
+const FONT_LABELS: Dictionary = {
+	"small": "Small",
+	"normal": "Normal",
+	"large": "Large",
 }
 
 
@@ -24,10 +32,12 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_build_ui()
 	_update_speed_label()
+	_update_font_label()
 
 
 func show_popup() -> void:
 	_update_speed_label()
+	_update_font_label()
 	visible = true
 
 
@@ -85,6 +95,24 @@ func _build_ui() -> void:
 	_speed_btn.pressed.connect(_cycle_speed)
 	speed_row.add_child(_speed_btn)
 
+	## Font Size row
+	var font_row: HBoxContainer = HBoxContainer.new()
+	font_row.add_theme_constant_override("separation", 10)
+	vbox.add_child(font_row)
+
+	var font_label: Label = Label.new()
+	font_label.text = "Font Size:"
+	font_label.add_theme_font_size_override("font_size", 14)
+	font_label.add_theme_color_override("font_color", Color("#DDDDDD"))
+	font_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	font_row.add_child(font_label)
+
+	_font_btn = Button.new()
+	_font_btn.name = "FontButton"
+	_font_btn.custom_minimum_size = Vector2(120, 32)
+	_font_btn.pressed.connect(_cycle_font_size)
+	font_row.add_child(_font_btn)
+
 	## Spacer
 	var spacer: Control = Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -114,6 +142,33 @@ func _cycle_speed() -> void:
 func _update_speed_label() -> void:
 	if _speed_btn != null:
 		_speed_btn.text = SPEED_LABELS.get(GameSettings.battle_speed, "Normal")
+
+
+func _cycle_font_size() -> void:
+	var current_idx: int = FONT_OPTIONS.find(GameSettings.font_size)
+	var next_idx: int = (current_idx + 1) % FONT_OPTIONS.size()
+	GameSettings.font_size = FONT_OPTIONS[next_idx]
+	GameSettings.save_settings()
+	_update_font_label()
+	## Apply to the scene tree root if available
+	var root_control: Control = _find_root_control()
+	if root_control != null:
+		GameSettings.apply_font_scale(root_control)
+
+
+func _update_font_label() -> void:
+	if _font_btn != null:
+		_font_btn.text = FONT_LABELS.get(GameSettings.font_size, "Normal")
+
+
+func _find_root_control() -> Control:
+	var node: Node = self
+	var last_control: Control = self
+	while node.get_parent() != null:
+		node = node.get_parent()
+		if node is Control:
+			last_control = node
+	return last_control
 
 
 func _gui_input(event: InputEvent) -> void:
