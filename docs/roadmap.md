@@ -24,16 +24,16 @@ These make the biggest difference in player experience.
 
   - **Chassis** — (already implemented) defines base identity, stat profile, passive bonus
   - **Computer** — the crawler's onboard intelligence (scanning, energy management, filtering). Examples:
-    - Scan Amplifier — Scan reveals full room contents (not just type)
-    - Energy Recycler — Refund 2 Energy when an ability finds nothing useful
+    - Scan Amplifier — Scan range +1
+    - Energy Recycler — Regenerate 25% of energy per floor
     - Affinity Filter — Bias wild encounters toward a chosen affinity
-    - Capacitor Cell — +10 Energy
+    - Capacitor Cell — +40 Max Energy
   - **Accessory** — bolted-on external hardware (durability, cargo, utility). Examples:
-    - Hull Plating — +15 Hull HP
+    - Hull Plating — +25 Hull HP
     - Cargo Rack — +1 Bench slot
-    - Repair Drone — Auto-heal 5 Hull HP per floor transition
-    - Trophy Mount — +10% capture chance
-  - Parts found as rare cache drops or milestone rewards. Chassis identity could come from bonuses to certain part types (e.g. Ironclad: +50% from Accessories, Scout: +50% from Computers) or unique part unlocks per chassis. This gives pre-rift loadout decisions without adding combat complexity.
+    - Repair Drone — Auto-heal 20% of Hull HP per floor transition
+    - Trophy Mount — +20% capture chance
+  - Parts found as rare cache drops or milestone rewards. Chassis identity could come from more or less slots of a given type. This gives pre-rift loadout decisions without adding combat complexity.
 
 - [x] **Status effect clarity** — 6 status types with single-letter icons; tooltip on hover works but in-battle readability could improve. _(Status badges now show letter+turns remaining (e.g. "B3", "S1"), rich tooltips with effect description and duration, red/cyan border for debuff/buff distinction)_
 
@@ -42,9 +42,19 @@ These make the biggest difference in player experience.
 Broken into phases. Each phase builds on the last.
 
 ### Short term: Neutral affinity
-- [ ] Add **Neutral type** with 2 species lines (1 T1 + 1 T2, or 2 T1 → 1 T2 fusion). Neutral has no SE advantage/disadvantage — a safe generalist pick that rounds out team composition.
+- [ ] Add **Neutral type** with 2 species lines (1 T1 + 1 T2, or 2 T1 → 1 T2 fusion). Neutral has no SE advantage/disadvantage — a safe generalist pick that rounds out team composition. Fusions with a neutral + non-neutral will always lean on the non-neutral's type for calculating a fusion outcome. 
 - [ ] Define Neutral's role: jack-of-all-trades stats? Unique utility techniques? Resistant to nothing, weak to nothing?
 - [ ] Portraits, techniques, fusion pairs for the new species.
+
+### Short term: Streamline sprite generation pipeline
+- [ ] **Automated sprite generation via Gemini API** — the first 15 glyph portraits were hand-generated using Google Gemini's image model (Imagen 3 / Nano Banana 2). Goal: build a script that Claude Code can run to generate new species sprites end-to-end:
+  1. **Prompt template + examples** — prompt guidelines and all 15 original prompts stored in `docs/glyph-sprite-prompts.md`.
+  2. **Generation script** (`scripts/generate_sprites.py` or `.sh`) — takes a species ID + description, calls Gemini API to generate the raw image, saves to `raw/`. Should support batch generation for multiple species.
+  3. **Processing pipeline** — pipe raw output through existing `scripts/process_sprites.sh` (background removal, trim, resize, silhouette generation).
+  4. **2nd-pass transparency fix** — enhance `process_sprites.sh` with connected-component analysis to remove interior white pockets (see Art & Visual Pass section).
+  5. **End-to-end flow:** `generate_sprites.py sparkfin "A shimmering electric fish..."` → raw PNG → `process_sprites.sh` → portrait + silhouette in `assets/sprites/glyphs/` → ready for Godot import.
+- [ ] **Gemini API key management** — store key in env var or `.env` file (gitignored). Script should fail gracefully with clear message if key is missing.
+- [ ] **Quality validation** — after generation, optionally display/open the image for human review before committing. Not every generation will be usable; may need retry logic or multiple candidates.
 
 ### Medium term: Type system redesign
 - [ ] **Plan a deeper type chart** — reference games with strong type systems (Pokémon, Fire Emblem, Temtem) for depth/breadth. Current 3-type triangle (Electric > Water > Ground > Electric) is simple but shallow.
