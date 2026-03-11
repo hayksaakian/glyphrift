@@ -16,6 +16,9 @@ Thumbs.db
 *~
 *.swp
 
+# Secrets
+.env
+
 # Raw assets and screenshots
 raw/
 screenshots/

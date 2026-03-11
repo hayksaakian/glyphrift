@@ -82,6 +82,8 @@ Broken into phases. Each phase builds on the last.
 
 Important but not urgent. Do these as the game stabilizes.
 
+- [ ] **Revisit mid-rift battle loss penalty** — currently losing a battle revives all KO'd glyphs and heals them to ~30% HP. This is very forgiving and removes tension from non-boss fights. Consider alternatives: keep KO'd glyphs dead until manually revived (Revival Core item or Heal Glyph ability), lose an item, take crawler hull damage, or a combination. The penalty should make losses sting without being run-ending — encourage retreating or using resources to recover rather than getting a free reset.
+
 - [x] **Battle pacing** — animation timing may need tuning; currently tween-based but no player feedback on snappy vs sluggish _(Settings screen battle speed: Normal/Fast(2x)/Instant. Scales AnimationQueue inter-event delays. Individual tweens kept at normal speed for readability.)_
 - [x] **Capture screen flow** — recruit→capture connection isn't obvious to players. _(Added floating "Recruited! +15%" callout above enemy panel during combat when recruit succeeds. Shows exact capture bonus per recruit use. Breakdown on capture screen already shows Recruit +X%.)_
 - [x] **Tutorial completeness** — GDD 12.1 specifies guided overlays; verify all tutorial elements present _(tutorial hints system implemented)_
@@ -94,6 +96,7 @@ Important but not urgent. Do these as the game stabilizes.
 - [x] **Save slot management** — currently single save; multiple slots or "are you sure?" on new game _(3 save slots + autosave implemented)_
 - [x] **Settings screen** — no options menu (text speed, animation speed, controls) _(Battle speed setting: Normal/Fast/Instant via pause menu Settings button. GameSettings persists to user://settings.json. Scales AnimationQueue delays.)_
 - [ ] **Accessibility** — no colorblind mode, font size options, or input remapping
+- [ ] **T4/Apex glyph masteries** — T4 glyphs (Nullweaver, Voltarion, Lithosurge) currently have no reason to complete mastery since they can't fuse further. But the +2 all-stats mastery bonus is still valuable for endgame teams. Ensure T4 species have interesting mastery objectives worth pursuing as a post-apex goal.
 - [x] **Endgame / post-apex** — what happens after clearing all 7 rifts? _(Shows "ALL RIFTS CONQUERED!" message with codex discovery percentage when last rift is cleared. Player returns to bastion and can re-enter rifts for captures/completion.)_
 - [x] **Crawler upgrade: Rift Transmitter** — when bench is full during capture, allow sending caught glyph directly to bastion reserves. Crawler upgrade (not default) — keeps early-game tension, gives late-game QoL. _(Milestone: "Seal the Apex Rift" → unlocks Rift Transmitter. "Send to Reserves" button on bench-full swap screen. Glyph goes directly to roster reserves, not rift pool. Saved/loaded via has_rift_transmitter flag.)_
 
