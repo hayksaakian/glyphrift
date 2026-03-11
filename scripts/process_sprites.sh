@@ -269,7 +269,13 @@ echo "=========================================="
 echo "Done: $processed processed, $skipped skipped"
 if [[ $processed -gt 0 ]]; then
   echo ""
-  echo "Next: open the project in Godot to trigger .import for new PNGs."
-  echo "The game will automatically use the new sprites everywhere."
+  echo "Running Godot headless import..."
+  GODOT="${GODOT:-godot}"
+  if command -v "$GODOT" &>/dev/null; then
+    "$GODOT" --headless --import 2>/dev/null
+    echo "Import complete — new sprites are ready to use."
+  else
+    echo "WARNING: godot not found in PATH. Run 'godot --headless --import' manually."
+  fi
 fi
 echo ""

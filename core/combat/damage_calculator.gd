@@ -1,16 +1,15 @@
 class_name DamageCalculator
 
 
-## Affinity advantage triangle: Electric > Water > Ground > Electric
-const ADVANTAGE_MAP: Dictionary = {
-	"electric": "water",
-	"water": "ground",
-	"ground": "electric",
+## Affinity matchup matrix: AFFINITY_MATRIX[attack][defend] = multiplier
+## Only non-1.0 entries need to be listed. Missing pairs default to 1.0.
+const AFFINITY_MATRIX: Dictionary = {
+	"electric": {"water": 1.5, "ground": 0.65},
+	"water": {"ground": 1.5, "electric": 0.65},
+	"ground": {"electric": 1.5, "water": 0.65},
 }
 
-const ADVANTAGE_MULT: float = 1.5
-const DISADVANTAGE_MULT: float = 0.65
-const NEUTRAL_MULT: float = 1.0
+const DEFAULT_MULT: float = 1.0
 
 const BACK_ROW_REDUCTION: float = 0.7
 const SHIELD_REDUCTION: float = 0.75
@@ -65,21 +64,15 @@ static func calculate_fixed(attacker: GlyphInstance, defender: GlyphInstance, te
 
 
 static func get_affinity_multiplier(tech_affinity: String, defender_affinity: String) -> float:
-	if tech_affinity == "neutral":
-		return NEUTRAL_MULT
-	if not ADVANTAGE_MAP.has(tech_affinity):
-		return NEUTRAL_MULT
-	if ADVANTAGE_MAP[tech_affinity] == defender_affinity:
-		return ADVANTAGE_MULT
-	if ADVANTAGE_MAP[defender_affinity] == tech_affinity:
-		return DISADVANTAGE_MULT
-	return NEUTRAL_MULT
+	if not AFFINITY_MATRIX.has(tech_affinity):
+		return DEFAULT_MULT
+	return AFFINITY_MATRIX[tech_affinity].get(defender_affinity, DEFAULT_MULT)
 
 
 static func has_affinity_advantage(tech_affinity: String, defender_affinity: String) -> bool:
-	if tech_affinity == "neutral":
+	if not AFFINITY_MATRIX.has(tech_affinity):
 		return false
-	return ADVANTAGE_MAP.get(tech_affinity, "") == defender_affinity
+	return AFFINITY_MATRIX[tech_affinity].get(defender_affinity, DEFAULT_MULT) > DEFAULT_MULT
 
 
 static func get_row_modifier(range_type: String, defender_row: String) -> float:
