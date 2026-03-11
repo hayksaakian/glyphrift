@@ -2,7 +2,7 @@
 
 ## Stage 1: Fix Open Bugs
 **Goal**: Fix BUG-023 and BUG-024
-**Status**: Not Started
+**Status**: Complete (commit 7303123)
 
 ### BUG-023: KO'd attacker still resolves after interrupt
 - In `combat_engine.gd` `_resolve_interrupt`: after `_check_ko(attacker, defender)`, check `if attacker.is_knocked_out: return true` to cancel the attack
@@ -20,7 +20,7 @@
 
 ## Stage 2: Battle Loss Penalty Rework
 **Goal**: Make losing a battle cost energy instead of being free
-**Status**: Not Started
+**Status**: Complete (commit d278b8e)
 
 ### Design (confirmed with Hayk):
 - **On loss**: Force-open Field Repair picker. Player MUST heal at least 1 glyph before closing. If not enough energy for 1 heal → emergency warp out of rift.
@@ -132,7 +132,7 @@
 
 ## Stage 5: Sprite Transparency Fix
 **Goal**: Fix interior white pockets in existing glyph sprites
-**Status**: Not Started
+**Status**: Complete (commit a47b09d)
 
 ### Problem:
 `scripts/process_sprites.sh` only flood-fills from the 4 image edges, so enclosed white pockets between limbs/body parts survive. Affected: ironbark (arm/torso gap), thunderclaw (tail/hind leg gap), others.

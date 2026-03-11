@@ -78,15 +78,11 @@ func _run_tests() -> void:
 		print("[PASS] All species technique references are valid")
 		pass_count += 1
 
-	# Verify T1-T3 species have mastery objectives, T4 do not
+	# Verify all species have 2 fixed mastery objectives
 	var mastery_ok: bool = true
 	for sp: GlyphSpecies in _data_loader.species.values():
-		if sp.tier <= 3 and sp.fixed_mastery_objectives.size() != 2:
+		if sp.fixed_mastery_objectives.size() != 2:
 			print("[FAIL] Species '%s' (T%d) has %d fixed mastery objectives (expected 2)" % [sp.id, sp.tier, sp.fixed_mastery_objectives.size()])
-			fail_count += 1
-			mastery_ok = false
-		elif sp.tier == 4 and sp.fixed_mastery_objectives.size() != 0:
-			print("[FAIL] Species '%s' (T4) has %d fixed mastery objectives (expected 0)" % [sp.id, sp.fixed_mastery_objectives.size()])
 			fail_count += 1
 			mastery_ok = false
 	if mastery_ok:

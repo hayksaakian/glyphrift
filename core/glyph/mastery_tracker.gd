@@ -16,6 +16,11 @@ var _enemy_squad: Array[GlyphInstance] = []
 var _first_actor_id: int = -1
 var _last_technique_by_glyph: Dictionary = {} ## instance_id → TechniqueDef
 var _damage_taken: Dictionary = {}           ## instance_id → int (total damage taken this battle)
+var _guard_counts: Dictionary = {}           ## instance_id → int (guard uses this battle)
+var _used_support: Dictionary = {}           ## instance_id → bool (used a support technique this battle)
+var _enemy_statused_on_ko: Dictionary = {}   ## enemy instance_id → bool (had status when KO'd)
+var _max_single_hit: Dictionary = {}         ## instance_id → int (max damage in a single hit)
+var _all_enemies_koed: bool = false          ## set on battle_won
 
 
 func connect_to_combat(engine: Node) -> void:
@@ -28,6 +33,8 @@ func connect_to_combat(engine: Node) -> void:
 	engine.glyph_dealt_finishing_blow.connect(_on_finishing_blow)
 	engine.status_applied.connect(_on_status_applied)
 	engine.turn_started.connect(_on_turn_started)
+	engine.guard_activated.connect(_on_guard_activated)
+	engine.glyph_ko.connect(_on_glyph_ko)
 
 
 func notify_capture(squad: Array[GlyphInstance]) -> void:
@@ -35,8 +42,6 @@ func notify_capture(squad: Array[GlyphInstance]) -> void:
 	## Evaluates capture_participated for all squad members who took a turn.
 	for glyph: GlyphInstance in squad:
 		if not glyph.took_turn_this_battle or glyph.is_mastered:
-			continue
-		if glyph.species.tier == 4:
 			continue
 		_evaluate_objectives(glyph, "capture_occurred", {})
 
@@ -52,14 +57,13 @@ func disconnect_from_combat() -> void:
 	combat_engine.glyph_dealt_finishing_blow.disconnect(_on_finishing_blow)
 	combat_engine.status_applied.disconnect(_on_status_applied)
 	combat_engine.turn_started.disconnect(_on_turn_started)
+	combat_engine.guard_activated.disconnect(_on_guard_activated)
+	combat_engine.glyph_ko.disconnect(_on_glyph_ko)
 	combat_engine = null
 
 
-## Build mastery track for a glyph: 2 fixed + 1 random (T4 gets none)
+## Build mastery track for a glyph: 2 fixed + 1 random
 static func build_mastery_track(sp: GlyphSpecies, mastery_pools: Dictionary) -> Array[Dictionary]:
-	if sp.tier == 4:
-		return []
-
 	var objectives: Array[Dictionary] = []
 	## 2 fixed objectives from species
 	for obj: Dictionary in sp.fixed_mastery_objectives:
@@ -94,6 +98,11 @@ func _on_battle_started(
 	_battle_flags.clear()
 	_last_technique_by_glyph.clear()
 	_damage_taken.clear()
+	_guard_counts.clear()
+	_used_support.clear()
+	_enemy_statused_on_ko.clear()
+	_max_single_hit.clear()
+	_all_enemies_koed = false
 	_first_actor_id = -1
 	_enemy_squad = e_squad
 
@@ -109,10 +118,23 @@ func _on_battle_won(
 	turns_taken: int,
 	ko_list: Array[GlyphInstance]
 ) -> void:
+	## Check if all enemies had a status when KO'd
+	var all_statused: bool = _enemy_squad.size() > 0
+	for enemy: GlyphInstance in _enemy_squad:
+		if not _enemy_statused_on_ko.get(enemy.instance_id, false):
+			all_statused = false
+			break
+
+	## Determine boss affinity (if boss battle)
+	var boss_affinity: String = ""
+	if combat_engine and combat_engine.is_boss_battle:
+		for enemy: GlyphInstance in _enemy_squad:
+			if enemy.is_boss:
+				boss_affinity = enemy.species.affinity
+				break
+
 	for glyph: GlyphInstance in squad:
 		if not glyph.took_turn_this_battle or glyph.is_mastered:
-			continue
-		if glyph.species.tier == 4:
 			continue
 
 		var flags: Dictionary = _get_flags(glyph.instance_id)
@@ -161,6 +183,13 @@ func _on_battle_won(
 			"killed_stunned_target": flags.get("killed_stunned_target", false),
 			"null_beam_on_weakened": flags.get("null_beam_on_weakened", false),
 			"min_enemy_tier": min_enemy_tier,
+			"boss_affinity": boss_affinity,
+			"guard_count": _guard_counts.get(glyph.instance_id, 0),
+			"all_enemies_statused_on_ko": all_statused,
+			"used_support": _used_support.get(glyph.instance_id, false),
+			"total_damage_taken": _damage_taken.get(glyph.instance_id, 0),
+			"max_single_hit": _max_single_hit.get(glyph.instance_id, 0),
+			"status_tick_killed": flags.get("status_tick_killed", false),
 		})
 
 
@@ -194,7 +223,17 @@ func _on_technique_used(
 		var u_flags: Dictionary = _get_flags(user.instance_id)
 		u_flags["null_beam_on_weakened"] = true
 
-	if user.is_mastered or user.species.tier == 4:
+	## Track support technique usage
+	if technique.support_effect != "" and user.side == "player":
+		_used_support[user.instance_id] = true
+
+	## Track max single hit damage
+	if damage > 0 and user.side == "player":
+		var prev_max: int = _max_single_hit.get(user.instance_id, 0)
+		if damage > prev_max:
+			_max_single_hit[user.instance_id] = damage
+
+	if user.is_mastered:
 		return
 	_evaluate_objectives(user, "technique_used", {
 		"technique_id": technique.id,
@@ -214,7 +253,7 @@ func _on_interrupt_triggered(
 	_technique: TechniqueDef,
 	_attacker: GlyphInstance
 ) -> void:
-	if defender.is_mastered or defender.species.tier == 4:
+	if defender.is_mastered:
 		return
 	_evaluate_objectives(defender, "interrupt_triggered", {})
 
@@ -238,7 +277,7 @@ func _on_finishing_blow(
 	if stun_targets.has(target.instance_id) and StatusManager.has_status(target, "stun"):
 		flags["killed_stunned_target"] = true
 
-	if attacker.is_mastered or attacker.species.tier == 4:
+	if attacker.is_mastered:
 		return
 
 	## Immediate objectives (don't require battle win)
@@ -268,13 +307,40 @@ func _on_status_applied(
 					a_flags[key] = {}
 				a_flags[key][target.instance_id] = true
 
-			if applicant != null and not applicant.is_mastered and applicant.species.tier != 4:
+			if applicant != null and not applicant.is_mastered:
 				_evaluate_objectives(applicant, "status_applied", {
 					"status_id": status_id,
 					"technique_id": tech.id,
 					"target_instance_id": target.instance_id,
 				})
 			break
+
+
+func _on_guard_activated(glyph: GlyphInstance) -> void:
+	if glyph.side != "player":
+		return
+	_guard_counts[glyph.instance_id] = _guard_counts.get(glyph.instance_id, 0) + 1
+
+
+func _on_glyph_ko(glyph: GlyphInstance, attacker: GlyphInstance) -> void:
+	## Track whether enemies had a status when KO'd (for all_enemies_statused_on_ko)
+	if glyph.side == "enemy":
+		var had_status: bool = false
+		for status_id: String in ["burn", "stun", "weaken", "slow", "shield", "regen"]:
+			if StatusManager.has_status(glyph, status_id):
+				had_status = true
+				break
+		_enemy_statused_on_ko[glyph.instance_id] = had_status
+
+	## Track status tick kills (KO with null attacker means burn/status damage)
+	if glyph.side == "enemy" and attacker == null:
+		## Status tick KO — credit all player glyphs who applied a status to this enemy
+		for player_id: int in _battle_flags:
+			var flags: Dictionary = _battle_flags[player_id]
+			for key: String in ["burn_targets", "stun_targets", "weaken_targets"]:
+				var targets: Dictionary = flags.get(key, {})
+				if targets.has(glyph.instance_id):
+					flags["status_tick_killed"] = true
 
 
 # --- Objective Evaluation ---
@@ -406,6 +472,36 @@ func _check_objective(
 		"weaken_then_null_beam":
 			return (event_type == "battle_won"
 				and event_data.get("null_beam_on_weakened", false))
+
+		"defeat_boss_affinity":
+			return (event_type == "battle_won"
+				and event_data.get("is_boss_battle", false)
+				and event_data.get("boss_affinity", "") == params.get("target_affinity", ""))
+
+		"guard_count":
+			return (event_type == "battle_won"
+				and event_data.get("guard_count", 0) >= params.get("min_count", 1))
+
+		"all_enemies_statused_on_ko":
+			return (event_type == "battle_won"
+				and event_data.get("all_enemies_statused_on_ko", false))
+
+		"deal_damage_threshold":
+			return (event_type == "battle_won"
+				and event_data.get("max_single_hit", 0) >= params.get("threshold", 100))
+
+		"no_support_techniques":
+			return (event_type == "battle_won"
+				and not event_data.get("used_support", true))
+
+		"survive_damage_threshold":
+			return (event_type == "battle_won"
+				and event_data.get("no_ko", false)
+				and event_data.get("total_damage_taken", 0) >= params.get("threshold", 200))
+
+		"status_tick_kill":
+			return (event_type == "battle_won"
+				and event_data.get("status_tick_killed", false))
 
 	return false
 

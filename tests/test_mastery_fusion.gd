@@ -85,7 +85,15 @@ func _run_tests() -> void:
 	_test_fusion_stat_inheritance()
 	_test_fusion_technique_inheritance()
 	_test_fusion_execute_full()
-	_test_fusion_t4_no_mastery()
+	_test_fusion_t4_has_mastery()
+	_test_t4_defeat_boss_affinity()
+	_test_t4_guard_count()
+	_test_t4_all_enemies_statused_on_ko()
+	_test_t4_deal_damage_threshold()
+	_test_t4_no_support_techniques()
+	_test_t4_survive_damage_threshold()
+	_test_t4_status_tick_kill()
+	_test_t4_mastery_completion()
 	_test_codex_state()
 	_test_codex_new_methods()
 	_test_roster_state()
@@ -160,10 +168,10 @@ func _test_mastery_objective_types() -> void:
 	_assert(objectives[1]["type"] == "finishing_blow_with_technique", "Second fixed objective: finishing_blow_with_technique, got %s" % objectives[1]["type"])
 	_assert(not objectives[0].get("completed", true), "Objectives start uncompleted")
 
-	## T4 has no mastery
+	## T4 now has mastery (2 fixed + 1 random)
 	var t4_sp: GlyphSpecies = _data_loader.get_species("voltarion")
 	var t4_objs: Array[Dictionary] = MasteryTracker.build_mastery_track(t4_sp, _data_loader.mastery_pools)
-	_assert(t4_objs.is_empty(), "T4 species has no mastery objectives")
+	_assert(t4_objs.size() == 3, "T4 species has 3 mastery objectives, got %d" % t4_objs.size())
 
 	## T2 pool objectives
 	var t2_sp: GlyphSpecies = _data_loader.get_species("thunderclaw")
@@ -1161,10 +1169,10 @@ func _test_fusion_execute_full() -> void:
 	print("")
 
 
-# --- T4 No Mastery ---
+# --- T4 Mastery ---
 
-func _test_fusion_t4_no_mastery() -> void:
-	print("--- T4 No Mastery ---")
+func _test_fusion_t4_has_mastery() -> void:
+	print("--- T4 Has Mastery ---")
 
 	## Fuse two T3s → T4
 	var sf: GlyphInstance = _make_mastered("stormfang")
@@ -1180,8 +1188,287 @@ func _test_fusion_t4_no_mastery() -> void:
 
 	_assert(result.species.id == "voltarion", "T3+T3 produces Voltarion (T4)")
 	_assert(result.species.tier == 4, "Voltarion is T4")
-	_assert(result.mastery_objectives.is_empty(), "T4 has no mastery objectives")
+	_assert(result.mastery_objectives.size() == 3, "T4 has 3 mastery objectives (2 fixed + 1 random)")
+	_assert(result.mastery_objectives[0]["type"] == "defeat_boss_affinity", "Voltarion fixed 1: defeat_boss_affinity")
+	_assert(result.mastery_objectives[1]["type"] == "win_battle_in_turns", "Voltarion fixed 2: win_battle_in_turns")
 
+	print("")
+
+
+func _test_t4_defeat_boss_affinity() -> void:
+	print("--- T4 Mastery: defeat_boss_affinity ---")
+	var tracker: MasteryTracker = MasteryTracker.new()
+	tracker.connect_to_combat(_engine)
+
+	var glyph: GlyphInstance = _make_test_glyph("voltarion", [
+		{"type": "defeat_boss_affinity", "params": {"target_affinity": "ground"}, "completed": false, "description": "Defeat Ground boss"},
+	] as Array[Dictionary])
+
+	## Create a ground-type boss enemy
+	var enemy: GlyphInstance = _make_weak_enemy()
+	enemy.species = _data_loader.get_species("mossling")  ## Ground affinity
+	enemy.is_boss = true
+	enemy.max_hp = 1
+	enemy.current_hp = 1
+
+	_engine.auto_battle = true
+	_engine.start_battle([glyph] as Array[GlyphInstance], [enemy] as Array[GlyphInstance])
+	_engine.is_boss_battle = true
+	_engine.set_formation()
+
+	_assert(glyph.mastery_objectives[0]["completed"], "defeat_boss_affinity completed (ground boss)")
+
+	## Test non-matching affinity does NOT complete
+	var glyph2: GlyphInstance = _make_test_glyph("voltarion", [
+		{"type": "defeat_boss_affinity", "params": {"target_affinity": "water"}, "completed": false, "description": "Defeat Water boss"},
+	] as Array[Dictionary])
+
+	var enemy2: GlyphInstance = _make_weak_enemy()
+	enemy2.species = _data_loader.get_species("mossling")  ## Ground, not water
+	enemy2.is_boss = true
+	enemy2.max_hp = 1
+	enemy2.current_hp = 1
+
+	_engine.start_battle([glyph2] as Array[GlyphInstance], [enemy2] as Array[GlyphInstance])
+	_engine.is_boss_battle = true
+	_engine.set_formation()
+
+	_assert(not glyph2.mastery_objectives[0]["completed"], "defeat_boss_affinity NOT completed (wrong affinity)")
+	_engine.is_boss_battle = false
+	tracker.disconnect_from_combat()
+	print("")
+
+
+func _test_t4_guard_count() -> void:
+	print("--- T4 Mastery: guard_count ---")
+	var tracker: MasteryTracker = MasteryTracker.new()
+	tracker.connect_to_combat(_engine)
+
+	var glyph: GlyphInstance = _make_test_glyph("lithosurge", [
+		{"type": "guard_count", "params": {"min_count": 3}, "completed": false, "description": "Guard 3 times"},
+	] as Array[Dictionary])
+
+	## Simulate guard_activated signals manually then a battle win
+	var enemy: GlyphInstance = _make_weak_enemy()
+	_engine.auto_battle = true
+	_engine.start_battle([glyph] as Array[GlyphInstance], [enemy] as Array[GlyphInstance])
+
+	## Manually emit guard signals to simulate guarding
+	_engine.guard_activated.emit(glyph)
+	_engine.guard_activated.emit(glyph)
+	_engine.guard_activated.emit(glyph)
+
+	## Now run the battle to completion
+	_engine.set_formation()
+
+	_assert(glyph.mastery_objectives[0]["completed"], "guard_count completed (3 guards)")
+
+	## Test insufficient guards
+	var glyph2: GlyphInstance = _make_test_glyph("lithosurge", [
+		{"type": "guard_count", "params": {"min_count": 3}, "completed": false, "description": "Guard 3 times"},
+	] as Array[Dictionary])
+
+	var enemy2: GlyphInstance = _make_weak_enemy()
+	_engine.start_battle([glyph2] as Array[GlyphInstance], [enemy2] as Array[GlyphInstance])
+	_engine.guard_activated.emit(glyph2)
+	_engine.guard_activated.emit(glyph2)
+	_engine.set_formation()
+
+	_assert(not glyph2.mastery_objectives[0]["completed"], "guard_count NOT completed (only 2 guards)")
+	tracker.disconnect_from_combat()
+	print("")
+
+
+func _test_t4_all_enemies_statused_on_ko() -> void:
+	print("--- T4 Mastery: all_enemies_statused_on_ko ---")
+	var tracker: MasteryTracker = MasteryTracker.new()
+	tracker.connect_to_combat(_engine)
+
+	var glyph: GlyphInstance = _make_test_glyph("nullweaver", [
+		{"type": "all_enemies_statused_on_ko", "params": {}, "completed": false, "description": "All enemies statused on KO"},
+	] as Array[Dictionary])
+
+	## Create enemy that will have a status when KO'd
+	var enemy: GlyphInstance = _make_weak_enemy(50, 1, 1)
+
+	_engine.auto_battle = true
+	_engine.start_battle([glyph] as Array[GlyphInstance], [enemy] as Array[GlyphInstance])
+	## Apply burn AFTER start_battle (which clears statuses via reset_combat_state)
+	StatusManager.apply(enemy, "burn")
+	_engine.set_formation()
+
+	_assert(glyph.mastery_objectives[0]["completed"], "all_enemies_statused_on_ko completed (enemy had burn)")
+
+	## Test where enemy has NO status on KO
+	var glyph2: GlyphInstance = _make_test_glyph("nullweaver", [
+		{"type": "all_enemies_statused_on_ko", "params": {}, "completed": false, "description": "All enemies statused on KO"},
+	] as Array[Dictionary])
+
+	var enemy2: GlyphInstance = _make_weak_enemy()
+	_engine.start_battle([glyph2] as Array[GlyphInstance], [enemy2] as Array[GlyphInstance])
+	_engine.set_formation()
+
+	_assert(not glyph2.mastery_objectives[0]["completed"], "all_enemies_statused_on_ko NOT completed (no status)")
+	tracker.disconnect_from_combat()
+	print("")
+
+
+func _test_t4_deal_damage_threshold() -> void:
+	print("--- T4 Mastery: deal_damage_threshold ---")
+	var tracker: MasteryTracker = MasteryTracker.new()
+	tracker.connect_to_combat(_engine)
+
+	## Voltarion has 55 ATK — pump it way up to guarantee 100+ damage
+	var glyph: GlyphInstance = _make_test_glyph("voltarion", [
+		{"type": "deal_damage_threshold", "params": {"threshold": 100}, "completed": false, "description": "Deal 100+ damage"},
+	] as Array[Dictionary])
+	glyph.atk = 999
+
+	var enemy: GlyphInstance = _make_weak_enemy(9999, 1, 1)
+	enemy.def_stat = 1
+	_run_quick_battle([glyph] as Array[GlyphInstance], [enemy] as Array[GlyphInstance])
+
+	_assert(glyph.mastery_objectives[0]["completed"], "deal_damage_threshold completed (999 ATK)")
+
+	## Test low damage doesn't trigger
+	var glyph2: GlyphInstance = _make_test_glyph("voltarion", [
+		{"type": "deal_damage_threshold", "params": {"threshold": 100}, "completed": false, "description": "Deal 100+ damage"},
+	] as Array[Dictionary])
+	glyph2.atk = 1
+
+	var enemy2: GlyphInstance = _make_weak_enemy(9999, 1, 1)
+	enemy2.def_stat = 999
+	_run_quick_battle([glyph2] as Array[GlyphInstance], [enemy2] as Array[GlyphInstance])
+
+	_assert(not glyph2.mastery_objectives[0]["completed"], "deal_damage_threshold NOT completed (1 ATK vs 999 DEF)")
+	tracker.disconnect_from_combat()
+	print("")
+
+
+func _test_t4_no_support_techniques() -> void:
+	print("--- T4 Mastery: no_support_techniques ---")
+	var tracker: MasteryTracker = MasteryTracker.new()
+	tracker.connect_to_combat(_engine)
+
+	## Voltarion's techniques are all attack, no support
+	var glyph: GlyphInstance = _make_test_glyph("voltarion", [
+		{"type": "no_support_techniques", "params": {}, "completed": false, "description": "Win without support"},
+	] as Array[Dictionary])
+
+	var enemy: GlyphInstance = _make_weak_enemy()
+	_run_quick_battle([glyph] as Array[GlyphInstance], [enemy] as Array[GlyphInstance])
+
+	_assert(glyph.mastery_objectives[0]["completed"], "no_support_techniques completed (attack-only glyph)")
+	tracker.disconnect_from_combat()
+	print("")
+
+
+func _test_t4_survive_damage_threshold() -> void:
+	print("--- T4 Mastery: survive_damage_threshold ---")
+	var tracker: MasteryTracker = MasteryTracker.new()
+	tracker.connect_to_combat(_engine)
+
+	## Create a tanky glyph that can survive lots of damage
+	var glyph: GlyphInstance = _make_test_glyph("lithosurge", [
+		{"type": "survive_damage_threshold", "params": {"threshold": 50}, "completed": false, "description": "Take 50+ damage and survive"},
+	] as Array[Dictionary])
+	glyph.max_hp = 9999
+	glyph.current_hp = 9999
+
+	## Enemy that deals a lot of damage but will eventually die
+	## Give enemy high SPD so it attacks first and deals damage before being KO'd
+	var enemy: GlyphInstance = _make_weak_enemy(9999, 999, 999)
+	enemy.techniques = [_data_loader.get_technique("vine_lash")]
+	enemy.def_stat = 1
+	_run_quick_battle([glyph] as Array[GlyphInstance], [enemy] as Array[GlyphInstance])
+
+	_assert(glyph.mastery_objectives[0]["completed"], "survive_damage_threshold completed (took 50+ damage)")
+
+	## Test: glyph that takes no damage
+	var glyph2: GlyphInstance = _make_test_glyph("lithosurge", [
+		{"type": "survive_damage_threshold", "params": {"threshold": 50}, "completed": false, "description": "Take 50+ damage and survive"},
+	] as Array[Dictionary])
+
+	var enemy2: GlyphInstance = _make_weak_enemy(1, 0, 1)
+	_run_quick_battle([glyph2] as Array[GlyphInstance], [enemy2] as Array[GlyphInstance])
+
+	_assert(not glyph2.mastery_objectives[0]["completed"], "survive_damage_threshold NOT completed (no damage taken)")
+	tracker.disconnect_from_combat()
+	print("")
+
+
+func _test_t4_status_tick_kill() -> void:
+	print("--- T4 Mastery: status_tick_kill ---")
+	var tracker: MasteryTracker = MasteryTracker.new()
+	tracker.connect_to_combat(_engine)
+
+	## We need a glyph that applies burn and the burn KOs the enemy
+	## This is hard to set up deterministically with auto_battle
+	## Use manual signal simulation instead
+	var glyph: GlyphInstance = _make_test_glyph("nullweaver", [
+		{"type": "status_tick_kill", "params": {}, "completed": false, "description": "KO with status tick"},
+	] as Array[Dictionary])
+
+	var enemy: GlyphInstance = _make_weak_enemy(5, 1, 1)
+
+	_engine.auto_battle = true
+	_engine.start_battle([glyph] as Array[GlyphInstance], [enemy] as Array[GlyphInstance])
+
+	## Simulate: glyph applies burn to enemy
+	var burn_flags: Dictionary = tracker._get_flags(glyph.instance_id)
+	burn_flags["burn_targets"] = {enemy.instance_id: true}
+
+	## Simulate: enemy dies from burn (null attacker)
+	enemy.current_hp = 0
+	enemy.is_knocked_out = true
+	_engine.glyph_ko.emit(enemy, null)
+
+	## Now win the battle
+	glyph.took_turn_this_battle = true
+	_engine.battle_won.emit(
+		[glyph] as Array[GlyphInstance], 2,
+		[enemy] as Array[GlyphInstance]
+	)
+
+	_assert(glyph.mastery_objectives[0]["completed"], "status_tick_kill completed")
+	tracker.disconnect_from_combat()
+	print("")
+
+
+func _test_t4_mastery_completion() -> void:
+	print("--- T4 Mastery: full completion + mastery bonus ---")
+	var tracker: MasteryTracker = MasteryTracker.new()
+	tracker.connect_to_combat(_engine)
+
+	var glyph: GlyphInstance = _make_test_glyph("voltarion", [
+		{"type": "win_battle_in_turns", "params": {"max_turns": 5}, "completed": false, "description": "Win in 5 turns"},
+		{"type": "squad_no_ko", "params": {}, "completed": false, "description": "No squad KOs"},
+		{"type": "boss_win", "params": {}, "completed": false, "description": "Win boss battle"},
+	] as Array[Dictionary])
+	var old_atk: int = glyph.atk
+
+	## Battle 1: win in few turns + no KO → completes objectives 0 and 1
+	var enemy: GlyphInstance = _make_weak_enemy()
+	_run_quick_battle([glyph] as Array[GlyphInstance], [enemy] as Array[GlyphInstance])
+
+	_assert(glyph.mastery_objectives[0]["completed"], "T4 objective 0 completed")
+	_assert(glyph.mastery_objectives[1]["completed"], "T4 objective 1 completed")
+	_assert(not glyph.is_mastered, "T4 not yet mastered (1 objective remaining)")
+
+	## Battle 2: boss win → completes final objective
+	var boss: GlyphInstance = _make_weak_enemy()
+	boss.is_boss = true
+	_engine.start_battle([glyph] as Array[GlyphInstance], [boss] as Array[GlyphInstance])
+	_engine.is_boss_battle = true
+	_engine.set_formation()
+
+	_assert(glyph.mastery_objectives[2]["completed"], "T4 objective 2 (boss_win) completed")
+	_assert(glyph.is_mastered, "T4 Voltarion is now MASTERED")
+	_assert(glyph.mastery_bonus_applied, "T4 mastery bonus applied")
+	_assert(glyph.atk > old_atk, "T4 mastery bonus increased ATK")
+
+	_engine.is_boss_battle = false
+	tracker.disconnect_from_combat()
 	print("")
 
 

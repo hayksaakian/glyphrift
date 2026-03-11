@@ -100,7 +100,7 @@ func _run_tests() -> void:
 	_test_detail_popup_completed_objectives()
 	_test_detail_popup_mastered_banner()
 	_test_detail_popup_progressive_counter()
-	_test_detail_popup_t4_no_mastery()
+	_test_detail_popup_t4_mastery()
 	_test_detail_popup_close()
 
 	## ResultScreen Mastery
@@ -1650,9 +1650,9 @@ func _test_detail_popup_progressive_counter() -> void:
 	_cleanup_node(popup)
 
 
-func _test_detail_popup_t4_no_mastery() -> void:
-	print("--- GlyphDetailPopup: T4 No Mastery ---")
-	## T4 species have no mastery objectives
+func _test_detail_popup_t4_mastery() -> void:
+	print("--- GlyphDetailPopup: T4 Mastery ---")
+	## T4 species now have mastery objectives (2 fixed + 1 random)
 	var sp: GlyphSpecies = _data_loader.get_species("voltarion")  ## T4
 	if sp == null:
 		_assert(true, "no T4 species in data (skip)")
@@ -1664,8 +1664,8 @@ func _test_detail_popup_t4_no_mastery() -> void:
 	root.add_child(popup)
 	popup.show_glyph(g)
 
-	_assert(popup._mastery_header.text.contains("apex"), "T4 shows apex mastery text")
-	_assert(popup._mastery_vbox.get_child_count() == 0, "T4 has no objective labels")
+	_assert(popup._mastery_header.text.contains("0/3"), "T4 shows 0/3 mastery progress")
+	_assert(popup._mastery_vbox.get_child_count() > 0, "T4 has objective labels")
 
 	_cleanup_node(popup)
 

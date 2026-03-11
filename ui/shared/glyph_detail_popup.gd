@@ -152,10 +152,6 @@ func _refresh_species_mastery(sp: GlyphSpecies, data_loader: Node) -> void:
 	_mastered_banner.visible = false
 	_mastery_bonus_label.visible = false
 
-	if sp.tier == 4:
-		_mastery_header.text = "-- Mastery (apex — no mastery) --"
-		return
-
 	_mastery_header.text = "-- Mastery Objectives --"
 
 	## Fixed objectives from species

@@ -311,7 +311,18 @@
     "base_spd": 50,
     "base_res": 36,
     "technique_ids": ["apocalt_strike", "thunder_cascade", "storm_lance", "disrupt"],
-    "fixed_mastery_objectives": []
+    "fixed_mastery_objectives": [
+      {
+        "type": "defeat_boss_affinity",
+        "params": {"target_affinity": "ground"},
+        "description": "Defeat a Ground-type boss with Voltarion in squad."
+      },
+      {
+        "type": "win_battle_in_turns",
+        "params": {"max_turns": 3},
+        "description": "Win a battle in 3 turns or fewer."
+      }
+    ]
   },
   {
     "id": "lithosurge",
@@ -325,7 +336,18 @@
     "base_spd": 32,
     "base_res": 45,
     "technique_ids": ["worldbreaker", "tectonic_slam", "harmonic_pulse", "stone_wall"],
-    "fixed_mastery_objectives": []
+    "fixed_mastery_objectives": [
+      {
+        "type": "defeat_boss_affinity",
+        "params": {"target_affinity": "water"},
+        "description": "Defeat a Water-type boss with Lithosurge in squad."
+      },
+      {
+        "type": "guard_count",
+        "params": {"min_count": 3},
+        "description": "Win a battle using Guard 3+ times."
+      }
+    ]
   },
   {
     "id": "nullweaver",
@@ -339,6 +361,17 @@
     "base_spd": 48,
     "base_res": 40,
     "technique_ids": ["void_collapse", "null_beam", "flux_veil", "phase_shift"],
-    "fixed_mastery_objectives": []
+    "fixed_mastery_objectives": [
+      {
+        "type": "defeat_boss_affinity",
+        "params": {"target_affinity": "electric"},
+        "description": "Defeat an Electric-type boss with Nullweaver in squad."
+      },
+      {
+        "type": "all_enemies_statused_on_ko",
+        "params": {},
+        "description": "Win a battle where all enemies had a status effect when KO'd."
+      }
+    ]
   }
 ]

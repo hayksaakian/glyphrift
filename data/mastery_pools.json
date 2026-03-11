@@ -79,5 +79,42 @@
       "params": {},
       "description": "Win a boss encounter with this Glyph in the active squad."
     }
+  ],
+  "4": [
+    {
+      "type": "finishing_blow_count",
+      "params": {"target": 3, "current": 0},
+      "description": "KO 3+ enemies in one battle."
+    },
+    {
+      "type": "deal_damage_threshold",
+      "params": {"threshold": 100},
+      "description": "Deal 100+ damage in a single hit."
+    },
+    {
+      "type": "no_support_techniques",
+      "params": {},
+      "description": "Win without using support techniques."
+    },
+    {
+      "type": "survive_damage_threshold",
+      "params": {"threshold": 200},
+      "description": "Take 200+ total damage in one battle without being KO'd."
+    },
+    {
+      "type": "solo_win_min_tier",
+      "params": {"min_enemy_tier": 2},
+      "description": "Win a battle solo against all T2+ enemies."
+    },
+    {
+      "type": "squad_no_ko",
+      "params": {},
+      "description": "Win a battle without any squad member being KO'd."
+    },
+    {
+      "type": "status_tick_kill",
+      "params": {},
+      "description": "KO an enemy with a status effect tick (e.g., burn damage)."
+    }
   ]
 }
