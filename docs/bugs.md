@@ -10,6 +10,21 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
+### BUG-030: Capture target selection is arbitrary — should prioritize Recruit actions, then last KO'd
+- **Priority:** P2
+- **Status:** 🔴 Open
+- **Steps:** Win a multi-enemy encounter where you used Recruit on a specific enemy
+- **Expected:** The glyph offered for capture should be: (1) the enemy with the most/highest Recruit actions applied, or if tied, (2) the last enemy to be KO'd
+- **Actual:** Offers the first non-boss enemy in the array, which is essentially random (encounter generation order)
+- **Root cause:** `dungeon_scene.gd` line 297-300 just iterates `enemies` and takes the first non-boss. No tracking of Recruit usage per enemy or KO order.
+- **Suggested fix:** CombatEngine (or a helper) needs to track two things per enemy: (1) cumulative Recruit actions received (count and/or total potency), (2) KO order (timestamp or index). After battle, sort eligible enemies by recruit_count desc, then by KO order desc (last KO'd first). Pass the sorted list or winner to the capture selection in dungeon_scene.
+- **Files:** `core/combat/combat_engine.gd` (track recruit usage + KO order), `ui/dungeon/dungeon_scene.gd` (selection logic at line 294-302)
+
+### BUG-029: Captured glyph goes to active squad instead of bench when it would exceed GP cap
+- **Priority:** P1
+- **Status:** 🟢 Fixed
+- **Fix:** Added GP capacity check in `_on_capture_requested`. Before adding to squad, checks if `squad_gp + glyph.gp_cost > capacity`. If it would exceed, glyph goes to bench instead. Removed the old "over cap!" warning path since captures can no longer push squad over GP cap.
+- **Files:** `ui/main_scene.gd`
 
 ### BUG-027: Neutral type aesthetic too similar to Ground — needs visual redesign
 - **Priority:** P2

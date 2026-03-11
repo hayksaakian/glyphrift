@@ -350,9 +350,12 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 		wild_glyph.species, data_loader.mastery_pools
 	)
 
-	## If active squad has room, add directly to squad
+	## If active squad has room and GP capacity, add directly to squad
 	var added_to_squad: bool = false
-	if roster_state.active_squad.size() < crawler_state.slots:
+	var squad_has_slot: bool = roster_state.active_squad.size() < crawler_state.slots
+	var squad_gp: int = _get_squad_gp()
+	var would_exceed_gp: bool = squad_gp + wild_glyph.get_gp_cost() > crawler_state.capacity
+	if squad_has_slot and not would_exceed_gp:
 		roster_state.add_glyph(wild_glyph)
 		roster_state.active_squad.append(wild_glyph)
 		if not _dungeon_scene.rift_pool.has(wild_glyph):
@@ -389,12 +392,7 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 
 	## Update popup to confirm where the glyph went
 	if added_to_squad:
-		var squad_gp: int = _get_squad_gp()
-		if squad_gp > crawler_state.capacity:
-			_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to squad. (GP: %d/%d — over cap!)" % [squad_gp, crawler_state.capacity]
-			_dungeon_scene._capture_popup._result_label.add_theme_color_override("font_color", Color("#FFCC00"))
-		else:
-			_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to squad."
+		_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to squad."
 		_dungeon_scene.emit_signal("squad_changed")
 	else:
 		_dungeon_scene._capture_popup._result_label.text = "CAPTURED!\nAdded to bench."

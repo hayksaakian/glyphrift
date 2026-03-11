@@ -90,6 +90,7 @@ func _run_tests() -> void:
 	_test_main_scene_hp_persistence()
 	_test_main_scene_heal_on_return()
 	_test_main_scene_capture_flow()
+	_test_main_scene_capture_gp_overflow_to_bench()
 	_test_main_scene_rift_completion()
 	SaveManager._test_prefix = ""
 
@@ -1373,6 +1374,39 @@ func _test_main_scene_capture_flow() -> void:
 	_assert(ms.roster_state.all_glyphs.size() == initial_count + 1, "glyph added to roster")
 	_assert(ms.roster_state.has_glyph(wild), "captured glyph in roster")
 	_assert(wild.side == "player", "captured glyph side set to player")
+
+	_cleanup_main_scene(ms)
+
+
+func _test_main_scene_capture_gp_overflow_to_bench() -> void:
+	print("--- MainScene: Capture GP Overflow → Bench (BUG-029) ---")
+	var ms: MainScene = _make_main_scene()
+	ms.instant_mode = true
+	ms.start_game()
+
+	## Give crawler an extra slot so squad isn't full by slot count
+	ms.crawler_state.slots = 4
+	## Starter squad: 3 T1s at GP 2 each = GP 6, capacity 12
+	var squad_before: int = ms.roster_state.active_squad.size()
+	_assert(squad_before == 3, "BUG029: start with 3 squad glyphs")
+
+	## Capture a T4 (GP 8) — would push squad to GP 14 > cap 12
+	var wild: GlyphInstance = _make_glyph("voltarion")
+	wild.side = "enemy"
+	ms._on_capture_requested(wild)
+
+	_assert(ms.roster_state.has_glyph(wild), "BUG029: glyph added to roster")
+	_assert(ms.roster_state.active_squad.size() == squad_before, "BUG029: squad size unchanged (went to bench)")
+	_assert(not ms.roster_state.active_squad.has(wild), "BUG029: glyph NOT in active squad")
+	_assert(ms._dungeon_scene.rift_pool.has(wild), "BUG029: glyph in rift pool (bench)")
+
+	## Verify a T1 capture (GP 2) DOES go to squad (GP 6+2=8 <= 12)
+	var wild2: GlyphInstance = _make_glyph("sparkfin")
+	wild2.side = "enemy"
+	ms._on_capture_requested(wild2)
+
+	_assert(ms.roster_state.active_squad.size() == squad_before + 1, "BUG029: T1 added to squad (fits GP)")
+	_assert(ms.roster_state.active_squad.has(wild2), "BUG029: T1 in active squad")
 
 	_cleanup_main_scene(ms)
 
