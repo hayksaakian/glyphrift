@@ -10,31 +10,29 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
-### BUG-021: Fusion Chamber technique list has no hover tooltips
-- **Priority:** P3
-- **Status:** 🔴 Open
-- **Steps:** Open Fusion Chamber → select two mastered parents → look at the "Inherit techniques" list in the preview panel → hover over a technique
-- **Expected:** Tooltip shows technique details (description, category, cooldown, etc.) like in battle
-- **Actual:** No tooltip on hover. The technique rows show name/power/cooldown but no additional info on mouseover. In battle, technique buttons have rich tooltips — this screen should match.
-- **Suggested fix:** Add `tooltip_text` to the technique rows in the fusion preview, using the same format as `TechniqueButton` tooltips in battle (description, affinity, category, cooldown turns).
-- **Files:** `ui/bastion/fusion_chamber.gd` (technique preview row construction)
-
-### BUG-019: Conduit puzzle gives no reward when all species are discovered
-- **Priority:** P2
-- **Status:** 🔴 Open
-- **Steps:** Complete the conduit puzzle after discovering all 15 species
-- **Expected:** Some meaningful reward — the puzzle still takes effort to solve
-- **Actual:** Shows "All species already discovered!" and gives nothing. Feels bad — the puzzle is wasted.
-- **Suggested fix:** When all species are already discovered, give an alternate reward instead of nothing. Options:
-  1. **Random item drop** — treat it like a cache room (pick from item pool)
-  2. **Energy restore** — small energy refund (10-15) as a "conduit resonance" bonus
-  3. **Hull repair** — small hull HP restore
-  - Recommendation: option 1 (item drop) — most exciting, reuses existing `_pick_item` logic. Message could be "All species discovered! The conduit's energy crystallizes into..." + item name.
-- **Files:** `ui/dungeon/dungeon_scene.gd` (conduit reward logic), `ui/dungeon/puzzle_conduit.gd`
+(none)
 
 ---
 
 ## Fixed Bugs
+
+### BUG-022: Heal Glyph (Field Repair) ignores benched glyphs
+- **Priority:** P1
+- **Status:** 🟢 Fixed
+- **Fix:** `_show_repair_picker()` only iterated `roster_state.active_squad`. Added a second loop over `rift_pool` (squad + bench) to include bench glyphs with a "— Bench —" separator. Also updated the re-open check in `_on_repair_target_selected` to check all `rift_pool` glyphs. Extracted button creation into `_make_repair_button()` helper.
+- **Files:** `ui/dungeon/dungeon_scene.gd`
+
+### BUG-021: Fusion Chamber technique list has no hover tooltips
+- **Priority:** P3
+- **Status:** 🟢 Fixed
+- **Fix:** Added `_build_technique_tooltip()` to fusion_chamber.gd (same format as `TechniqueButton._build_tooltip()` in battle). Set `tooltip_text` on each technique toggle button showing description, status effects, support effects, and interrupt triggers.
+- **Files:** `ui/bastion/fusion_chamber.gd`
+
+### BUG-019: Conduit puzzle gives no reward when all species are discovered
+- **Priority:** P2
+- **Status:** 🟢 Fixed
+- **Fix:** When all species are already discovered, `_on_conduit_success()` now calls `_pick_item()` to give a random item instead of showing "All species already discovered!" with no reward. Shows "Conduit resonance: found [item]!" or warns if inventory is full.
+- **Files:** `ui/dungeon/dungeon_scene.gd`
 
 ### BUG-015: "Heal Glyph" action auto-closes after one use
 - **Priority:** P2

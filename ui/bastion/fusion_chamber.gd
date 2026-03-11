@@ -504,6 +504,7 @@ func _show_preview(preview: Dictionary) -> void:
 		var btn: Button = Button.new()
 		btn.name = "TechniqueToggle_%s" % tech.id
 		btn.text = _format_technique_text(tech)
+		btn.tooltip_text = _build_technique_tooltip(tech)
 		btn.custom_minimum_size = Vector2(200, 28)
 		btn.toggle_mode = true
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -668,6 +669,20 @@ func _has_technique(arr: Array[TechniqueDef], t: TechniqueDef) -> bool:
 		if existing.id == t.id:
 			return true
 	return false
+
+
+func _build_technique_tooltip(tech: TechniqueDef) -> String:
+	var lines: Array[String] = []
+	if tech.description != "":
+		lines.append(tech.description)
+	if tech.status_effect != "":
+		lines.append("Status: %s (%d%%)" % [tech.status_effect.capitalize(), tech.status_accuracy])
+	if tech.support_effect != "":
+		var pct: int = int(tech.support_value * 100)
+		lines.append("Effect: %s %d%%" % [tech.support_effect.capitalize(), pct])
+	if tech.interrupt_trigger != "":
+		lines.append("Interrupt: %s" % tech.interrupt_trigger.capitalize())
+	return "\n".join(lines)
 
 
 func _format_technique_text(tech: TechniqueDef) -> String:

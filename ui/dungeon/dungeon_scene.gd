@@ -1778,17 +1778,25 @@ func _show_repair_picker() -> void:
 	var has_targets: bool = false
 	for g: GlyphInstance in roster_state.active_squad:
 		if g.current_hp >= g.max_hp:
-			continue  ## Already full HP, skip
+			continue
 		has_targets = true
-		var btn: Button = Button.new()
-		btn.name = "RepairButton_%s" % g.species.name.replace(" ", "")
-		var heal_amount: int = maxi(1, int(float(g.max_hp) * 0.5))
-		var status: String = "KO" if g.current_hp <= 0 else "%d/%d HP" % [g.current_hp, g.max_hp]
-		btn.text = "%s  %s  (+%d HP, 50%%)" % [g.species.name, status, heal_amount]
-		btn.custom_minimum_size = Vector2(0, 32)
-		var glyph_ref: GlyphInstance = g
-		btn.pressed.connect(func() -> void: _on_repair_target_selected(glyph_ref))
-		_repair_vbox.add_child(btn)
+		_repair_vbox.add_child(_make_repair_button(g))
+
+	## Bench glyphs (in rift_pool but not active_squad)
+	var bench_damaged: Array[GlyphInstance] = []
+	for g: GlyphInstance in rift_pool:
+		if g not in roster_state.active_squad and g.current_hp < g.max_hp:
+			bench_damaged.append(g)
+	if not bench_damaged.is_empty():
+		var sep: Label = Label.new()
+		sep.text = "— Bench —"
+		sep.add_theme_font_size_override("font_size", 12)
+		sep.add_theme_color_override("font_color", Color("#888888"))
+		sep.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_repair_vbox.add_child(sep)
+		for g: GlyphInstance in bench_damaged:
+			has_targets = true
+			_repair_vbox.add_child(_make_repair_button(g))
 
 	if not has_targets:
 		var no_targets: Label = Label.new()
@@ -1810,6 +1818,18 @@ func _show_repair_picker() -> void:
 	_repair_overlay.visible = true
 
 
+func _make_repair_button(g: GlyphInstance) -> Button:
+	var btn: Button = Button.new()
+	btn.name = "RepairButton_%s" % g.species.name.replace(" ", "")
+	var heal_amount: int = maxi(1, int(float(g.max_hp) * 0.5))
+	var status: String = "KO" if g.current_hp <= 0 else "%d/%d HP" % [g.current_hp, g.max_hp]
+	btn.text = "%s  %s  (+%d HP, 50%%)" % [g.species.name, status, heal_amount]
+	btn.custom_minimum_size = Vector2(0, 32)
+	var glyph_ref: GlyphInstance = g
+	btn.pressed.connect(func() -> void: _on_repair_target_selected(glyph_ref))
+	return btn
+
+
 func _on_repair_target_selected(target: GlyphInstance) -> void:
 	## Spend energy
 	dungeon_state.use_crawler_ability("field_repair")
@@ -1823,10 +1843,10 @@ func _on_repair_target_selected(target: GlyphInstance) -> void:
 	_crawler_hud.refresh()
 	squad_changed.emit()
 
-	## Stay open if there are more damaged glyphs and enough energy
+	## Stay open if there are more damaged glyphs (squad + bench) and enough energy
 	var cost: int = dungeon_state.crawler.get_ability_cost("field_repair")
 	var has_damaged: bool = false
-	for g: GlyphInstance in roster_state.active_squad:
+	for g: GlyphInstance in rift_pool:
 		if g.current_hp < g.max_hp:
 			has_damaged = true
 			break
@@ -2110,7 +2130,16 @@ func _on_conduit_success() -> void:
 	if species_name != "":
 		_puzzle_conduit.set_reward_text("Discovered: %s" % species_name)
 	else:
-		_puzzle_conduit.set_reward_text("All species already discovered!")
+		## All species discovered — give an item instead of nothing
+		var result: Dictionary = _pick_item()
+		if not result.is_empty():
+			var item: ItemDef = result["item"]
+			if result["full"]:
+				_puzzle_conduit.set_reward_text("Conduit resonance: %s (inventory full!)" % item.name)
+			else:
+				_puzzle_conduit.set_reward_text("Conduit resonance: found %s!" % item.name)
+		else:
+			_puzzle_conduit.set_reward_text("The conduit hums quietly...")
 
 
 func _reveal_random_species() -> String:
