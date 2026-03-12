@@ -89,20 +89,20 @@
   },
   {
     "rift_id": "minor_04",
-    "species_id": "monolith",
+    "species_id": "solstice",
     "mastery_stars": 2,
     "phase1_technique_ids": ["tackle", "brace"],
     "phase2_technique_ids": ["ward_pulse"],
     "phase2_stat_bonus": {"def": 0.1, "res": 0.1},
     "squad": [
       {
-        "species_id": "gritstone",
+        "species_id": "vesper",
         "mastered": true,
         "technique_ids": ["tackle", "soothe"],
         "row_position": "front"
       },
       {
-        "species_id": "shimmer",
+        "species_id": "equinox",
         "mastered": false,
         "technique_ids": ["soothe", "ward_pulse"],
         "row_position": "back"

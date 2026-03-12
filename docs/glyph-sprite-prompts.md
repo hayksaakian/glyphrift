@@ -216,40 +216,40 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 
 ---
 
-## T1 — NEUTRAL
+## T1 — NEUTRAL (Constellation Aesthetic)
 
-### 16. Gritstone
+### 16. Vesper
 
-> Design a small creature called "Gritstone" for a 2D top-down RPG called Glyphrift. Gritstone is a Tier 1 Neutral-type starter monster — a dense, sturdy melee fighter. It tackles enemies head-on and can brace itself into a defensive stance. Neutral-type creatures are the raw material of the rift — ancient, stable, and adaptable.
+> Design a small creature called "Vesper" for a 2D top-down RPG called Glyphrift. Vesper is a Tier 1 Neutral-type starter monster — a dense, sturdy melee fighter. It tackles enemies head-on and can brace itself into a defensive stance. Neutral-type creatures predate all elements — born from the cosmos before the rift split energy into types. A piece of the cosmos cut into the shape of a creature.
 >
-> Personality and shape: a small, compact creature made of smooth grey stone with faint silver-white rune lines etched across its surface. Stocky build, low to the ground, dense and heavy-looking despite its small size. Rounded body with angular edges — like a river stone that's been carved by ancient forces. Small determined eyes that glow faintly silver. Stubby powerful limbs with stone-knuckle fists. It should feel solid, reliable, and primordial — like a fragment of the rift's foundation that gained awareness.
+> Personality and shape: a small cosmic fox kit. Compact, four-legged, low to the ground. Big pointed ears with bright stars at the tips. A dense bushy tail trailing thin silver constellation lines. Its body is deep navy/dark indigo — like a window into the night sky — scattered with bright white star-dots connected by pale silver constellation lines. Eyes made of bright glowing stars. Surprisingly heavy-looking despite its small size, as if it carries the weight of compressed cosmos. Stubborn, loyal posture. Stars should flare brighter near its chest and tail. It should feel ancient, cosmic, and primordial — a fragment of compressed night sky that took the shape of a fox.
 >
-> Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — slate grey body, charcoal outlines, silver/pale blue accent marks (rune lines, crystalline veins). Monochrome arcane aesthetic. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
->
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
-
----
-
-### 17. Shimmer
-
-> Design a small creature called "Shimmer" for a 2D top-down RPG called Glyphrift. Shimmer is a Tier 1 Neutral-type starter monster — a wispy, agile support creature. It can tackle at range and soothe allies with a gentle pulse of neutral energy. Neutral-type creatures are the raw material of the rift — ancient, stable, and adaptable.
->
-> Personality and shape: a small, floating wisp-like creature with a translucent silvery body that catches light like a soap bubble or heat mirage. No legs — it hovers just above the ground. A soft, amorphous form with trailing wisps of pale energy. Large gentle eyes that shimmer between silver and pale blue. Faint crystalline facets visible within its body, like embedded quartz. It should feel ethereal, calming, and mysterious — like a fragment of moonlight that drifted into the rift.
->
-> Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — pale silver-grey body, charcoal outlines, pale blue/white shimmer accents. Monochrome arcane aesthetic. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
+> Style rules: clean vector/cartoon style. Bold dark grey/black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep navy/dark indigo body, bright white star dots, pale silver constellation lines connecting stars, soft blue glow around brightest stars. High contrast (dark body + bright stars). NOT grey, NOT washed out, NOT stone, NOT earthy. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
 > Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
-## T2 — NEUTRAL
+### 17. Equinox
 
-### 18. Monolith
+> Design a small creature called "Equinox" for a 2D top-down RPG called Glyphrift. Equinox is a Tier 1 Neutral-type starter monster — a hovering support creature. It can tackle at range and soothe allies with a gentle pulse of cosmic energy. Neutral-type creatures predate all elements — born from the cosmos before the rift split energy into types. A piece of the cosmos cut into the shape of a creature.
+>
+> Personality and shape: a small hovering cosmic jellyfish. Dome-shaped bell of dark sky with constellation patterns visible across its surface. Trailing 4-5 tendrils that fade into starlight wisps at the ends. No legs — it drifts serenely above the ground. Bright white star-dots scattered across the bell, connected by thin pale silver constellation lines. Eyes that glow like bright stars. Pulses gently with soothing light. Star-patterns shift subtly. It should feel ethereal, calming, and mysterious — like a fragment of the night sky given gentle awareness.
+>
+> Style rules: clean vector/cartoon style. Bold dark grey/black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep navy/dark indigo body, bright white star dots, pale silver constellation lines, soft blue glow around stars. High contrast (dark body + bright stars). NOT grey, NOT washed out, NOT stone, NOT earthy. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
+>
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
-> Design a creature called "Monolith" for a 2D top-down RPG called Glyphrift. Monolith is a Tier 2 Neutral-type — a balanced generalist born from fusing two T1 neutral creatures. It tackles enemies, braces defensively, soothes allies with healing energy, and can project a ward pulse that shields the entire squad. Neutral-type creatures are the raw material of the rift — ancient, stable, and adaptable.
+---
+
+## T2 — NEUTRAL (Constellation Aesthetic)
+
+### 18. Solstice
+
+> Design a creature called "Solstice" for a 2D top-down RPG called Glyphrift. Solstice is a Tier 2 Neutral-type — a balanced generalist born from fusing two T1 neutral creatures. It tackles enemies, braces defensively, soothes allies with healing energy, and can project a ward pulse that shields the entire squad. Neutral-type creatures predate all elements — born from the cosmos before the rift split energy into types. A piece of the cosmos cut into the shape of a creature.
 >
-> Personality and shape: a medium-sized, upright monolithic creature that resembles a standing stone or obelisk that grew limbs. Its body is a single smooth slab of grey stone with silver rune-lines that pulse faintly with energy. Broad shoulders, thick arms ending in flat stone hands. A head that is more carved-face-in-stone than organic — simple features etched into rock. Eyes that glow with a calm silver light. Geometric patterns and crystalline veins running through its surface. It should feel ancient, balanced, and quietly powerful — a living monument to the rift's neutral foundation.
+> Personality and shape: a majestic star-elk. Tall, four-legged, with branching antlers tipped with the brightest stars. Its body is deep navy/dark indigo with more stars and more complex constellation patterns than the T1 neutral creatures, showing its evolved nature. Bright white star-dots densely scattered across its body, connected by intricate pale silver constellation lines forming recognizable patterns. Eyes made of bright glowing stars. Calm, watchful, protective bearing. When projecting ward pulse, every star-line in its antlers blazes with connected light. It should feel regal, cosmic, and awe-inspiring — a living star chart that protects its allies.
 >
-> Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — slate grey body, charcoal outlines, silver/pale blue rune accents, faint white crystalline highlights. Monochrome arcane aesthetic. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
+> Style rules: clean vector/cartoon style. Bold dark grey/black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep navy/dark indigo body, bright white star dots, pale silver constellation lines, soft blue glow around brightest stars. High contrast (dark body + bright stars). NOT grey, NOT washed out, NOT stone, NOT earthy. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
 > Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.

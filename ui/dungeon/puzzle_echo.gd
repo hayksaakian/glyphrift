@@ -70,6 +70,18 @@ const ECHO_LORE: Dictionary = {
 		"encounter": "Everything goes silent. Not quiet — silent. A Nullweaver drifts through the void where sound used to be, rewriting the rules of the space around it.",
 		"fragment": "Memory Fragment: \"The Nullweaver was the last species discovered. Or perhaps the first — records from before the rifts mention something eerily similar.\"",
 	},
+	"vesper": {
+		"encounter": "Stars blink into existence along the floor. A small fox-shaped shadow materializes — a Vesper, its dark indigo fur scattered with bright pinpoints of light, constellation lines tracing between them.",
+		"fragment": "Memory Fragment: \"Vespers predate the elemental split. The stars in their fur are not decorative — each one corresponds to a real star, mapped from a sky that no longer exists.\"",
+	},
+	"equinox": {
+		"encounter": "A soft glow descends from above. An Equinox drifts into view, its dome-shaped bell displaying a slowly rotating star map, trailing tendrils that fade into wisps of starlight.",
+		"fragment": "Memory Fragment: \"Equinoxes pulse in sync with cosmic events — eclipses, solstices, stellar alignments. Wardens have used them to predict rift surges weeks in advance.\"",
+	},
+	"solstice": {
+		"encounter": "The corridor darkens to deep indigo. A Solstice steps forward on silent hooves, its branching antlers blazing with interconnected star-lines that cast moving constellations across the walls.",
+		"fragment": "Memory Fragment: \"A Solstice's antlers map the entire rift network. Some theorize they don't navigate rifts — they remember them, from a time when all of space was one place.\"",
+	},
 }
 
 var instant_mode: bool = false

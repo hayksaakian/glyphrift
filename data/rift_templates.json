@@ -5,7 +5,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "gritstone", "shimmer"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "driftwisp", "glitchkit", "vesper", "equinox"],
     "floors": [
       {
         "floor_number": 0,
@@ -75,7 +75,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["stonepaw", "mossling", "driftwisp", "glitchkit", "gritstone", "shimmer"],
+    "wild_glyph_pool": ["stonepaw", "mossling", "driftwisp", "glitchkit", "vesper", "equinox"],
     "floors": [
       {
         "floor_number": 0,
@@ -177,7 +177,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit", "gritstone", "shimmer"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "driftwisp", "glitchkit", "vesper", "equinox"],
     "floors": [
       {
         "floor_number": 0,
@@ -279,7 +279,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "gritstone", "shimmer"],
+    "wild_glyph_pool": ["zapplet", "sparkfin", "stonepaw", "mossling", "vesper", "equinox"],
     "floors": [
       {
         "floor_number": 0,
@@ -382,7 +382,7 @@
     "tier": "minor",
     "hazard_damage": 10,
     "enemy_tier_pool": [1],
-    "wild_glyph_pool": ["gritstone", "shimmer", "zapplet", "stonepaw", "driftwisp", "mossling"],
+    "wild_glyph_pool": ["vesper", "equinox", "zapplet", "stonepaw", "driftwisp", "mossling"],
     "floors": [
       {
         "floor_number": 0,
@@ -465,7 +465,7 @@
       "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
     },
     "boss": {
-      "species_id": "monolith",
+      "species_id": "solstice",
       "stat_modifier": 1.2,
       "phase1_technique_ids": ["tackle", "brace"],
       "phase2_technique_ids": ["ward_pulse"],

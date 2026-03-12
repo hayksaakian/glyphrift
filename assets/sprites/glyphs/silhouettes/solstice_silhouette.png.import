@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://btww5jy8svx3m"
-path="res://.godot/imported/gritstone.png-5f54d5ac8c5d447efdfd3a78ee8a7a33.ctex"
+uid="uid://ctm02j3amhxt5"
+path="res://.godot/imported/solstice_silhouette.png-4339bc014e159575c2e10a20bb9c49ae.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/glyphs/portraits/gritstone.png"
-dest_files=["res://.godot/imported/gritstone.png-5f54d5ac8c5d447efdfd3a78ee8a7a33.ctex"]
+source_file="res://assets/sprites/glyphs/silhouettes/solstice_silhouette.png"
+dest_files=["res://.godot/imported/solstice_silhouette.png-4339bc014e159575c2e10a20bb9c49ae.ctex"]
 
 [params]
 

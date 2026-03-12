@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://deikjlb7l3bc5"
-path="res://.godot/imported/shimmer.png-3d27e9cb96fa345e2702ae00de04fb76.ctex"
+uid="uid://c6j20o1gvthjw"
+path="res://.godot/imported/equinox.png-aabbea385ffa1dfa79fe936e040eba14.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/glyphs/portraits/shimmer.png"
-dest_files=["res://.godot/imported/shimmer.png-3d27e9cb96fa345e2702ae00de04fb76.ctex"]
+source_file="res://assets/sprites/glyphs/portraits/equinox.png"
+dest_files=["res://.godot/imported/equinox.png-aabbea385ffa1dfa79fe936e040eba14.ctex"]
 
 [params]
 

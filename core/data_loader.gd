@@ -64,7 +64,7 @@ func lookup_fusion(species_a_id: String, species_b_id: String) -> String:
 		return fusion_table[key_2]
 	## Neutral wildcard: if one parent is neutral affinity, substitute the
 	## other parent's ID for both parents in the lookup. This lets neutral
-	## act as a generalist fusion partner (e.g. gritstone + zapplet → thunderclaw).
+	## act as a generalist fusion partner (e.g. vesper + zapplet → thunderclaw).
 	var a_sp: GlyphSpecies = species.get(species_a_id)
 	var b_sp: GlyphSpecies = species.get(species_b_id)
 	if a_sp and b_sp:

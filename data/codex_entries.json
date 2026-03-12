@@ -59,16 +59,16 @@
     "hint": "The apex of chaos — only those who have mastered the storm and the rift may summon it.",
     "lore": "Nullweaver exists at the boundary between dimensions. It weaves void energy into devastating area attacks and piercing beams, shields allies from status effects with Flux Veil, and phases out of AoE attacks entirely. The ultimate water predator."
   },
-  "gritstone": {
-    "hint": "A rough, pebble-like creature with no elemental alignment.",
-    "lore": "Gritstones are among the most common creatures found at rift boundaries. Their lack of elemental affinity makes them unremarkable in combat, but their resilience and willingness to guard allies earns them a place in many early squads."
+  "vesper": {
+    "hint": "A small fox-shaped fragment of the night sky, older than the elements themselves.",
+    "lore": "Vespers appear at rift boundaries where the walls between dimensions are thinnest. Their bodies are windows into deep space — dark indigo fur scattered with bright star-dots connected by silver constellation lines. Despite their small size, they're surprisingly heavy, as if they carry the weight of compressed cosmos. A Vesper's stars flare brighter when it braces for impact."
   },
-  "shimmer": {
-    "hint": "A translucent creature that glows with a faint, colorless light.",
-    "lore": "Shimmers drift through rifts emitting a gentle glow that soothes nearby creatures. Their healing touch carries no elemental charge, making it universally effective regardless of affinity matchups."
+  "equinox": {
+    "hint": "A drifting cosmic jellyfish whose star-patterns shift when it heals allies.",
+    "lore": "Equinoxes float silently through rifts, their dome-shaped bells displaying slowly rotating constellation maps. Their trailing tendrils fade into starlight wisps that carry a universal soothing energy — effective regardless of elemental affinity. Wardens report feeling a deep calm in their presence, as if the creature remembers a time before the elements divided."
   },
-  "monolith": {
-    "hint": "A towering neutral construct formed from the fusion of lesser neutral glyphs.",
-    "lore": "Monoliths are rare formations of pure rift energy, unaligned with any element. Their Ward Pulse projects a protective barrier over the entire squad, and their balanced stats make them reliable generalists in any team composition."
+  "solstice": {
+    "hint": "A majestic star-elk born from the fusion of two cosmic fragments.",
+    "lore": "Solstices are rare and awe-inspiring — tall, four-legged creatures whose branching antlers are tipped with the brightest stars in any rift. Their constellation patterns are far more complex than their T1 components, suggesting that fusion doesn't just combine neutral energy but amplifies it. When a Solstice projects its Ward Pulse, every star-line in its antlers blazes with connected light."
   }
 }

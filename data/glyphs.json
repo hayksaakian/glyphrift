@@ -375,8 +375,8 @@
     ]
   },
   {
-    "id": "gritstone",
-    "name": "Gritstone",
+    "id": "vesper",
+    "name": "Vesper",
     "tier": 1,
     "affinity": "neutral",
     "gp_cost": 2,
@@ -400,8 +400,8 @@
     ]
   },
   {
-    "id": "shimmer",
-    "name": "Shimmer",
+    "id": "equinox",
+    "name": "Equinox",
     "tier": 1,
     "affinity": "neutral",
     "gp_cost": 2,
@@ -425,8 +425,8 @@
     ]
   },
   {
-    "id": "monolith",
-    "name": "Monolith",
+    "id": "solstice",
+    "name": "Solstice",
     "tier": 2,
     "affinity": "neutral",
     "gp_cost": 3,

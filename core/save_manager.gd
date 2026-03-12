@@ -370,10 +370,22 @@ static func _serialize_glyph(g: GlyphInstance) -> Dictionary:
 	}
 
 
+## Species ID migration for renamed species (BUG-027: neutral redesign).
+const _SPECIES_MIGRATION: Dictionary = {
+	"gritstone": "vesper",
+	"shimmer": "equinox",
+	"monolith": "solstice",
+}
+
+
 static func _deserialize_glyph(data: Dictionary, data_loader: Node) -> GlyphInstance:
 	var species_id: String = data.get("species_id", "")
 	if species_id == "":
 		return null
+
+	## Migrate renamed species from old saves
+	if _SPECIES_MIGRATION.has(species_id):
+		species_id = _SPECIES_MIGRATION[species_id]
 
 	var sp: GlyphSpecies = data_loader.get_species(species_id)
 	if sp == null:
@@ -454,12 +466,19 @@ static func _deserialize_codex_state(data: Dictionary, cs: CodexState) -> void:
 	## Write directly to dicts (skip signals during load)
 	cs.discovered_species.clear()
 	for sid: Variant in data.get("discovered_species", []):
-		cs.discovered_species[str(sid)] = true
+		var s: String = str(sid)
+		if _SPECIES_MIGRATION.has(s):
+			s = _SPECIES_MIGRATION[s]
+		cs.discovered_species[s] = true
 
 	cs.fusion_log.clear()
 	for entry: Variant in data.get("fusion_log", []):
 		if entry is Dictionary:
-			cs.fusion_log.append(entry as Dictionary)
+			var migrated: Dictionary = entry.duplicate()
+			for key: String in ["parent_a", "parent_b", "result"]:
+				if migrated.has(key) and _SPECIES_MIGRATION.has(str(migrated[key])):
+					migrated[key] = _SPECIES_MIGRATION[str(migrated[key])]
+			cs.fusion_log.append(migrated)
 
 	cs.rifts_cleared.clear()
 	for rid: Variant in data.get("rifts_cleared", []):

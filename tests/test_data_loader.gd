@@ -308,69 +308,69 @@ func _run_tests() -> void:
 	print("")
 	print("--- Neutral species and fusion wildcard ---")
 
-	var gritstone: GlyphSpecies = _data_loader.get_species("gritstone")
-	var grit_ok: bool = (
-		gritstone.base_hp == 13 and gritstone.base_atk == 11 and gritstone.base_def == 10
-		and gritstone.base_spd == 10 and gritstone.base_res == 9 and gritstone.gp_cost == 2
-		and gritstone.tier == 1 and gritstone.affinity == "neutral"
+	var vesper: GlyphSpecies = _data_loader.get_species("vesper")
+	var vesper_ok: bool = (
+		vesper.base_hp == 13 and vesper.base_atk == 11 and vesper.base_def == 10
+		and vesper.base_spd == 10 and vesper.base_res == 9 and vesper.gp_cost == 2
+		and vesper.tier == 1 and vesper.affinity == "neutral"
 	)
-	if grit_ok:
-		print("[PASS] Gritstone stats match design")
+	if vesper_ok:
+		print("[PASS] Vesper stats match design")
 		pass_count += 1
 	else:
-		print("[FAIL] Gritstone stats do not match design")
+		print("[FAIL] Vesper stats do not match design")
 		fail_count += 1
 
-	var shimmer_sp: GlyphSpecies = _data_loader.get_species("shimmer")
-	var shimmer_ok: bool = (
-		shimmer_sp.base_hp == 10 and shimmer_sp.base_atk == 9 and shimmer_sp.base_def == 8
-		and shimmer_sp.base_spd == 13 and shimmer_sp.base_res == 11 and shimmer_sp.gp_cost == 2
-		and shimmer_sp.tier == 1 and shimmer_sp.affinity == "neutral"
+	var equinox_sp: GlyphSpecies = _data_loader.get_species("equinox")
+	var equinox_ok: bool = (
+		equinox_sp.base_hp == 10 and equinox_sp.base_atk == 9 and equinox_sp.base_def == 8
+		and equinox_sp.base_spd == 13 and equinox_sp.base_res == 11 and equinox_sp.gp_cost == 2
+		and equinox_sp.tier == 1 and equinox_sp.affinity == "neutral"
 	)
-	if shimmer_ok:
-		print("[PASS] Shimmer stats match design")
+	if equinox_ok:
+		print("[PASS] Equinox stats match design")
 		pass_count += 1
 	else:
-		print("[FAIL] Shimmer stats do not match design")
+		print("[FAIL] Equinox stats do not match design")
 		fail_count += 1
 
-	var monolith_sp: GlyphSpecies = _data_loader.get_species("monolith")
-	var mono_ok: bool = (
-		monolith_sp.base_hp == 22 and monolith_sp.base_atk == 17 and monolith_sp.base_def == 18
-		and monolith_sp.base_spd == 16 and monolith_sp.base_res == 17 and monolith_sp.gp_cost == 3
-		and monolith_sp.tier == 2 and monolith_sp.affinity == "neutral"
+	var solstice_sp: GlyphSpecies = _data_loader.get_species("solstice")
+	var sol_ok: bool = (
+		solstice_sp.base_hp == 22 and solstice_sp.base_atk == 17 and solstice_sp.base_def == 18
+		and solstice_sp.base_spd == 16 and solstice_sp.base_res == 17 and solstice_sp.gp_cost == 3
+		and solstice_sp.tier == 2 and solstice_sp.affinity == "neutral"
 	)
-	if mono_ok:
-		print("[PASS] Monolith stats match design")
+	if sol_ok:
+		print("[PASS] Solstice stats match design")
 		pass_count += 1
 	else:
-		print("[FAIL] Monolith stats do not match design")
+		print("[FAIL] Solstice stats do not match design")
 		fail_count += 1
 
 	# Neutral-to-neutral fusion (explicit table entry)
-	var neutral_fusion: String = _data_loader.lookup_fusion("gritstone", "shimmer")
-	if neutral_fusion == "monolith":
-		print("[PASS] Gritstone + Shimmer → Monolith")
+	var neutral_fusion: String = _data_loader.lookup_fusion("vesper", "equinox")
+	if neutral_fusion == "solstice":
+		print("[PASS] Vesper + Equinox → Solstice")
 		pass_count += 1
 	else:
-		print("[FAIL] Gritstone + Shimmer → '%s' (expected 'monolith')" % neutral_fusion)
+		print("[FAIL] Vesper + Equinox → '%s' (expected 'solstice')" % neutral_fusion)
 		fail_count += 1
 
 	# Neutral wildcard fusion: neutral + elemental → same as elemental + elemental
-	var wildcard_1: String = _data_loader.lookup_fusion("gritstone", "zapplet")
+	var wildcard_1: String = _data_loader.lookup_fusion("vesper", "zapplet")
 	if wildcard_1 == "thunderclaw":
-		print("[PASS] Neutral wildcard: Gritstone + Zapplet → Thunderclaw")
+		print("[PASS] Neutral wildcard: Vesper + Zapplet → Thunderclaw")
 		pass_count += 1
 	else:
-		print("[FAIL] Neutral wildcard: Gritstone + Zapplet → '%s' (expected 'thunderclaw')" % wildcard_1)
+		print("[FAIL] Neutral wildcard: Vesper + Zapplet → '%s' (expected 'thunderclaw')" % wildcard_1)
 		fail_count += 1
 
-	var wildcard_2: String = _data_loader.lookup_fusion("shimmer", "stonepaw")
+	var wildcard_2: String = _data_loader.lookup_fusion("equinox", "stonepaw")
 	if wildcard_2 == "ironbark":
-		print("[PASS] Neutral wildcard: Shimmer + Stonepaw → Ironbark")
+		print("[PASS] Neutral wildcard: Equinox + Stonepaw → Ironbark")
 		pass_count += 1
 	else:
-		print("[FAIL] Neutral wildcard: Shimmer + Stonepaw → '%s' (expected 'ironbark')" % wildcard_2)
+		print("[FAIL] Neutral wildcard: Equinox + Stonepaw → '%s' (expected 'ironbark')" % wildcard_2)
 		fail_count += 1
 
 	# Verify new techniques exist

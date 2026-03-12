@@ -32,7 +32,7 @@
   {"parent_a": "stormfang", "parent_b": "stormfang", "result": "voltarion"},
   {"parent_a": "terradon", "parent_b": "terradon", "result": "lithosurge"},
   {"parent_a": "riftmaw", "parent_b": "riftmaw", "result": "nullweaver"},
-  {"parent_a": "gritstone", "parent_b": "shimmer", "result": "monolith"},
-  {"parent_a": "gritstone", "parent_b": "gritstone", "result": "monolith"},
-  {"parent_a": "shimmer", "parent_b": "shimmer", "result": "monolith"}
+  {"parent_a": "vesper", "parent_b": "equinox", "result": "solstice"},
+  {"parent_a": "vesper", "parent_b": "vesper", "result": "solstice"},
+  {"parent_a": "equinox", "parent_b": "equinox", "result": "solstice"}
 ]

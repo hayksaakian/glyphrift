@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://g8jtoypt4re"
-path="res://.godot/imported/shimmer_silhouette.png-73dcec764ceb8e0afe508f1808311f54.ctex"
+uid="uid://b8yo8rj0vqic4"
+path="res://.godot/imported/solstice.png-b7988534b163cc250d7e8ea2e3457877.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/glyphs/silhouettes/shimmer_silhouette.png"
-dest_files=["res://.godot/imported/shimmer_silhouette.png-73dcec764ceb8e0afe508f1808311f54.ctex"]
+source_file="res://assets/sprites/glyphs/portraits/solstice.png"
+dest_files=["res://.godot/imported/solstice.png-b7988534b163cc250d7e8ea2e3457877.ctex"]
 
 [params]
 

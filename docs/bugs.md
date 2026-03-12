@@ -10,6 +10,11 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
+### BUG-031: Scan fails to reveal glyph species on beacon-revealed enemy rooms
+- **Priority:** P2
+- **Status:** ❌ Not a bug
+- **Resolution:** User misread an "empty" room as an "enemy" room. Scan was working correctly — there were no enemies to reveal.
+
 ### BUG-030: Capture target selection is arbitrary — should prioritize Recruit actions, then last KO'd
 - **Priority:** P2
 - **Status:** 🟢 Fixed
@@ -22,16 +27,48 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 - **Fix:** Added GP capacity check in `_on_capture_requested`. Before adding to squad, checks if `squad_gp + glyph.gp_cost > capacity`. If it would exceed, glyph goes to bench instead. Removed the old "over cap!" warning path since captures can no longer push squad over GP cap.
 - **Files:** `ui/main_scene.gd`
 
-### BUG-027: Neutral type aesthetic too similar to Ground — needs visual redesign
+### BUG-027: Neutral type aesthetic too similar to Ground — full species redesign
 - **Priority:** P2
-- **Status:** 🔴 Open
+- **Status:** 🟢 Fixed
 - **Issue:** The 3 neutral species (Gritstone, Shimmer, Monolith) lack a distinct visual identity. Gritstone and Monolith lean heavily into rocks/stone/slate (colliding with Ground type). Shimmer leans into a generic "spirit" look. The grey/silver/slate palette blends with Ground's earthy browns rather than standing out as its own type.
-- **Action needed:**
-  1. **Define a distinct neutral aesthetic** — something that reads as "raw rift energy / primordial / adaptable" without overlapping stone (Ground) or wispy (Water). Ideas: geometric/crystalline/prismatic, rune-covered, phase-shifting, or biomechanical rift constructs.
-  2. **Revise the 3 neutral prompts** in `docs/glyph-sprite-prompts.md` — update personality descriptions, color palettes, and shape language to match the new aesthetic. Current prompts use "slate grey", "charcoal", "crystalline veins" which all read as Ground.
-  3. **Re-generate sprites** via `scripts/generate_sprites.py` for gritstone, shimmer, monolith with updated prompts.
-  4. **Process** through `scripts/process_sprites.sh` as usual.
-- **Files:** `docs/glyph-sprite-prompts.md` (prompts 16-18), `scripts/generate_sprites.py`, `assets/sprites/glyphs/portraits/`
+- **Decision: Constellation / Star-Map aesthetic with fully revised species.** After brainstorming 14 visual directions and generating concept art via `scripts/brainstorm_sprites.py`, the **constellation** direction was chosen. The existing species names and personalities (Gritstone, Shimmer, Monolith) are too tied to stone/earth/wisp, so they are being **fully replaced** with new cosmic-themed species.
+- **Neutral aesthetic definition:**
+  - **Body:** Deep navy/dark indigo — like a window into the night sky
+  - **Accents:** Bright white star-dots scattered across the surface, connected by thin silver constellation lines
+  - **Eyes:** Made of bright glowing stars
+  - **Concept:** "A piece of the cosmos cut into the shape of a creature." Neutral predates all elements — born from the cosmos before the rift split energy into types.
+  - **Palette:** Deep navy body, bright white star dots, pale silver constellation lines, soft blue glow around stars, dark grey/black outlines
+  - **NOT:** Not grey, not washed out, not stone, not earthy. High contrast (dark body + bright stars).
+  - **Naming convention:** Real celestial/astronomical words — intentionally different from the elemental compound names (Zapplet, Stonepaw, etc.) to reinforce that neutral is something older and fundamentally other.
+- **New species:**
+  - **Vesper** (T1 tank, replaces Gritstone) — A small cosmic fox kit. Compact, four-legged, low to the ground. Big pointed ears with stars at the tips, a dense bushy tail trailing constellation lines. Surprisingly heavy — like a fragment of compressed night sky. Headbutts enemies and hunkers down, stars flaring brighter when bracing. Stubborn and loyal. Reference: `raw/brainstorm/standalone_constellation_b.png`
+  - **Equinox** (T1 support, replaces Shimmer) — A small hovering cosmic jellyfish. Dome-shaped bell of dark sky with constellation patterns, trailing 4-5 tendrils that fade into starlight wisps. Pulses gently with soothing light. No legs — it drifts serenely. Star-patterns shift when it heals allies. Gentle, mysterious, calming. Reference: `raw/brainstorm/standalone_constellation_c.png`
+  - **Solstice** (T2 generalist, replaces Monolith) — A majestic star-elk born from fusing two T1 neutrals. Tall, four-legged, branching antlers tipped with bright stars. More stars and more complex constellation patterns than T1s, showing evolved nature. Calm, watchful, protective. Antlers flare with connected star-lines when projecting ward pulse. Reference: `raw/brainstorm/standalone_constellation.png`
+- **Action plan (10 steps):**
+  1. **Rename species in data files.** In `data/glyphs.json`, rename the 3 neutral entries: `"gritstone"`→`"vesper"`, `"shimmer"`→`"equinox"`, `"monolith"`→`"solstice"`. Update `name` fields and `description` fields. Keep stats, techniques, tier, gp_cost unchanged — gameplay balance is fine.
+  2. **Update fusion table.** In `data/fusion_table.json`, update all 3 entries that reference old IDs: `gritstone+shimmer→monolith` becomes `vesper+equinox→solstice`, `gritstone+gritstone→monolith` becomes `vesper+vesper→solstice`, `shimmer+shimmer→monolith` becomes `equinox+equinox→solstice`. Note: techniques (tackle, brace, soothe, ward_pulse) are generic and do NOT need renaming.
+  3. **Update codex entries.** In `data/codex_entries.json`, replace the 3 neutral entries with:
+     - `"vesper"`: hint: `"A small fox-shaped fragment of the night sky, older than the elements themselves."` / lore: `"Vespers appear at rift boundaries where the walls between dimensions are thinnest. Their bodies are windows into deep space — dark indigo fur scattered with bright star-dots connected by silver constellation lines. Despite their small size, they're surprisingly heavy, as if they carry the weight of compressed cosmos. A Vesper's stars flare brighter when it braces for impact."`
+     - `"equinox"`: hint: `"A drifting cosmic jellyfish whose star-patterns shift when it heals allies."` / lore: `"Equinoxes float silently through rifts, their dome-shaped bells displaying slowly rotating constellation maps. Their trailing tendrils fade into starlight wisps that carry a universal soothing energy — effective regardless of elemental affinity. Wardens report feeling a deep calm in their presence, as if the creature remembers a time before the elements divided."`
+     - `"solstice"`: hint: `"A majestic star-elk born from the fusion of two cosmic fragments."` / lore: `"Solstices are rare and awe-inspiring — tall, four-legged creatures whose branching antlers are tipped with the brightest stars in any rift. Their constellation patterns are far more complex than their T1 components, suggesting that fusion doesn't just combine neutral energy but amplifies it. When a Solstice projects its Ward Pulse, every star-line in its antlers blazes with connected light."`
+  4. **Update boss and rift data.** In `data/bosses.json`, update `minor_04` boss: `species_id` `"monolith"`→`"solstice"`, and squad entries `"gritstone"`→`"vesper"`, `"shimmer"`→`"equinox"`. In `data/rift_templates.json`, grep and replace all `gritstone`/`shimmer`/`monolith` references in `wild_glyph_pool` arrays and boss entries (they appear in templates: `tutorial_01`, `minor_01` through `minor_04`).
+  5. **Add echo encounter lore.** In `ui/dungeon/puzzle_echo.gd`, add entries to the `ECHO_LORE` dict for `"vesper"`, `"equinox"`, and `"solstice"`. Currently there are NO entries for the neutral species (they fall back to the generic "A ghostly echo of %s shimmers before you..." text). Write encounter and fragment text matching the constellation aesthetic and the tone of existing entries. Note: the word "shimmers" on line 137 is a verb in the generic fallback, not a species reference — leave it.
+  6. **Grep and update all remaining code references.** Run `grep -rn "gritstone\|shimmer\|monolith"` across the entire project. Known references:
+     - `core/data_loader.gd` line 67: comment mentioning `"gritstone + zapplet"` as example — update to `"vesper + zapplet"`
+     - `core/progression/roster_state.gd`: starting glyph IDs — update any hardcoded neutral species IDs
+     - `tests/test_data_loader.gd` lines 311-373: specific stat verification tests for Gritstone/Shimmer/Monolith, plus fusion tests (`gritstone+shimmer→monolith`, wildcard fusions) — update all species IDs and test names
+     - Any other test files that reference old IDs
+  7. **Write new sprite prompts** in `docs/glyph-sprite-prompts.md` — replace prompts 16-18 (Gritstone, Shimmer, Monolith) with Vesper, Equinox, Solstice using the species descriptions above and the constellation style definition.
+  8. **Generate sprites** via `scripts/generate_sprites.py` for vesper, equinox, solstice. Use `--candidates 3` for manual selection. Visually inspect the generated images — look at the PNGs to verify they match the constellation aesthetic (dark navy body, bright star-dots, silver constellation lines).
+  9. **Process sprites** through `scripts/process_sprites.sh`. Important: dark navy body on white background — verify background removal handles the high-contrast edge correctly without eating into the dark body.
+  10. **Run all tests** — `~/bin/godot --headless --script res://tests/test_runner.gd` — all 1355+ tests must pass. The species rename will break tests that reference old IDs; fix them in step 6.
+- **What NOT to change:**
+  - `Affinity.COLORS` and `Affinity.EMOJI` in `core/affinity.gd` — the existing neutral off-white color and ⚪ emoji are fine for UI elements. The constellation aesthetic applies to sprites only, not UI chrome.
+  - Technique names/IDs (tackle, brace, soothe, ward_pulse) — these are generic and work fine for cosmic creatures.
+  - Gameplay stats (HP, ATK, DEF, SPD, RES, gp_cost) — balance is unchanged.
+  - NPC dialogue in `data/npc_dialogue.json` — confirmed no references to old neutral species names or stone/grey descriptions.
+- **Files to modify:** `data/glyphs.json`, `data/fusion_table.json`, `data/codex_entries.json`, `data/bosses.json`, `data/rift_templates.json`, `ui/dungeon/puzzle_echo.gd` (ECHO_LORE), `core/data_loader.gd` (comment), `core/progression/roster_state.gd`, `tests/test_data_loader.gd`, `docs/glyph-sprite-prompts.md`, `assets/sprites/glyphs/portraits/`
+- **Reference images:** `raw/brainstorm/standalone_constellation.png` (elk/Solstice), `standalone_constellation_b.png` (fox/Vesper), `standalone_constellation_c.png` (jellyfish/Equinox)
 
 ### BUG-026: Sprite pocket removal misses some gaps, damages some features
 - **Priority:** P3

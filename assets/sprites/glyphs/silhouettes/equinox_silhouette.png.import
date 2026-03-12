@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://uumifadqgs4y"
-path="res://.godot/imported/monolith_silhouette.png-f971ea5c283ecb43f2086879a95cf5dc.ctex"
+uid="uid://dw3yrb5bjnkiw"
+path="res://.godot/imported/equinox_silhouette.png-1ca767e8bb8f926e15e89c659bd8dcdf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/glyphs/silhouettes/monolith_silhouette.png"
-dest_files=["res://.godot/imported/monolith_silhouette.png-f971ea5c283ecb43f2086879a95cf5dc.ctex"]
+source_file="res://assets/sprites/glyphs/silhouettes/equinox_silhouette.png"
+dest_files=["res://.godot/imported/equinox_silhouette.png-1ca767e8bb8f926e15e89c659bd8dcdf.ctex"]
 
 [params]
 

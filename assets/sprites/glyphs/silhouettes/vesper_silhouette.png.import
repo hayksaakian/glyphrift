@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ccjbwvbobgnul"
-path="res://.godot/imported/gritstone_silhouette.png-bdc15a3ec272ca797724812298a97b54.ctex"
+uid="uid://cocuyyievaml0"
+path="res://.godot/imported/vesper_silhouette.png-32b5d1e77b87ba319fe0b04f0fafe01a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/glyphs/silhouettes/gritstone_silhouette.png"
-dest_files=["res://.godot/imported/gritstone_silhouette.png-bdc15a3ec272ca797724812298a97b54.ctex"]
+source_file="res://assets/sprites/glyphs/silhouettes/vesper_silhouette.png"
+dest_files=["res://.godot/imported/vesper_silhouette.png-32b5d1e77b87ba319fe0b04f0fafe01a.ctex"]
 
 [params]
 
