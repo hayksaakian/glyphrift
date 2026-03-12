@@ -34,7 +34,7 @@ STYLE_BLOCK = (
 FRAMING_BLOCK = (
     "512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. "
     "Character should fill roughly 80% of the canvas, centered, with even padding on all sides. "
-    "No part of the creature should touch the canvas edge. Solid white background. "
+    "No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. "
     "No ground shadow, no environment, no effects, no text, no UI elements, no watermarks."
 )
 

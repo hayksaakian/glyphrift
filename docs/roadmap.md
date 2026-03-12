@@ -12,7 +12,7 @@ These items address systems that exist but don't fully work. Highest priority.
 
 These make the biggest difference in player experience.
 
-- [ ] **Sound & music** — zero audio currently. Even placeholder SFX (UI clicks, hit sounds, capture jingle, combat music) would massively improve feel. Godot's audio system is straightforward.
+- [ ] **Sound & music** — zero audio currently. Even placeholder SFX (UI clicks, hit sounds, capture jingle, combat music) would massively improve feel. Godot's audio system is straightforward. _(Punted — requires sourcing/licensing audio assets, not a code task.)_
 
 - [x] **Puzzle variety** — 3 puzzle types rotate fast. Add 2-3 more (riddle/trivia about species lore, tile-sliding, affinity-matching minigame) to keep dungeon rooms fresh. _(4 puzzle types: sequence, conduit, echo, quiz)_
 
@@ -84,7 +84,7 @@ Broken into phases. Each phase builds on the last.
 
 Important but not urgent. Do these as the game stabilizes.
 
-- [ ] **Revisit mid-rift battle loss penalty** — currently losing a battle revives all KO'd glyphs and heals them to ~30% HP. This is very forgiving and removes tension from non-boss fights. Consider alternatives: keep KO'd glyphs dead until manually revived (Revival Core item or Heal Glyph ability), lose an item, take crawler hull damage, or a combination. The penalty should make losses sting without being run-ending — encourage retreating or using resources to recover rather than getting a free reset.
+- [x] **Revisit mid-rift battle loss penalty** — _(Reworked: no more free 30% revives. Battle loss triggers forced repair picker — player must spend energy to heal KO'd glyphs. If insufficient energy, emergency warp extracts from rift. Makes losses meaningful without being run-ending.)_
 
 - [x] **Battle pacing** — animation timing may need tuning; currently tween-based but no player feedback on snappy vs sluggish _(Settings screen battle speed: Normal/Fast(2x)/Instant. Scales AnimationQueue inter-event delays. Individual tweens kept at normal speed for readability.)_
 - [x] **Capture screen flow** — recruit→capture connection isn't obvious to players. _(Added floating "Recruited! +15%" callout above enemy panel during combat when recruit succeeds. Shows exact capture bonus per recruit use. Breakdown on capture screen already shows Recruit +X%.)_
@@ -112,7 +112,7 @@ _What exists: 15 glyph portraits + 15 silhouettes in `assets/sprites/glyphs/`. G
 - [x] Current fallback if PNG missing: affinity-colored square + species initial letter with black outline
 
 **Art cleanup needed:**
-- [ ] **Transparency 2nd pass** — `scripts/process_sprites.sh` only flood-fills from the 4 image edges (lines 87-94), so enclosed white pockets between limbs/body parts survive. Affected: ironbark (arm/torso gap), thunderclaw (tail/hind leg gap), likely others. Enhancement: after the edge flood-fill, add a 2nd pass that finds remaining white/near-white connected regions and removes any that are below a size threshold (small interior pockets). ImageMagick approach: `-connected-components` to identify white regions, filter by area and border-touching, then fill small interior ones with `none`. Must be careful not to remove intentional white features (eyes, teeth, lightning) — threshold by region size (e.g. <5% of image area = interior pocket → transparent).
+- [x] **Transparency 2nd pass** — _(AI-informed cleanup via `scripts/cleanup_sprites.py`: ImageMagick finds interior white/magenta CCs, Gemini vision classifies each as pocket vs feature, only pockets get flood-filled. Also updated sprite prompts to use magenta backgrounds. All 18 species verified clean. See BUG-026.)_
 
 **No assets exist — placeholder only:**
 - [ ] **NPC portraits** (Kael/Lira/Maro) — 80x80 in dialogue modal, 48x48 on bastion hub cards; colored squares with K/L/M letters

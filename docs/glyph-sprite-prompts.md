@@ -1,6 +1,6 @@
 # Glyphrift — Character Art Prompts (Gemini / Nano Banana)
 
-All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid white background, front-facing 3/4 view, bold outlines, flat fills).
+All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid magenta (#FF00FF) background, front-facing 3/4 view, bold outlines, flat fills).
 
 **Usage:** Paste one prompt at a time into Gemini. Iterate with conversational edits ("make the eyes bigger," "more angular shapes") rather than re-rolling from scratch. 
 
@@ -8,7 +8,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 
 ## Shared Style Block (for reference)
 
-> Clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette. The design should be simple enough to read clearly when scaled down to 64x64 pixels. 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette. The design should be simple enough to read clearly when scaled down to 64x64 pixels. 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -22,7 +22,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — electric yellow, white highlights, dark grey/black outlines and accents. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -34,7 +34,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — electric yellow, teal-blue accents, white highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -48,7 +48,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — earthy brown, warm grey, tan highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -60,7 +60,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — moss green, earthy brown, leaf-green accents, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -74,7 +74,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — teal, pale blue, white highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -86,7 +86,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — teal, cyan, dark purple accents, white glitch-flicker highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -100,7 +100,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — electric yellow, deep gold, white lightning accents, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -114,7 +114,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — dark brown bark, iron grey plates, moss-green accents, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -128,7 +128,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep teal, dark blue, cyan vortex accents, white highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -142,7 +142,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — bright electric yellow, deep storm-purple accents, white lightning highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -156,7 +156,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — slate grey, warm brown, amber crystal accents, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -170,7 +170,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — dark teal, deep indigo, glowing cyan void accents, white highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -184,7 +184,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — brilliant electric yellow, deep gold, royal purple accents, white plasma highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. Despite being complex in concept, the silhouette should be bold and readable. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -198,7 +198,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep slate grey, warm stone brown, glowing amber crystal veins, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. Despite being complex in concept, the silhouette should be bold and readable. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -212,7 +212,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep void indigo, dark teal, pale cyan weave-strands, white dimensional highlights, dark grey/black outlines. The design should be simple enough to read clearly when scaled down to 64x64 pixels. Despite being complex in concept, the silhouette should be bold and readable. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -226,7 +226,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold dark grey/black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep navy/dark indigo body, bright white star dots, pale silver constellation lines connecting stars, soft blue glow around brightest stars. High contrast (dark body + bright stars). NOT grey, NOT washed out, NOT stone, NOT earthy. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -238,7 +238,7 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold dark grey/black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep navy/dark indigo body, bright white star dots, pale silver constellation lines, soft blue glow around stars. High contrast (dark body + bright stars). NOT grey, NOT washed out, NOT stone, NOT earthy. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
 
 ---
 
@@ -252,4 +252,4 @@ All 15 Glyph species. Each prompt follows the Sprite Asset Spec (512x512, solid 
 >
 > Style rules: clean vector/cartoon style. Bold dark grey/black outlines, flat color fills. No gradients, no soft brushwork, no painterly texture. Limited color palette — deep navy/dark indigo body, bright white star dots, pale silver constellation lines, soft blue glow around brightest stars. High contrast (dark body + bright stars). NOT grey, NOT washed out, NOT stone, NOT earthy. The design should be simple enough to read clearly when scaled down to 64x64 pixels. No thin lines or intricate patterns.
 >
-> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid white background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.
+> Framing: 512x512 image. Full body visible, facing right in a 3/4 view. Neutral idle pose. Character should fill roughly 80% of the canvas, centered, with even padding on all sides. No part of the creature should touch the canvas edge. Solid magenta (#FF00FF) background. No ground shadow, no environment, no effects, no text, no UI elements, no watermarks.

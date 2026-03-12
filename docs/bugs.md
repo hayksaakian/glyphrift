@@ -10,6 +10,22 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ## Open Bugs
 
+### BUG-032: Interrupt/Guard techniques are poorly communicated compared to other moves
+- **Priority:** P2
+- **Status:** 🔴 Open
+- **Observed:** Interrupt techniques (Stone Wall, Static Guard, Null Counter, Disrupt, Phase Shift, etc.) feel obscured relative to normal attack/support techniques. Two specific issues:
+  1. **Detail popup:** Interrupt techniques show a `?` where power would be (e.g., `🪨 Stone Wall ? ⏳4`). This looks like missing data rather than intentional. The trigger condition (ON_MELEE, ON_RANGED, ON_AOE, ON_SUPPORT) and the interrupt effect (block, counter damage, cancel) aren't shown at all — the player has no way to understand what the technique actually does from this view.
+  2. **Battle action menu:** Guard appears as a plain button (`Guard [Static Guard]`) below the technique list, visually separated from the other moves. It doesn't match the technique button format (no affinity icon, no power/cooldown info). This makes it feel like a secondary/lesser action rather than a core part of the glyph's kit.
+- **Expected:** Interrupt techniques should be presented with the same level of detail as attacks and support moves. The detail popup should show what the interrupt triggers on and what it does. The battle Guard button should feel like a first-class technique, not an afterthought.
+- **Suggested fix:**
+  - Detail popup: Replace `?` with the trigger type (e.g., "vs Melee", "vs Ranged", "vs AoE", "vs Support") and add a brief effect description (e.g., "Blocks attack" or "Counters 12 dmg")
+  - Battle UI: Style the Guard button like a technique button with affinity icon, interrupt info, and cooldown — or integrate it into the technique list with a visual distinction (e.g., shield icon, different border color)
+- **Files:** `ui/shared/glyph_detail_popup.gd` (technique display), `ui/battle/technique_button.gd` (button format), `ui/battle/battle_scene.gd` (Guard button creation)
+
+---
+
+## Fixed Bugs
+
 ### BUG-031: Scan fails to reveal glyph species on beacon-revealed enemy rooms
 - **Priority:** P2
 - **Status:** ❌ Not a bug
@@ -72,10 +88,16 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 
 ### BUG-026: Sprite pocket removal misses some gaps, damages some features
 - **Priority:** P3
-- **Status:** 🔴 Open
-- **Observed:** Thunderclaw's tail/hind-leg gap still has white pocket after processing. Previous version was too aggressive (deleted zapplet's eye white). Current proximity-based approach (Disk:15 dilation) is better but not perfect — some pockets are just far enough from the edge to survive.
-- **Suggested fix:** May need per-sprite manual masks or a more sophisticated approach (e.g. morphological closing on the alpha channel, or a multi-radius proximity check). Could also add an optional exclusion/inclusion zone parameter per species.
-- **Files:** `scripts/process_sprites.sh` (`remove_interior_pockets`)
+- **Status:** 🟢 Fixed
+- **Observed:** White background pockets trapped between creature limbs/body parts (ironbark arm gap, lithosurge torso gap, solstice antler gaps, voltarion lightning gaps) survived edge flood-fill. Previous heuristic approach (morphological closing + edge proximity) was too aggressive on some sprites (deleted driftwisp water highlights, sparkfin features) while still missing deep pockets on others.
+- **Fix:** Replaced heuristic `remove_interior_pockets()` with AI-informed classification via Gemini vision (`scripts/cleanup_sprites.py`):
+  1. ImageMagick finds interior white/magenta connected components (CCs) via strict mask (min RGB > 88%, alpha > 78%) — reliable, deterministic
+  2. Gemini vision classifies each CC as "pocket" (trapped background) vs "feature" (eyes, teeth, lightning, highlights) — leverages AI judgment for the hard part
+  3. Only pockets get flood-filled; features are preserved
+  - `process_sprites.sh` calls `cleanup_sprites.py` automatically, falls back to heuristic if unavailable (`SKIP_AI_CLEANUP=1`)
+  - Also updated sprite generation prompts to use magenta (#FF00FF) backgrounds, making future background removal trivial
+  - Verified on all 18 species: all pockets transparent, all features preserved
+- **Files:** `scripts/cleanup_sprites.py` (new), `scripts/process_sprites.sh`, `docs/glyph-sprite-prompts.md`, `scripts/brainstorm_sprites.py`
 
 ### BUG-025: Save Slots popup too narrow — names truncate
 - **Priority:** P3
@@ -95,9 +117,6 @@ Hayk reports bugs verbally during playtesting. Claude triages, writes them up he
 - **Fix:** Added `if attacker.is_knocked_out: return true` after `_check_ko(attacker, defender)` in both `static_guard` and `null_counter` interrupt paths in `_resolve_interrupt`. This cancels the attack when the interrupt KOs the attacker. Added 9 tests covering both interrupt types (lethal and non-lethal) plus a full integration test.
 - **Files:** `core/combat/combat_engine.gd`, `tests/test_combat.gd`
 
----
-
-## Fixed Bugs
 
 ### BUG-028: Enemy room reverts to "Wild Glyph" after losing a battle
 - **Priority:** P2
