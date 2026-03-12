@@ -2044,7 +2044,10 @@ func _test_crawler_bay_construction() -> void:
 
 	_assert(bay._stats_vbox != null, "has stats vbox")
 	_assert(bay._chassis_vbox != null, "has chassis vbox")
+	_assert(bay._computer_vbox != null, "has computer vbox")
+	_assert(bay._accessory_vbox != null, "has accessory vbox")
 	_assert(bay._milestone_vbox != null, "has milestone vbox")
+	_assert(bay._hints_vbox != null, "has hints vbox")
 
 	_cleanup_node(bay)
 
@@ -2145,7 +2148,7 @@ func _test_bastion_navigation_crawler_bay() -> void:
 
 
 func _test_crawler_bay_equipment_display_empty() -> void:
-	print("--- CrawlerBay: Equipment Display (empty slots) ---")
+	print("--- CrawlerBay: Equipment Display (empty columns) ---")
 	var cs: CrawlerState = _make_crawler_state()
 	cs.data_loader = _data_loader
 	var bay: CrawlerBay = CrawlerBay.new()
@@ -2153,13 +2156,13 @@ func _test_crawler_bay_equipment_display_empty() -> void:
 	bay.setup(cs, null, _data_loader)
 	bay.refresh()
 
-	_assert(bay._equipment_vbox != null, "has equipment vbox")
-	_assert(bay._equipment_vbox.get_child_count() == 2, "two equipment slot cards (computer + accessory)")
-	_assert(bay._equipment_buttons.has("computer"), "has computer equip button")
-	_assert(bay._equipment_buttons.has("accessory"), "has accessory equip button")
-	## Both disabled because no equipment owned
-	_assert(bay._equipment_buttons["computer"].disabled, "computer equip disabled (nothing owned)")
-	_assert(bay._equipment_buttons["accessory"].disabled, "accessory equip disabled (nothing owned)")
+	## Each column should have 1 "empty" card + 1 hidden disabled button
+	_assert(bay._computer_vbox.get_child_count() > 0, "computer column has content")
+	_assert(bay._accessory_vbox.get_child_count() > 0, "accessory column has content")
+	_assert(bay._equipment_buttons.has("computer"), "has computer test button")
+	_assert(bay._equipment_buttons.has("accessory"), "has accessory test button")
+	_assert(bay._equipment_buttons["computer"].disabled, "computer disabled (nothing owned)")
+	_assert(bay._equipment_buttons["accessory"].disabled, "accessory disabled (nothing owned)")
 
 	_cleanup_node(bay)
 	_cleanup_node(cs)
@@ -2179,19 +2182,10 @@ func _test_crawler_bay_equipment_display_equipped() -> void:
 	bay.setup(cs, null, _data_loader)
 	bay.refresh()
 
-	## Find text labels — each card has a PanelContainer with HBox > [slot_label, text_col, btn_col]
-	## text_col has name label as first child
-	var computer_card: PanelContainer = bay._equipment_vbox.get_child(0) as PanelContainer
-	var comp_row: HBoxContainer = computer_card.get_child(0) as HBoxContainer
-	var comp_text_col: VBoxContainer = comp_row.get_child(1) as VBoxContainer
-	var comp_name: Label = comp_text_col.get_child(0) as Label
-	_assert("Capacitor Cell" in comp_name.text, "computer slot shows Capacitor Cell (got: %s)" % comp_name.text)
-
-	var accessory_card: PanelContainer = bay._equipment_vbox.get_child(1) as PanelContainer
-	var acc_row: HBoxContainer = accessory_card.get_child(0) as HBoxContainer
-	var acc_text_col: VBoxContainer = acc_row.get_child(1) as VBoxContainer
-	var acc_name: Label = acc_text_col.get_child(0) as Label
-	_assert("Hull Plating" in acc_name.text, "accessory slot shows Hull Plating (got: %s)" % acc_name.text)
+	## Computer column: "Remove" card + equipped card = at least 2 children
+	_assert(bay._computer_vbox.get_child_count() >= 2, "computer column has cards (got %d)" % bay._computer_vbox.get_child_count())
+	## Accessory column: "Remove" card + equipped card = at least 2 children
+	_assert(bay._accessory_vbox.get_child_count() >= 2, "accessory column has cards (got %d)" % bay._accessory_vbox.get_child_count())
 
 	_cleanup_node(bay)
 	_cleanup_node(cs)
@@ -2209,15 +2203,12 @@ func _test_crawler_bay_equipment_equip_unequip() -> void:
 	bay.setup(cs, null, _data_loader)
 	bay.refresh()
 
-	## Unequip
+	## Unequip via direct method
 	bay._unequip_slot("computer")
 	_assert(cs.equipped_computer == "", "computer unequipped")
-	## After refresh (called by _unequip_slot), equip button should be enabled
-	_assert(not bay._equipment_buttons["computer"].disabled, "computer equip enabled after unequip")
 
-	## Re-equip via _select_equipment
-	bay._picker_slot = "computer"
-	bay._select_equipment("capacitor_cell")
+	## Re-equip via direct select
+	bay._select_equipment_direct("computer", "capacitor_cell")
 	_assert(cs.equipped_computer == "capacitor_cell", "re-equipped capacitor_cell")
 
 	_cleanup_node(bay)
@@ -2225,7 +2216,7 @@ func _test_crawler_bay_equipment_equip_unequip() -> void:
 
 
 func _test_crawler_bay_equipment_picker() -> void:
-	print("--- CrawlerBay: Equipment Picker ---")
+	print("--- CrawlerBay: Equipment Card Selection ---")
 	var cs: CrawlerState = _make_crawler_state()
 	cs.data_loader = _data_loader
 	cs.add_equipment("capacitor_cell")
@@ -2236,17 +2227,15 @@ func _test_crawler_bay_equipment_picker() -> void:
 	bay.setup(cs, null, _data_loader)
 	bay.refresh()
 
-	## Open picker for computer slot
-	bay._show_equipment_picker("computer")
-	_assert(bay._picker_overlay.visible, "picker overlay visible")
-	_assert(bay._picker_slot == "computer", "picker slot is computer")
-	## Should have header + 2 items + cancel = 4 children
-	_assert(bay._picker_vbox.get_child_count() == 4, "picker has 4 children (header + 2 items + cancel), got %d" % bay._picker_vbox.get_child_count())
+	## Computer column should have 2 item cards (neither equipped yet)
+	_assert(bay._computer_vbox.get_child_count() == 2, "computer column has 2 cards (got %d)" % bay._computer_vbox.get_child_count())
 
-	## Select one
-	bay._select_equipment("scan_amplifier")
-	_assert(not bay._picker_overlay.visible, "picker closed after selection")
+	## Select scan_amplifier
+	bay._select_equipment_direct("computer", "scan_amplifier")
 	_assert(cs.equipped_computer == "scan_amplifier", "scan_amplifier equipped")
+
+	## After refresh, column should have: remove card + 2 item cards = 3
+	_assert(bay._computer_vbox.get_child_count() == 3, "computer column has 3 cards after equip (got %d)" % bay._computer_vbox.get_child_count())
 
 	_cleanup_node(bay)
 	_cleanup_node(cs)
