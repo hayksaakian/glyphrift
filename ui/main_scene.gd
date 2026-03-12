@@ -43,6 +43,7 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		GlyphArt.clear_cache()
+		GameArt.clear_cache()
 
 
 func setup(

@@ -22,6 +22,7 @@ var _vbox: VBoxContainer = null
 var _portrait_panel: PanelContainer = null
 var _portrait_rect: ColorRect = null
 var _portrait_label: Label = null
+var _portrait_texture: TextureRect = null
 var _name_label: Label = null
 var _title_label: Label = null
 var _dialogue_label: Label = null
@@ -77,9 +78,19 @@ func show_npc(npc_id: String) -> void:
 	## Portrait color
 	var portrait_color: Color = NPC_COLORS.get(npc_id, Color("#888888"))
 
-	## Update UI
-	_portrait_rect.color = portrait_color
-	_portrait_label.text = npc_name[0].to_upper()
+	## Update UI — try real portrait texture, fall back to colored rect + letter
+	var npc_tex: Texture2D = GameArt.get_npc_portrait(npc_id)
+	if npc_tex != null:
+		_portrait_texture.texture = npc_tex
+		_portrait_texture.visible = true
+		_portrait_rect.visible = false
+		_portrait_label.visible = false
+	else:
+		_portrait_texture.visible = false
+		_portrait_rect.visible = true
+		_portrait_rect.color = portrait_color
+		_portrait_label.visible = true
+		_portrait_label.text = npc_name[0].to_upper()
 	_name_label.text = npc_name
 	_name_label.add_theme_color_override("font_color", portrait_color.lightened(0.3))
 	_title_label.text = npc_title
@@ -188,6 +199,14 @@ func _build_ui() -> void:
 	_portrait_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_portrait_rect.color = Color("#888888")
 	portrait_panel.add_child(_portrait_rect)
+
+	_portrait_texture = TextureRect.new()
+	_portrait_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_portrait_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_portrait_texture.visible = false
+	portrait_panel.add_child(_portrait_texture)
 
 	_portrait_label = Label.new()
 	_portrait_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

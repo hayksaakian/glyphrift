@@ -58,6 +58,7 @@ var is_adjacent: bool = false
 var label_override: String = ""  ## If set, replaces TYPE_NAMES text
 
 var _icon_label: Label = null
+var _icon_texture: TextureRect = null
 var _type_label: Label = null
 var _background: ColorRect = null
 var _border_panel: Panel = null
@@ -114,10 +115,11 @@ func refresh() -> void:
 	if has_scan and room_type == "enemy":
 		display_name = "Wild Glyphs" if scan_ids.size() > 1 else "Wild Glyph"
 
-	## Default: hide scan sprites, show icon label
+	## Default: hide scan sprites and icon texture, show icon label
 	if _scan_container != null:
 		_scan_container.visible = false
 	_icon_label.visible = true
+	_icon_texture.visible = false
 
 	match state:
 		RoomState.UNREVEALED:
@@ -142,12 +144,12 @@ func refresh() -> void:
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		RoomState.REVEALED:
 			visible = true
-			_icon_label.text = TYPE_ICONS.get(room_type, "?")
-			_icon_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
+			_set_room_icon(room_type)
 			_type_label.text = display_name
 			_type_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
 			_background.color = Color("#222222")
 			_icon_label.modulate.a = REVEALED_OPACITY
+			_icon_texture.modulate.a = REVEALED_OPACITY
 			_type_label.modulate.a = REVEALED_OPACITY
 			_border_panel.visible = false
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -157,17 +159,19 @@ func refresh() -> void:
 		RoomState.VISITED:
 			visible = true
 			if is_cleared:
+				_icon_texture.visible = false
+				_icon_label.visible = true
 				_icon_label.text = "\u2713"
 				_icon_label.add_theme_color_override("font_color", Color("#4CAF50"))
 				_type_label.text = "Cleared"
 				_type_label.add_theme_color_override("font_color", Color("#4CAF50"))
 			else:
-				_icon_label.text = TYPE_ICONS.get(room_type, "?")
-				_icon_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
+				_set_room_icon(room_type)
 				_type_label.text = display_name
 				_type_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
 			_background.color = Color("#2A2A2A")
 			_icon_label.modulate.a = 1.0
+			_icon_texture.modulate.a = 1.0
 			_type_label.modulate.a = 1.0
 			_border_panel.visible = false
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -177,17 +181,19 @@ func refresh() -> void:
 		RoomState.CURRENT:
 			visible = true
 			if is_cleared:
+				_icon_texture.visible = false
+				_icon_label.visible = true
 				_icon_label.text = "\u2713"
 				_icon_label.add_theme_color_override("font_color", Color("#4CAF50"))
 				_type_label.text = "Cleared"
 				_type_label.add_theme_color_override("font_color", Color("#4CAF50"))
 			else:
-				_icon_label.text = TYPE_ICONS.get(room_type, "?")
-				_icon_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
+				_set_room_icon(room_type)
 				_type_label.text = display_name
 				_type_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
 			_background.color = Color("#333333")
 			_icon_label.modulate.a = 1.0
+			_icon_texture.modulate.a = 1.0
 			_type_label.modulate.a = 1.0
 			_border_panel.visible = false
 			## Show pointer cursor if room is interactable (boss, puzzle, enemy)
@@ -207,7 +213,17 @@ func _build_ui() -> void:
 	_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_background)
 
-	## Icon label (centered in the background box)
+	## Icon texture (for real art icons, hidden by default)
+	_icon_texture = TextureRect.new()
+	_icon_texture.position = Vector2(16, 8)
+	_icon_texture.size = Vector2(32, 32)
+	_icon_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_icon_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_icon_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_icon_texture.visible = false
+	add_child(_icon_texture)
+
+	## Icon label (centered in the background box, fallback when no texture)
 	_icon_label = Label.new()
 	_icon_label.position = Vector2(0, 0)
 	_icon_label.size = Vector2(64, 56)
@@ -301,6 +317,21 @@ func _update_scan_sprites() -> void:
 
 	_scan_container.visible = _scan_container.get_child_count() > 0
 	_icon_label.visible = not _scan_container.visible
+
+
+func _set_room_icon(room_type: String) -> void:
+	## Try real icon texture, fall back to unicode label
+	var tex: Texture2D = GameArt.get_room_icon(room_type)
+	if tex != null:
+		_icon_texture.texture = tex
+		_icon_texture.visible = true
+		_icon_texture.modulate = Color.WHITE
+		_icon_label.visible = false
+	else:
+		_icon_texture.visible = false
+		_icon_label.visible = true
+		_icon_label.text = TYPE_ICONS.get(room_type, "?")
+		_icon_label.add_theme_color_override("font_color", TYPE_COLORS.get(room_type, UNREVEALED_COLOR))
 
 
 func reveal_animate() -> void:

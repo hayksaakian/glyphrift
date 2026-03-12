@@ -465,14 +465,39 @@ func _refresh_statuses() -> void:
 		icon_style.set_border_width_all(1)
 		icon.add_theme_stylebox_override("panel", icon_style)
 
-		var letter: Label = Label.new()
-		letter.text = "%s%d" % [STATUS_LETTERS.get(status_id, "?"), turns]
-		letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		letter.add_theme_font_size_override("font_size", 10)
-		letter.add_theme_color_override("font_color", Color.WHITE)
-		letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.add_child(letter)
+		## Try real icon texture, fall back to letter badge
+		var status_tex: Texture2D = GameArt.get_status_icon(status_id)
+		if status_tex != null:
+			var tex_rect: TextureRect = TextureRect.new()
+			tex_rect.texture = status_tex
+			tex_rect.custom_minimum_size = Vector2(18, 18)
+			tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			tex_rect.position = Vector2(2, 0)
+			tex_rect.size = Vector2(18, 18)
+			icon.add_child(tex_rect)
+			## Turn count overlay in corner
+			var turn_label: Label = Label.new()
+			turn_label.text = str(turns)
+			turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			turn_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+			turn_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			turn_label.add_theme_font_size_override("font_size", 9)
+			turn_label.add_theme_color_override("font_color", Color.WHITE)
+			turn_label.add_theme_color_override("font_outline_color", Color.BLACK)
+			turn_label.add_theme_constant_override("outline_size", 2)
+			turn_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			icon.add_child(turn_label)
+		else:
+			var letter: Label = Label.new()
+			letter.text = "%s%d" % [STATUS_LETTERS.get(status_id, "?"), turns]
+			letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			letter.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			letter.add_theme_font_size_override("font_size", 10)
+			letter.add_theme_color_override("font_color", Color.WHITE)
+			letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			icon.add_child(letter)
 
 		_status_row.add_child(icon)
 
