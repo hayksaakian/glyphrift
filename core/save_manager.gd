@@ -505,6 +505,9 @@ static func _serialize_crawler_state(crs: CrawlerState) -> Dictionary:
 		"unlocked_chassis": chassis_list,
 		"items": item_ids,
 		"has_rift_transmitter": crs.has_rift_transmitter,
+		"equipped_computer": crs.equipped_computer,
+		"equipped_accessory": crs.equipped_accessory,
+		"owned_equipment": crs.owned_equipment.duplicate(),
 	}
 
 
@@ -516,6 +519,13 @@ static func _deserialize_crawler_state(data: Dictionary, crs: CrawlerState, data
 	crs.bench_slots = int(data.get("bench_slots", data.get("cargo_slots", 2)))
 	crs.active_chassis = str(data.get("active_chassis", "standard"))
 	crs.has_rift_transmitter = data.get("has_rift_transmitter", false)
+	crs.equipped_computer = str(data.get("equipped_computer", ""))
+	crs.equipped_accessory = str(data.get("equipped_accessory", ""))
+	var eq_arr: Array = data.get("owned_equipment", [])
+	var eq_list: Array[String] = []
+	for eq_id: Variant in eq_arr:
+		eq_list.append(str(eq_id))
+	crs.owned_equipment = eq_list
 
 	var chassis_arr: Array = data.get("unlocked_chassis", ["standard"])
 	var chassis_list: Array[String] = []

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "scan_amplifier",
+    "name": "Scan Amplifier",
+    "slot": "computer",
+    "description": "Scan reveals all rooms on the current floor.",
+    "effect_type": "scan_reveal_all",
+    "effect_value": 0,
+    "rarity": "rare"
+  },
+  {
+    "id": "energy_recycler",
+    "name": "Energy Recycler",
+    "slot": "computer",
+    "description": "Regenerate 25% max energy on each floor transition.",
+    "effect_type": "energy_regen_floor",
+    "effect_value": 25,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "affinity_filter",
+    "name": "Affinity Filter",
+    "slot": "computer",
+    "description": "+15% capture chance for all affinities.",
+    "effect_type": "capture_bonus",
+    "effect_value": 15,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "capacitor_cell",
+    "name": "Capacitor Cell",
+    "slot": "computer",
+    "description": "+20 max energy for the run.",
+    "effect_type": "energy_bonus",
+    "effect_value": 20,
+    "rarity": "common"
+  },
+  {
+    "id": "hull_plating",
+    "name": "Hull Plating",
+    "slot": "accessory",
+    "description": "+25 hull HP for the run.",
+    "effect_type": "hull_bonus",
+    "effect_value": 25,
+    "rarity": "common"
+  },
+  {
+    "id": "cargo_rack",
+    "name": "Cargo Rack",
+    "slot": "accessory",
+    "description": "+1 bench slot during the run.",
+    "effect_type": "bench_bonus",
+    "effect_value": 1,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "repair_drone",
+    "name": "Repair Drone",
+    "slot": "accessory",
+    "description": "Auto-heal 15 hull HP on each floor transition.",
+    "effect_type": "hull_regen_floor",
+    "effect_value": 15,
+    "rarity": "rare"
+  },
+  {
+    "id": "trophy_mount",
+    "name": "Trophy Mount",
+    "slot": "accessory",
+    "description": "+20% capture chance for all affinities.",
+    "effect_type": "capture_bonus",
+    "effect_value": 20,
+    "rarity": "rare"
+  }
+]

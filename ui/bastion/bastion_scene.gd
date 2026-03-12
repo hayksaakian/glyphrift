@@ -81,7 +81,7 @@ func setup(
 	_fusion_chamber.setup(fusion_engine, roster_state, crawler_state, data_loader)
 	_rift_gate.setup(game_state, codex_state, data_loader)
 	_codex_browser.setup(data_loader, codex_state, game_state, roster_state)
-	_crawler_bay.setup(crawler_state, game_state.milestone_tracker if game_state else null)
+	_crawler_bay.setup(crawler_state, game_state.milestone_tracker if game_state else null, data_loader)
 	_npc_panel.setup(data_loader, game_state)
 	_pause_menu.setup_save_slots(game_state, roster_state, codex_state, crawler_state, data_loader)
 
@@ -487,7 +487,7 @@ const SCREEN_HINTS: Dictionary = {
 	"fusion": "Fuse two mastered glyphs to create a stronger species. Both parents are consumed.",
 	"codex": "Track discovered species, fusion history, and rift completions.",
 	"rift_gate": "Select a rift to explore. Clearing rifts advances the phase and unlocks new rifts.",
-	"crawler_bay": "View crawler upgrades, switch chassis, and check milestone progress.",
+	"crawler_bay": "Manage chassis, equip computer and accessory modules, and track milestones.",
 }
 
 

@@ -21,6 +21,7 @@ func _ready() -> void:
 
 	var crawler_state: CrawlerState = CrawlerState.new()
 	crawler_state.name = "CrawlerState"
+	crawler_state.data_loader = _data_loader
 	add_child(crawler_state)
 
 	var ce_script: GDScript = load("res://core/combat/combat_engine.gd") as GDScript

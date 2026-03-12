@@ -1175,22 +1175,26 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 			if room_data_local.get("cleared", false):
 				_state = UIState.EXPLORING
 			else:
-				var result: Dictionary = _pick_item()
-				_clear_current_room("Looted supplies.")
-				if result.get("full", false):
-					_show_swap_picker(result["item"], "cache")
-					return
-				elif result.get("item") != null:
-					var found_item: ItemDef = result["item"]
-					_room_popup.show_result("Found: %s" % found_item.name, found_item.description)
+				var eq_result: Dictionary = _try_pick_equipment()
+				if eq_result.has("equipment"):
+					var eq: EquipmentDef = eq_result["equipment"]
+					_clear_current_room("Found equipment!")
+					_room_popup.show_result("Equipment: %s" % eq.name, eq.description + "\n\nEquip it in the Crawler Bay.")
 				else:
-					_room_popup.show_result("Cache Empty", "Nothing useful remains.")
+					var result: Dictionary = _pick_item()
+					_clear_current_room("Looted supplies.")
+					if result.get("full", false):
+						_show_swap_picker(result["item"], "cache")
+						return
+					elif result.get("item") != null:
+						var found_item: ItemDef = result["item"]
+						_room_popup.show_result("Found: %s" % found_item.name, found_item.description)
+					else:
+						_room_popup.show_result("Cache Empty", "Nothing useful remains.")
 		"hidden":
 			if room_data_local.get("cleared", false):
 				_state = UIState.EXPLORING
 			else:
-				var result: Dictionary = _pick_item()
-				_clear_current_room("Found hidden cache!")
 				## Hidden rooms also restore 15 hull HP as bonus
 				var hull_bonus: int = 15
 				if dungeon_state != null and dungeon_state.crawler != null:
@@ -1199,14 +1203,22 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 					c.hull_hp = mini(c.hull_hp + hull_bonus, c.max_hull_hp)
 					if healed > 0:
 						c.hull_changed.emit(c.hull_hp, c.max_hull_hp)
-				if result.get("full", false):
-					_show_swap_picker(result["item"], "cache")
-					return
-				elif result.get("item") != null:
-					var found_item: ItemDef = result["item"]
-					_room_popup.show_result("Hidden Cache: %s" % found_item.name, "%s\n+%d Hull HP restored!" % [found_item.description, hull_bonus])
+				var eq_result: Dictionary = _try_pick_equipment()
+				if eq_result.has("equipment"):
+					var eq: EquipmentDef = eq_result["equipment"]
+					_clear_current_room("Found hidden equipment!")
+					_room_popup.show_result("Equipment: %s" % eq.name, "%s\n\nEquip in Crawler Bay.\n+%d Hull HP restored!" % [eq.description, hull_bonus])
 				else:
-					_room_popup.show_result("Hidden Cache", "+%d Hull HP restored!" % hull_bonus)
+					var result: Dictionary = _pick_item()
+					_clear_current_room("Found hidden cache!")
+					if result.get("full", false):
+						_show_swap_picker(result["item"], "cache")
+						return
+					elif result.get("item") != null:
+						var found_item: ItemDef = result["item"]
+						_room_popup.show_result("Hidden Cache: %s" % found_item.name, "%s\n+%d Hull HP restored!" % [found_item.description, hull_bonus])
+					else:
+						_room_popup.show_result("Hidden Cache", "+%d Hull HP restored!" % hull_bonus)
 		"puzzle":
 			_launch_puzzle(room_data_local)
 		"hazard":
@@ -1409,6 +1421,27 @@ func _on_backdrop_click(event: InputEvent, dismiss_fn: Callable) -> void:
 var instant_mode: bool = false
 
 
+func _apply_floor_transition_equipment() -> void:
+	if dungeon_state == null or dungeon_state.crawler == null:
+		return
+	var crawler: CrawlerState = dungeon_state.crawler
+	## Repair Drone: auto-heal hull
+	var hull_regen: int = crawler.get_floor_transition_hull_regen()
+	if hull_regen > 0 and crawler.hull_hp < crawler.get_effective_hull_hp():
+		var max_hp: int = crawler.get_effective_hull_hp()
+		crawler.hull_hp = mini(crawler.hull_hp + hull_regen, max_hp)
+		crawler.hull_changed.emit(crawler.hull_hp, crawler.max_hull_hp)
+	## Energy Recycler: regen energy (percentage of max)
+	var energy_pct: int = crawler.get_floor_transition_energy_regen()
+	if energy_pct > 0:
+		var regen_amount: int = int(float(crawler.max_energy) * float(energy_pct) / 100.0)
+		if regen_amount > 0 and crawler.energy < crawler.get_effective_energy():
+			var max_e: int = crawler.get_effective_energy()
+			crawler.energy = mini(crawler.energy + regen_amount, max_e)
+			crawler.energy_changed.emit(crawler.energy, crawler.max_energy)
+	_crawler_hud.refresh()
+
+
 func _play_floor_transition(floor_number: int) -> void:
 	_state = UIState.FLOOR_TRANSITION
 
@@ -1422,6 +1455,7 @@ func _play_floor_transition(floor_number: int) -> void:
 		_floor_overlay.visible = false
 		_floor_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_rebuild_floor()
+		_apply_floor_transition_equipment()
 		floor_changed.emit(floor_number)
 		_state = UIState.EXPLORING
 		return
@@ -1441,6 +1475,7 @@ func _play_floor_transition(floor_number: int) -> void:
 	## Hold on title
 	tween.tween_callback(func() -> void:
 		_rebuild_floor()
+		_apply_floor_transition_equipment()
 	)
 	tween.tween_interval(0.2)
 
@@ -1488,8 +1523,12 @@ func _show_capture(glyph: GlyphInstance) -> void:
 		_show_tutorial_hint("capture", "Capture chance depends on battle speed. Finish faster for better odds!")
 	## Sum recruit uses for the glyph's species
 	var recruit_uses: int = _last_recruit_counts.get(glyph.species.id, 0) if glyph.species != null else 0
+	## Equipment capture bonus stacks with item bonus (equipment is persistent, not consumed)
+	var equip_bonus: float = 0.0
+	if dungeon_state != null and dungeon_state.crawler != null:
+		equip_bonus = dungeon_state.crawler.get_capture_equipment_bonus()
 	var breakdown: Dictionary = CaptureCalculator.get_breakdown(
-		_last_enemy_count, _last_turns, _capture_item_bonus, recruit_uses
+		_last_enemy_count, _last_turns, _capture_item_bonus + equip_bonus, recruit_uses
 	)
 	_capture_popup.show_capture(glyph, breakdown["total"], breakdown)
 	## Consume capture bonus after use (single-use per item description)
@@ -1810,6 +1849,30 @@ func _pick_item() -> Dictionary:
 		return {}
 	var added: bool = dungeon_state.crawler.add_item(item)
 	return {"item": item, "full": not added}
+
+
+func _try_pick_equipment() -> Dictionary:
+	## ~15% chance to find equipment in cache/hidden rooms.
+	## Returns {"equipment": EquipmentDef} on success, {} if no drop.
+	if data_loader == null or dungeon_state == null:
+		return {}
+	if randf() > 0.15:
+		return {}
+	var all_eq: Dictionary = data_loader.equipment
+	if all_eq.is_empty():
+		return {}
+	## Pick equipment the player doesn't own yet; fall back to any if all owned
+	var unowned: Array[String] = []
+	for eq_id: String in all_eq.keys():
+		if not dungeon_state.crawler.owned_equipment.has(eq_id):
+			unowned.append(eq_id)
+	var pool: Array = unowned if not unowned.is_empty() else all_eq.keys()
+	var picked_id: String = pool[randi() % pool.size()]
+	var eq: EquipmentDef = data_loader.get_equipment(picked_id)
+	if eq == null:
+		return {}
+	dungeon_state.crawler.add_equipment(picked_id)
+	return {"equipment": eq}
 
 
 ## --- Repair picker ---

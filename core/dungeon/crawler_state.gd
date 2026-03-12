@@ -11,6 +11,12 @@ var active_chassis: String = "standard"
 var unlocked_chassis: Array[String] = ["standard"]
 var has_rift_transmitter: bool = false
 
+## Equipment
+var equipped_computer: String = ""   ## EquipmentDef ID or ""
+var equipped_accessory: String = ""  ## EquipmentDef ID or ""
+var owned_equipment: Array[String] = []  ## All equipment IDs the player owns
+var data_loader: Node = null  ## Injectable for equipment lookups
+
 ## Per-run state (reset each dungeon entry)
 var hull_hp: int = 100
 var energy: int = 50
@@ -47,23 +53,32 @@ func begin_run(_hazard_damage: int = 0) -> void:
 			hull_hp += 25
 		"hauler":
 			pass  ## Hauler bonus (bench slot) is passive, no per-run stat change
+	## Equipment bonuses
+	var hull_bonus: int = _get_equipment_value("hull_bonus")
+	var energy_bonus: int = _get_equipment_value("energy_bonus")
+	hull_hp += hull_bonus
+	energy += energy_bonus
 
 
 func get_effective_hull_hp() -> int:
-	## Base + chassis bonus (for display in Crawler Bay)
+	## Base + chassis bonus + equipment bonus (for display in Crawler Bay)
+	var total: int = max_hull_hp
 	if active_chassis == "ironclad":
-		return max_hull_hp + 25
-	return max_hull_hp
+		total += 25
+	total += _get_equipment_value("hull_bonus")
+	return total
 
 
 func get_effective_energy() -> int:
-	return max_energy
+	return max_energy + _get_equipment_value("energy_bonus")
 
 
 func get_effective_bench_slots() -> int:
+	var total: int = bench_slots
 	if active_chassis == "hauler":
-		return bench_slots + 1
-	return bench_slots
+		total += 1
+	total += _get_equipment_value("bench_bonus")
+	return total
 
 
 func get_ability_cost(ability: String) -> int:
@@ -74,6 +89,75 @@ func get_ability_cost(ability: String) -> int:
 	if ability == "scan" and active_chassis == "scout":
 		cost = 3
 	return cost
+
+
+func get_capture_equipment_bonus() -> float:
+	## Sum capture_bonus from all equipped items (as percentage, e.g. 15 → 0.15)
+	return float(_get_equipment_value("capture_bonus")) / 100.0
+
+
+func has_equipment_effect(effect_type: String) -> bool:
+	return _get_equipment_value(effect_type) > 0 or _has_equipment_effect_type(effect_type)
+
+
+func get_floor_transition_hull_regen() -> int:
+	return _get_equipment_value("hull_regen_floor")
+
+
+func get_floor_transition_energy_regen() -> int:
+	## Returns percentage of max energy to regen
+	return _get_equipment_value("energy_regen_floor")
+
+
+## Equipment management
+
+func equip(slot: String, equipment_id: String) -> void:
+	if equipment_id != "" and not owned_equipment.has(equipment_id):
+		return
+	match slot:
+		"computer":
+			equipped_computer = equipment_id
+		"accessory":
+			equipped_accessory = equipment_id
+
+
+func unequip(slot: String) -> void:
+	match slot:
+		"computer":
+			equipped_computer = ""
+		"accessory":
+			equipped_accessory = ""
+
+
+func add_equipment(equipment_id: String) -> void:
+	if not owned_equipment.has(equipment_id):
+		owned_equipment.append(equipment_id)
+
+
+func _get_equipment_value(effect_type: String) -> int:
+	## Sum effect_value from all equipped items matching effect_type
+	if data_loader == null:
+		return 0
+	var total: int = 0
+	for eq_id: String in [equipped_computer, equipped_accessory]:
+		if eq_id == "":
+			continue
+		var eq: EquipmentDef = data_loader.get_equipment(eq_id)
+		if eq != null and eq.effect_type == effect_type:
+			total += eq.effect_value
+	return total
+
+
+func _has_equipment_effect_type(effect_type: String) -> bool:
+	if data_loader == null:
+		return false
+	for eq_id: String in [equipped_computer, equipped_accessory]:
+		if eq_id == "":
+			continue
+		var eq: EquipmentDef = data_loader.get_equipment(eq_id)
+		if eq != null and eq.effect_type == effect_type:
+			return true
+	return false
 
 
 func take_hull_damage(amount: int) -> void:

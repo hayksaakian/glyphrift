@@ -11,6 +11,7 @@ var codex_entries: Dictionary = {}    ## species_id → {hint, lore}
 var npc_dialogue: Dictionary = {}     ## npc_id → {name, title, phases}
 var npc_quests: Dictionary = {}      ## npc_id → quest Dictionary
 var crawler_upgrades: Array[Dictionary] = []
+var equipment: Dictionary = {}       ## id → EquipmentDef
 
 
 func _ready() -> void:
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_load_npc_dialogue()
 	_load_npc_quests()
 	_load_crawler_upgrades()
+	_load_equipment()
 
 
 func get_species(id: String) -> GlyphSpecies:
@@ -45,6 +47,18 @@ func get_boss(rift_id: String) -> BossDef:
 
 func get_crawler_upgrades() -> Array[Dictionary]:
 	return crawler_upgrades
+
+
+func get_equipment(id: String) -> EquipmentDef:
+	return equipment.get(id)
+
+
+func get_equipment_for_slot(slot: String) -> Array[EquipmentDef]:
+	var result: Array[EquipmentDef] = []
+	for eq: EquipmentDef in equipment.values():
+		if eq.slot == slot:
+			result.append(eq)
+	return result
 
 
 func get_rift_template(rift_id: String) -> RiftTemplate:
@@ -293,3 +307,19 @@ func _load_crawler_upgrades() -> void:
 		return
 	for entry: Dictionary in data:
 		crawler_upgrades.append(entry)
+
+
+func _load_equipment() -> void:
+	var data: Variant = _load_json("res://data/crawler_equipment.json")
+	if data == null:
+		return
+	for entry: Dictionary in data:
+		var eq: EquipmentDef = EquipmentDef.new()
+		eq.id = entry["id"]
+		eq.name = entry["name"]
+		eq.slot = entry["slot"]
+		eq.description = entry.get("description", "")
+		eq.effect_type = entry.get("effect_type", "")
+		eq.effect_value = int(entry.get("effect_value", 0))
+		eq.rarity = entry.get("rarity", "common")
+		equipment[eq.id] = eq

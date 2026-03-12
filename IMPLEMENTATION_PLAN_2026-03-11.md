@@ -2,7 +2,7 @@
 
 ## Stage 1: Art Direction Document
 **Goal**: Define a unified visual style guide for all non-glyph art assets
-**Status**: Not Started
+**Status**: Complete
 
 ### Context:
 The 18 glyph portraits use a consistent style: bold black outlines, flat color fills, no gradients, limited palette, reads at 64x64. All other visual elements (NPC portraits, status icons, room icons) are text/color placeholders. Need a cohesive art direction that matches the glyph style.
@@ -20,7 +20,7 @@ The 18 glyph portraits use a consistent style: bold black outlines, flat color f
 
 ## Stage 2: Asset Generation Pipelines
 **Goal**: Build `generate_npc_portraits.py`, `generate_icons.py` scripts following `generate_sprites.py` pattern
-**Status**: Not Started
+**Status**: Complete
 
 ### Scripts:
 
@@ -50,7 +50,7 @@ The 18 glyph portraits use a consistent style: bold black outlines, flat color f
 
 ## Stage 3: Integrate NPC Portraits
 **Goal**: Load real NPC portrait PNGs in NpcPanel, bastion hub cards
-**Status**: Not Started
+**Status**: Complete
 
 ### Implementation:
 1. Add NPC art loading to a utility (new `NpcArt` static class or extend existing pattern)
@@ -67,7 +67,7 @@ The 18 glyph portraits use a consistent style: bold black outlines, flat color f
 
 ## Stage 4: Integrate Status Effect Icons
 **Goal**: Load real status icon PNGs in GlyphPanel
-**Status**: Not Started
+**Status**: Complete
 
 ### Implementation:
 1. Status icon loading utility
@@ -85,7 +85,7 @@ The 18 glyph portraits use a consistent style: bold black outlines, flat color f
 
 ## Stage 5: Integrate Room Type Icons
 **Goal**: Load real room icon PNGs in RoomNode
-**Status**: Not Started
+**Status**: Complete
 
 ### Implementation:
 1. Room icon loading utility
@@ -102,7 +102,7 @@ The 18 glyph portraits use a consistent style: bold black outlines, flat color f
 
 ## Stage 6: Crawler Equipment Slots
 **Goal**: Add Computer + Accessory equipment slots to crawler, with Crawler Bay UI
-**Status**: Not Started
+**Status**: Complete
 
 ### Design (from roadmap):
 - **Computer slot** — scanning/energy upgrades:

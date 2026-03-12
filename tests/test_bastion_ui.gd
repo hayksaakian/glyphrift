@@ -133,6 +133,11 @@ func _run_tests() -> void:
 	_test_crawler_bay_chassis_selection()
 	_test_crawler_bay_milestone_display()
 	_test_bastion_navigation_crawler_bay()
+	_test_crawler_bay_equipment_display_empty()
+	_test_crawler_bay_equipment_display_equipped()
+	_test_crawler_bay_equipment_equip_unequip()
+	_test_crawler_bay_equipment_picker()
+	_test_crawler_bay_equipment_stats_reflect_bonus()
 
 	## Settings
 	_test_game_settings_default()
@@ -2053,8 +2058,9 @@ func _test_crawler_bay_stats_display() -> void:
 	bay.refresh()
 
 	_assert(bay._stats_vbox.get_child_count() > 0, "stats section populated")
-	## Check that hull HP value appears
-	var first_label: Label = bay._stats_vbox.get_child(0) as Label
+	## Check that hull HP label appears in first row
+	var first_row: HBoxContainer = bay._stats_vbox.get_child(0) as HBoxContainer
+	var first_label: Label = first_row.get_child(0) as Label
 	_assert("Hull HP" in first_label.text, "first stat is Hull HP (got: %s)" % first_label.text)
 
 	_cleanup_node(bay)
@@ -2136,6 +2142,135 @@ func _test_bastion_navigation_crawler_bay() -> void:
 	_assert(not bs._hub.visible, "hub hidden")
 
 	_cleanup_bastion(bs)
+
+
+func _test_crawler_bay_equipment_display_empty() -> void:
+	print("--- CrawlerBay: Equipment Display (empty slots) ---")
+	var cs: CrawlerState = _make_crawler_state()
+	cs.data_loader = _data_loader
+	var bay: CrawlerBay = CrawlerBay.new()
+	root.add_child(bay)
+	bay.setup(cs, null, _data_loader)
+	bay.refresh()
+
+	_assert(bay._equipment_vbox != null, "has equipment vbox")
+	_assert(bay._equipment_vbox.get_child_count() == 2, "two equipment slot cards (computer + accessory)")
+	_assert(bay._equipment_buttons.has("computer"), "has computer equip button")
+	_assert(bay._equipment_buttons.has("accessory"), "has accessory equip button")
+	## Both disabled because no equipment owned
+	_assert(bay._equipment_buttons["computer"].disabled, "computer equip disabled (nothing owned)")
+	_assert(bay._equipment_buttons["accessory"].disabled, "accessory equip disabled (nothing owned)")
+
+	_cleanup_node(bay)
+	_cleanup_node(cs)
+
+
+func _test_crawler_bay_equipment_display_equipped() -> void:
+	print("--- CrawlerBay: Equipment Display (items equipped) ---")
+	var cs: CrawlerState = _make_crawler_state()
+	cs.data_loader = _data_loader
+	cs.add_equipment("capacitor_cell")
+	cs.add_equipment("hull_plating")
+	cs.equip("computer", "capacitor_cell")
+	cs.equip("accessory", "hull_plating")
+
+	var bay: CrawlerBay = CrawlerBay.new()
+	root.add_child(bay)
+	bay.setup(cs, null, _data_loader)
+	bay.refresh()
+
+	## Find text labels — each card has a PanelContainer with HBox > [slot_label, text_col, btn_col]
+	## text_col has name label as first child
+	var computer_card: PanelContainer = bay._equipment_vbox.get_child(0) as PanelContainer
+	var comp_row: HBoxContainer = computer_card.get_child(0) as HBoxContainer
+	var comp_text_col: VBoxContainer = comp_row.get_child(1) as VBoxContainer
+	var comp_name: Label = comp_text_col.get_child(0) as Label
+	_assert("Capacitor Cell" in comp_name.text, "computer slot shows Capacitor Cell (got: %s)" % comp_name.text)
+
+	var accessory_card: PanelContainer = bay._equipment_vbox.get_child(1) as PanelContainer
+	var acc_row: HBoxContainer = accessory_card.get_child(0) as HBoxContainer
+	var acc_text_col: VBoxContainer = acc_row.get_child(1) as VBoxContainer
+	var acc_name: Label = acc_text_col.get_child(0) as Label
+	_assert("Hull Plating" in acc_name.text, "accessory slot shows Hull Plating (got: %s)" % acc_name.text)
+
+	_cleanup_node(bay)
+	_cleanup_node(cs)
+
+
+func _test_crawler_bay_equipment_equip_unequip() -> void:
+	print("--- CrawlerBay: Equipment Equip/Unequip ---")
+	var cs: CrawlerState = _make_crawler_state()
+	cs.data_loader = _data_loader
+	cs.add_equipment("capacitor_cell")
+	cs.equip("computer", "capacitor_cell")
+
+	var bay: CrawlerBay = CrawlerBay.new()
+	root.add_child(bay)
+	bay.setup(cs, null, _data_loader)
+	bay.refresh()
+
+	## Unequip
+	bay._unequip_slot("computer")
+	_assert(cs.equipped_computer == "", "computer unequipped")
+	## After refresh (called by _unequip_slot), equip button should be enabled
+	_assert(not bay._equipment_buttons["computer"].disabled, "computer equip enabled after unequip")
+
+	## Re-equip via _select_equipment
+	bay._picker_slot = "computer"
+	bay._select_equipment("capacitor_cell")
+	_assert(cs.equipped_computer == "capacitor_cell", "re-equipped capacitor_cell")
+
+	_cleanup_node(bay)
+	_cleanup_node(cs)
+
+
+func _test_crawler_bay_equipment_picker() -> void:
+	print("--- CrawlerBay: Equipment Picker ---")
+	var cs: CrawlerState = _make_crawler_state()
+	cs.data_loader = _data_loader
+	cs.add_equipment("capacitor_cell")
+	cs.add_equipment("scan_amplifier")
+
+	var bay: CrawlerBay = CrawlerBay.new()
+	root.add_child(bay)
+	bay.setup(cs, null, _data_loader)
+	bay.refresh()
+
+	## Open picker for computer slot
+	bay._show_equipment_picker("computer")
+	_assert(bay._picker_overlay.visible, "picker overlay visible")
+	_assert(bay._picker_slot == "computer", "picker slot is computer")
+	## Should have header + 2 items + cancel = 4 children
+	_assert(bay._picker_vbox.get_child_count() == 4, "picker has 4 children (header + 2 items + cancel), got %d" % bay._picker_vbox.get_child_count())
+
+	## Select one
+	bay._select_equipment("scan_amplifier")
+	_assert(not bay._picker_overlay.visible, "picker closed after selection")
+	_assert(cs.equipped_computer == "scan_amplifier", "scan_amplifier equipped")
+
+	_cleanup_node(bay)
+	_cleanup_node(cs)
+
+
+func _test_crawler_bay_equipment_stats_reflect_bonus() -> void:
+	print("--- CrawlerBay: Stats reflect equipment bonuses ---")
+	var cs: CrawlerState = _make_crawler_state()
+	cs.data_loader = _data_loader
+	cs.add_equipment("hull_plating")
+	cs.equip("accessory", "hull_plating")
+
+	var bay: CrawlerBay = CrawlerBay.new()
+	root.add_child(bay)
+	bay.setup(cs, null, _data_loader)
+	bay.refresh()
+
+	## Hull HP should show effective value (100 + 25 = 125) with green color (bonus)
+	var hull_row: HBoxContainer = bay._stats_vbox.get_child(0) as HBoxContainer
+	var hull_val: Label = hull_row.get_child(1) as Label
+	_assert(hull_val.text == "125", "hull HP shows 125 with hull_plating (got: %s)" % hull_val.text)
+
+	_cleanup_node(bay)
+	_cleanup_node(cs)
 
 
 # ==========================================================================

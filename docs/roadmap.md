@@ -20,22 +20,7 @@ These make the biggest difference in player experience.
 
 - [x] **Crawler upgrades feel good** — lean into chassis identity; more meaningful chassis-specific abilities or passives beyond stat bonuses. _(Milestones, chassis selection, upgrade notifications, status panel — all done)_
 
-- [ ] **Crawler equipment slots** — 3 equipment slots on each crawler, equipped before entering a rift. Gives pre-rift loadout decisions without adding combat complexity.
-
-  **Crawler Bay UI layout:** `[Chassis] [Computer] [Accessory] [Crawler Stats]`
-
-  - **Chassis** — (already implemented) defines base identity, stat profile, passive bonus
-  - **Computer** — the crawler's onboard intelligence (scanning, energy management, filtering). Examples:
-    - Scan Amplifier — Scan range +1
-    - Energy Recycler — Regenerate 25% of energy per floor
-    - Affinity Filter — Bias wild encounters toward a chosen affinity
-    - Capacitor Cell — +40 Max Energy
-  - **Accessory** — bolted-on external hardware (durability, cargo, utility). Examples:
-    - Hull Plating — +25 Hull HP
-    - Cargo Rack — +1 Bench slot
-    - Repair Drone — Auto-heal 20% of Hull HP per floor transition
-    - Trophy Mount — +20% capture chance
-  - Parts found as rare cache drops or milestone rewards. Chassis identity could come from more or less slots of a given type.
+- [x] **Crawler equipment slots** — Computer + Accessory slots on each crawler, equipped before entering a rift. _(8 equipment pieces: Scan Amplifier, Energy Recycler, Affinity Filter, Capacitor Cell, Hull Plating, Cargo Rack, Repair Drone, Trophy Mount. Crawler Bay UI with equip/unequip/picker, ~15% cache drop chance, save/load, effects during rift, 1745 tests pass)_
 
 - [x] **Status effect clarity** — 6 status types with single-letter icons; tooltip on hover works but in-battle readability could improve. _(Status badges now show letter+turns remaining (e.g. "B3", "S1"), rich tooltips with effect description and duration, red/cyan border for debuff/buff distinction)_
 

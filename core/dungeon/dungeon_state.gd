@@ -83,7 +83,10 @@ func use_crawler_ability(ability: String) -> bool:
 
 	match ability:
 		"scan":
-			_reveal_adjacent_rooms()
+			if crawler.has_equipment_effect("scan_reveal_all"):
+				_reveal_all_rooms()
+			else:
+				_reveal_adjacent_rooms()
 		"reinforce":
 			crawler.is_reinforced = true
 		"field_repair":
@@ -232,6 +235,18 @@ func _reveal_adjacent_rooms() -> void:
 	## Fully reveal adjacent rooms (scan ability) — shows type
 	var adjacent: Array[Dictionary] = get_adjacent_rooms()
 	for room: Dictionary in adjacent:
+		room["visible"] = true
+		if not room["revealed"]:
+			room["revealed"] = true
+			room_revealed.emit(room["id"], room["type"])
+
+
+func _reveal_all_rooms() -> void:
+	## Scan Amplifier: reveal all rooms on current floor
+	if current_floor >= floors.size():
+		return
+	var floor_data: Dictionary = floors[current_floor]
+	for room: Dictionary in floor_data["rooms"]:
 		room["visible"] = true
 		if not room["revealed"]:
 			room["revealed"] = true

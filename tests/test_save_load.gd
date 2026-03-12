@@ -43,6 +43,7 @@ func _run_tests() -> void:
 	_test_codex_rifts_cleared()
 	_test_crawler_upgrades()
 	_test_crawler_chassis()
+	_test_crawler_equipment()
 	_test_version_mismatch()
 	_test_multiple_glyphs_with_squad()
 	_test_restores_to_bastion_state()
@@ -551,6 +552,33 @@ func _test_crawler_chassis() -> void:
 	_assert(crs2.active_chassis == "ironclad", "crawler chassis: active == ironclad")
 	_assert(crs2.unlocked_chassis.size() == 3, "crawler chassis: 3 unlocked")
 	_assert(crs2.unlocked_chassis.has("scout"), "crawler chassis: has scout")
+
+	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
+
+
+func _test_crawler_equipment() -> void:
+	var gs1: GameState = _make_game_state()
+	var rs1: RosterState = _make_roster_state()
+	var cs1: CodexState = _make_codex_state()
+	var crs1: CrawlerState = _make_crawler_state()
+
+	crs1.owned_equipment = ["scan_amplifier", "hull_plating", "capacitor_cell"]
+	crs1.equipped_computer = "scan_amplifier"
+	crs1.equipped_accessory = "hull_plating"
+
+	SaveManager.save_game(gs1, rs1, cs1, crs1)
+
+	var gs2: GameState = _make_game_state()
+	var rs2: RosterState = _make_roster_state()
+	var cs2: CodexState = _make_codex_state()
+	var crs2: CrawlerState = _make_crawler_state()
+
+	SaveManager.load_game(gs2, rs2, cs2, crs2, _data_loader)
+	_assert(crs2.owned_equipment.size() == 3, "crawler equipment: 3 owned (got %d)" % crs2.owned_equipment.size())
+	_assert(crs2.owned_equipment.has("scan_amplifier"), "crawler equipment: has scan_amplifier")
+	_assert(crs2.owned_equipment.has("hull_plating"), "crawler equipment: has hull_plating")
+	_assert(crs2.equipped_computer == "scan_amplifier", "crawler equipment: computer == scan_amplifier")
+	_assert(crs2.equipped_accessory == "hull_plating", "crawler equipment: accessory == hull_plating")
 
 	_cleanup([gs1, rs1, cs1, crs1, gs2, rs2, cs2, crs2])
 

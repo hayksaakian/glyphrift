@@ -1,17 +1,25 @@
 class_name CrawlerBay
 extends Control
 
-## Crawler Bay — view stats, swap chassis, view milestone progress.
+## Crawler Bay — view stats, swap chassis, equipment, view milestone progress.
 
 signal back_pressed
 
 var crawler_state: CrawlerState = null
 var milestone_tracker: MilestoneTracker = null
+var data_loader: Node = null
 
 var _stats_vbox: VBoxContainer = null
 var _chassis_vbox: VBoxContainer = null
+var _equipment_vbox: VBoxContainer = null
 var _milestone_vbox: VBoxContainer = null
 var _chassis_buttons: Dictionary = {}  ## chassis_id → Button
+var _equipment_buttons: Dictionary = {}  ## slot → Button
+
+## Equipment picker overlay
+var _picker_overlay: ColorRect = null
+var _picker_vbox: VBoxContainer = null
+var _picker_slot: String = ""  ## Which slot we're picking for
 
 ## Milestone text that unlocks each chassis (for locked display)
 const _CHASSIS_UNLOCK: Dictionary = {
@@ -26,14 +34,16 @@ func _ready() -> void:
 	_build_ui()
 
 
-func setup(p_crawler: CrawlerState, p_milestones: MilestoneTracker) -> void:
+func setup(p_crawler: CrawlerState, p_milestones: MilestoneTracker, p_data_loader: Node = null) -> void:
 	crawler_state = p_crawler
 	milestone_tracker = p_milestones
+	data_loader = p_data_loader
 
 
 func refresh() -> void:
 	_refresh_stats()
 	_refresh_chassis()
+	_refresh_equipment()
 	_refresh_milestones()
 
 
@@ -88,6 +98,54 @@ func _build_ui() -> void:
 	_stats_vbox = VBoxContainer.new()
 	_stats_vbox.add_theme_constant_override("separation", 4)
 	stats_col.add_child(_stats_vbox)
+
+	## --- Equipment ---
+	var eq_header: Label = Label.new()
+	eq_header.text = "EQUIPMENT"
+	eq_header.add_theme_font_size_override("font_size", 18)
+	eq_header.add_theme_color_override("font_color", Color("#FFD700"))
+	main_vbox.add_child(eq_header)
+
+	_equipment_vbox = VBoxContainer.new()
+	_equipment_vbox.add_theme_constant_override("separation", 6)
+	main_vbox.add_child(_equipment_vbox)
+
+	## --- Equipment picker overlay (modal, hidden) ---
+	_picker_overlay = ColorRect.new()
+	_picker_overlay.name = "EquipmentPicker"
+	_picker_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_picker_overlay.color = Color(0, 0, 0, 0.7)
+	_picker_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_picker_overlay.visible = false
+	add_child(_picker_overlay)
+
+	var picker_panel: PanelContainer = PanelContainer.new()
+	picker_panel.set_anchors_preset(Control.PRESET_CENTER)
+	picker_panel.offset_left = -160.0
+	picker_panel.offset_right = 160.0
+	picker_panel.offset_top = -200.0
+	picker_panel.offset_bottom = 200.0
+	var picker_style: StyleBoxFlat = StyleBoxFlat.new()
+	picker_style.bg_color = Color("#1A1A2A")
+	picker_style.border_color = Color("#FFD700")
+	picker_style.border_width_left = 2
+	picker_style.border_width_right = 2
+	picker_style.border_width_top = 2
+	picker_style.border_width_bottom = 2
+	picker_style.content_margin_left = 16
+	picker_style.content_margin_right = 16
+	picker_style.content_margin_top = 16
+	picker_style.content_margin_bottom = 16
+	picker_style.corner_radius_top_left = 6
+	picker_style.corner_radius_top_right = 6
+	picker_style.corner_radius_bottom_left = 6
+	picker_style.corner_radius_bottom_right = 6
+	picker_panel.add_theme_stylebox_override("panel", picker_style)
+	_picker_overlay.add_child(picker_panel)
+
+	_picker_vbox = VBoxContainer.new()
+	_picker_vbox.add_theme_constant_override("separation", 8)
+	picker_panel.add_child(_picker_vbox)
 
 	## --- Bottom: Milestones ---
 	var ms_header: Label = Label.new()
@@ -341,6 +399,182 @@ func _refresh_milestones() -> void:
 		else:
 			desc.add_theme_color_override("font_color", Color("#CCCCCC"))
 		row.add_child(desc)
+
+
+func _refresh_equipment() -> void:
+	_clear_children(_equipment_vbox)
+	_equipment_buttons.clear()
+	if crawler_state == null:
+		return
+
+	for slot: String in ["computer", "accessory"]:
+		var equipped_id: String = crawler_state.equipped_computer if slot == "computer" else crawler_state.equipped_accessory
+		var eq_def: EquipmentDef = null
+		if equipped_id != "" and data_loader != null:
+			eq_def = data_loader.get_equipment(equipped_id)
+
+		## Card for the slot
+		var card: PanelContainer = PanelContainer.new()
+		card.custom_minimum_size = Vector2(0, 52)
+		var card_style: StyleBoxFlat = StyleBoxFlat.new()
+		card_style.content_margin_left = 10
+		card_style.content_margin_right = 10
+		card_style.content_margin_top = 6
+		card_style.content_margin_bottom = 6
+		card_style.corner_radius_top_left = 4
+		card_style.corner_radius_top_right = 4
+		card_style.corner_radius_bottom_left = 4
+		card_style.corner_radius_bottom_right = 4
+
+		if eq_def != null:
+			card_style.bg_color = Color("#1A2A1A")
+			card_style.border_color = Color("#448844")
+			card_style.border_width_left = 1
+			card_style.border_width_right = 1
+			card_style.border_width_top = 1
+			card_style.border_width_bottom = 1
+		else:
+			card_style.bg_color = Color("#151515")
+			card_style.border_color = Color("#333333")
+			card_style.border_width_left = 1
+			card_style.border_width_right = 1
+			card_style.border_width_top = 1
+			card_style.border_width_bottom = 1
+
+		card.add_theme_stylebox_override("panel", card_style)
+		_equipment_vbox.add_child(card)
+
+		var row: HBoxContainer = HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(row)
+
+		## Slot label
+		var slot_label: Label = Label.new()
+		slot_label.text = slot.capitalize() + ":"
+		slot_label.add_theme_font_size_override("font_size", 13)
+		slot_label.add_theme_color_override("font_color", Color("#888888"))
+		slot_label.custom_minimum_size.x = 90
+		slot_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(slot_label)
+
+		## Item name + description
+		var text_col: VBoxContainer = VBoxContainer.new()
+		text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		text_col.add_theme_constant_override("separation", 1)
+		text_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(text_col)
+
+		var name_label: Label = Label.new()
+		name_label.add_theme_font_size_override("font_size", 13)
+		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if eq_def != null:
+			name_label.text = eq_def.name
+			name_label.add_theme_color_override("font_color", Color("#CCCCCC"))
+		else:
+			name_label.text = "— Empty —"
+			name_label.add_theme_color_override("font_color", Color("#555555"))
+		text_col.add_child(name_label)
+
+		if eq_def != null:
+			var desc_label: Label = Label.new()
+			desc_label.text = eq_def.description
+			desc_label.add_theme_font_size_override("font_size", 11)
+			desc_label.add_theme_color_override("font_color", Color("#668866"))
+			desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			text_col.add_child(desc_label)
+
+		## Buttons
+		var btn_col: VBoxContainer = VBoxContainer.new()
+		btn_col.add_theme_constant_override("separation", 2)
+		row.add_child(btn_col)
+
+		var equip_btn: Button = Button.new()
+		equip_btn.name = "EquipButton_%s" % slot.capitalize()
+		equip_btn.text = "Change" if eq_def != null else "Equip"
+		equip_btn.custom_minimum_size = Vector2(70, 28)
+		var s: String = slot
+		equip_btn.pressed.connect(func() -> void: _show_equipment_picker(s))
+		## Disable if no equipment owned for this slot
+		var has_options: bool = false
+		if data_loader != null:
+			for eid: String in crawler_state.owned_equipment:
+				var check_eq: EquipmentDef = data_loader.get_equipment(eid)
+				if check_eq != null and check_eq.slot == slot and eid != equipped_id:
+					has_options = true
+					break
+		equip_btn.disabled = not has_options
+		btn_col.add_child(equip_btn)
+
+		if eq_def != null:
+			var unequip_btn: Button = Button.new()
+			unequip_btn.name = "UnequipButton_%s" % slot.capitalize()
+			unequip_btn.text = "Remove"
+			unequip_btn.custom_minimum_size = Vector2(70, 24)
+			var s2: String = slot
+			unequip_btn.pressed.connect(func() -> void: _unequip_slot(s2))
+			btn_col.add_child(unequip_btn)
+
+		_equipment_buttons[slot] = equip_btn
+
+
+func _show_equipment_picker(slot: String) -> void:
+	if crawler_state == null or data_loader == null:
+		return
+	_picker_slot = slot
+	_clear_children(_picker_vbox)
+
+	var header: Label = Label.new()
+	header.text = "Select %s" % slot.capitalize()
+	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_color_override("font_color", Color("#FFD700"))
+	_picker_vbox.add_child(header)
+
+	var current_id: String = crawler_state.equipped_computer if slot == "computer" else crawler_state.equipped_accessory
+
+	## List owned equipment for this slot
+	for eid: String in crawler_state.owned_equipment:
+		var eq: EquipmentDef = data_loader.get_equipment(eid)
+		if eq == null or eq.slot != slot:
+			continue
+		var is_equipped: bool = eid == current_id
+
+		var item_btn: Button = Button.new()
+		item_btn.name = "PickerItem_%s" % eid
+		item_btn.text = "%s — %s%s" % [eq.name, eq.description, " (equipped)" if is_equipped else ""]
+		item_btn.custom_minimum_size = Vector2(0, 36)
+		item_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if is_equipped:
+			item_btn.disabled = true
+		else:
+			var eq_id: String = eid
+			item_btn.pressed.connect(func() -> void: _select_equipment(eq_id))
+		_picker_vbox.add_child(item_btn)
+
+	## Cancel button
+	var cancel_btn: Button = Button.new()
+	cancel_btn.name = "PickerCancel"
+	cancel_btn.text = "Cancel"
+	cancel_btn.custom_minimum_size = Vector2(0, 32)
+	cancel_btn.pressed.connect(func() -> void: _picker_overlay.visible = false)
+	_picker_vbox.add_child(cancel_btn)
+
+	_picker_overlay.visible = true
+
+
+func _select_equipment(equipment_id: String) -> void:
+	if crawler_state == null:
+		return
+	crawler_state.equip(_picker_slot, equipment_id)
+	_picker_overlay.visible = false
+	refresh()
+
+
+func _unequip_slot(slot: String) -> void:
+	if crawler_state == null:
+		return
+	crawler_state.unequip(slot)
+	refresh()
 
 
 func _select_chassis(chassis_id: String) -> void:
