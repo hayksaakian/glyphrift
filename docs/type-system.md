@@ -191,6 +191,22 @@ This type expansion requires changes to:
 - `docs/roadmap.md` — type system item (mark as designed)
 
 ### Design work (not code)
-- Species roster expansion — target ~40 species (5 per type)
-- Technique roster expansion — target ~80 techniques (10 per type)
-- Fusion table redesign — combinatorial explosion needs careful curation
+- Species roster expansion — target 100 species (see below)
+- Technique roster expansion — target ~80-100 techniques (10+ per type)
+- Fusion table redesign — many more pairs to define with 8 types + dual typing
+
+## Species Target: 100
+
+8 types + dual typing across 4 tiers. T1 stays mono-type to keep early game learnable. Dual types emerge at T2+ through fusion.
+
+| Tier | Mono (8 types) | Dual (from 28 combos) | Neutral | Total |
+|------|---------------|----------------------|---------|-------|
+| T1 | 16 (2 per type) | 0 | 2-3 | ~18 |
+| T2 | 8 (1 per type) | 12-15 | 1 | ~23 |
+| T3 | 8 (1 per type) | 10-12 | 0-1 | ~20 |
+| T4 | 8 (1 per type) | ~6 | 0-1 | ~15 |
+| **Total** | **40** | **~35** | **~4** | **~100** |
+
+Not all 28 dual combos need to exist — aim for 15-20 unique dual-type identities distributed across T2-T4, with some combos appearing at multiple tiers. Intentionally absent combos create design space for future content.
+
+Current roster (18 species across 3 types) becomes the starting point. Existing species keep their types (Electric, Ground, Water). New species fill Fire, Ice, Void, Bio, Light, and dual-type slots.

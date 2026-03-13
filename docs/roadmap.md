@@ -23,8 +23,8 @@ _Completed items have been moved to `docs/changelog.md`._
 - [ ] **Rarity system** — define which glyphs appear in which dungeons and how often. Common T1s everywhere, rare T1s in specific rifts, T2+ only in later rifts or as echo encounters.
 
 ### More content (uses existing systems, no new code)
-- [ ] **More species** — 18 current species across 3 affinities; type system v2 expands to 8 types, targeting ~40 species (5 per type). Define new mastery objectives per species.
-- [ ] **More techniques** — 39 techniques across 18 species; type system v2 targets ~80 techniques (10 per type)
+- [ ] **More species** — 18 current species across 3 affinities; type system v2 expands to 8 types + dual typing, targeting 100 species total. See `docs/type-system.md` for tier breakdown.
+- [ ] **More techniques** — 39 techniques across 18 species; type system v2 targets ~80-100 techniques (10+ per type)
 - [ ] **More fusion pairs** — 33 pairs feels thin; cross-affinity mutations, secret fusions, branching paths
 - [ ] **More rifts** — 9 templates with limited variation; more distinct layouts, themes, or room compositions
 
