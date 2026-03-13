@@ -30,18 +30,17 @@ _Completed items have been moved to `docs/changelog.md`._
 
 ## Animation
 
+_Art direction in `docs/art-direction.md`. Per-species animation briefs in `data/glyph_animations.json`._
+
 ### Glyph sprite sheet animations
 _Currently all glyphs are static portraits (single PNG). Animating them would bring the game to life._
 
-- [ ] **Define animation states needed** — inventory what contexts display glyphs and what animations each needs:
-  - Battle: idle (breathing/bobbing), attack (lunge/flash), hurt (flinch/shake), KO (collapse/fade), guard (brace pose), status applied (flash), technique-specific?
-  - Dungeon: capture popup (wiggle/glow on success), echo encounter (phase-in shimmer)
-  - Bastion: cards (subtle idle), detail popup (idle), fusion (dissolve parents → form child)
-  - Turn queue: small portraits, probably stay static
+- [x] **Define animation states needed** — 4 drawn states (Idle, Attack, Hurt, KO) + tween-only for Guard, Status, Capture, Victory/Defeat. See `docs/art-direction.md` → Glyph Animations.
+- [x] **Per-species animation briefs** — all 18 species have idle/attack/hurt/ko descriptions in `data/glyph_animations.json`, sourced from creature design and signature techniques.
 - [ ] **Sprite sheet generation pipeline** — extend existing Gemini-based pipeline to produce animated sprite sheets from static portraits:
-  1. Define a standard sheet format (e.g., 128x128 frames, 4-8 frames per animation, horizontal strip or grid)
-  2. Generation script: takes species ID + existing portrait as reference, prompts Gemini for each animation state, assembles into sprite sheet PNG
-  3. Processing: standardize frame sizes, timing metadata (JSON or .tres sidecar), validate frame count
+  1. Standard sheet format: 128x128 frames, 4 rows x 4 cols = 512x512 per species (see `sprite-asset-spec.md` §5)
+  2. Generation script: reads `data/glyph_animations.json` for per-species briefs + existing portrait as style reference, prompts AI for each animation state, assembles into sprite sheet PNG
+  3. Processing: remove magenta backgrounds, standardize to 128x128 frames, validate frame count per row
   4. Fallback: if sprite sheet is missing, current static portrait still works — animation is progressive enhancement
 - [ ] **Godot sprite sheet consumer** — code to load and play sprite sheet animations:
   1. `GlyphArt` extension or new `GlyphAnimator` class: loads sprite sheets, creates `SpriteFrames` resources, manages animation state
@@ -61,25 +60,17 @@ _Crawler token is currently a diamond-shaped `Polygon2D` that tweens between roo
 - [ ] **Fog of war** — animate fog rolling back as rooms become visible, rather than instant pop-in
 
 ### Crawler visual in bastion
-_Crawler Bay is currently all text/stats. A visual crawler that changes appearance with chassis and equipment would make upgrades feel tangible._
+_Crawler Bay is currently all text/stats. A visual crawler that changes appearance with chassis and equipment would make upgrades feel tangible. Full design in `docs/art-direction.md` → Crawler Visual Design._
 
-- [ ] **Base crawler art** — design the default crawler appearance (top-down or 3/4 view, ~128x128). This is the single source of truth for how the crawler looks — used in both the Crawler Bay center panel and on the dungeon map (scaled down). One visual, two contexts.
-- [ ] **Chassis variants** — each chassis (Standard, Ironclad, Scout, Hauler) should look visibly different:
-  - Standard: basic frame
-  - Ironclad: heavier plating, bulkier
-  - Scout: sleek, antenna/sensor dish
-  - Hauler: wider frame, cargo racks
-  - Could be separate full sprites or a paper-doll overlay system (base + chassis layer)
-- [ ] **Equipment visualization** — Computer and Accessory slots shown as attachments on the crawler:
-  - Paper-doll approach: equipment sprites overlaid on chassis sprite at defined anchor points
-  - Or: pre-rendered combinations if the count is manageable (4 chassis × 8 equipment = 32 combos — probably too many for pre-rendered)
-  - Simpler option: small equipment icons displayed near the crawler art, not physically attached
+- [x] **Crawler visual design** — 4 chassis variants fully designed: Standard (grey, balanced), Ironclad (blue-steel, heavy armor), Scout (green, radar dish), Hauler (amber, cargo racks). 512x512 source, 3/4 view, same flat art style. See `docs/art-direction.md` → Crawler Visual Design for full briefs and generation prompts.
+- [ ] **Generate crawler art** — produce 4 chassis PNGs via AI generation pipeline using the design briefs
+- [ ] **Equipment visualization** — equipment icons displayed in UI slots adjacent to crawler sprite (not drawn onto the sprite). Chassis alone is shown on dungeon map (equipment invisible at 28-32px).
 - [ ] **Equip/unequip animation** — visual feedback in Crawler Bay when swapping equipment: old piece detaches, new piece attaches
-- [ ] **Shared `CrawlerVisual` component** — a reusable node that renders the crawler (base + chassis layer + equipment overlays). Used by both `CrawlerBay` (large, ~128px) and `CrawlerToken` on the dungeon map (small, ~28-32px). Swapping chassis or equipment updates both contexts automatically.
+- [ ] **Shared `CrawlerVisual` component** — a reusable node that renders the crawler chassis sprite. Used by both `CrawlerBay` (large, ~128px) and `CrawlerToken` on the dungeon map (small, ~28-32px). Swapping chassis updates both contexts automatically.
 
 ## Art & Visual Pass
 
-_Glyph portraits (18 species) + silhouettes are done. Everything else is placeholder._
+_Glyph portraits (18 species) + silhouettes are done. Everything else is placeholder. All art direction in `docs/art-direction.md`._
 
 - [ ] **NPC portraits** (Kael/Lira/Maro) — 80x80 in dialogue modal, 48x48 on bastion hub cards
 - [ ] **Status effect icons** — 22x22 colored letter badges; functional but not visually distinct
@@ -87,8 +78,11 @@ _Glyph portraits (18 species) + silhouettes are done. Everything else is placeho
 - [ ] **Crawler ability icons** — text-only buttons ("Scan 🔋5", "Reinforce 🔋8")
 - [ ] **Technique range icons** — emoji (melee, ranged, aoe, piercing)
 - [ ] **Bastion nav buttons** — plain text
-- [ ] **Title screen** — procedural text ("GLYPHRIFT" in gold)
-- [ ] **Background art** — solid-color backgrounds everywhere; no environment art
+- [ ] **Title screen** — dark void + vertical rift portal + crawler silhouette + gold fractured title text + affinity accent framing
+- [ ] **Battle backgrounds** — 4 variants (1 per rift tier): minor (navy/teal), standard (indigo/purple), major (crimson/red), apex (void/prismatic). Crystal formations + ground plane layers.
+- [ ] **Dungeon map background** — dark charcoal void with subtle hex grid and vignette. 1 background.
+- [ ] **Bastion backgrounds** — 6 variants (hub, barracks, fusion chamber, rift gate, codex, crawler bay). Warm industrial/workshop aesthetic.
+- [ ] **Fusion discovery animation** — tween-based sequence: parents converge → energy merge → flash → silhouette reveal → color fill → name reveal
 
 ## Future / Longshot
 

@@ -132,7 +132,26 @@ Follow the existing format — each species gets a `### N. SpeciesName` section 
 
 Use the shared style block in the file as a reference.
 
-### B. Generate the raw image
+### B. Add animation briefs to `data/glyph_animations.json`
+
+Add an entry describing what the species' idle, attack, hurt, and KO animations look like. These are prompt-ready descriptions consumed by the sprite sheet generation pipeline. See `docs/art-direction.md` → Per-Species Animation Direction for design principles.
+
+```json
+{
+  "species_id": "newspecies",
+  "name": "New Species",
+  "tier": 1,
+  "affinity": "electric",
+  "body_type": "small quadruped",
+  "signature_technique": "spark_zap",
+  "idle": "Description of idle animation...",
+  "attack": "Description of attack animation...",
+  "hurt": "Description of hurt animation...",
+  "ko": "Description of KO animation..."
+}
+```
+
+### C. Generate the raw image
 
 ```bash
 python3 scripts/generate_sprites.py newspecies
@@ -220,6 +239,7 @@ Run the game and check:
 | Echo lore | `ui/dungeon/puzzle_echo.gd` | Always |
 | Valid IDs | `scripts/process_sprites.sh` | For sprite processing |
 | Sprite prompt | `docs/glyph-sprite-prompts.md` | For art generation |
+| Animation briefs | `data/glyph_animations.json` | For sprite sheet generation |
 | Portrait + silhouette | `assets/sprites/glyphs/` | Always |
 | Starter list | `core/progression/roster_state.gd` | If starter |
 | Initial discovery | `core/game_state.gd` | If starter |

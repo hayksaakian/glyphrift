@@ -131,4 +131,4 @@ Implementation:
 - Play-test a full rift to verify animations in context
 - Commit all sheets + any script tweaks
 
-**Status:** Not Started
+**Status:** Complete (18 species generated + processed, 1802 tests pass)

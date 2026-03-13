@@ -159,6 +159,8 @@ For the initial art pass, each species is a **single static PNG** — no sprite 
 
 ### Phase 2: Animated sprites (future)
 
+Per-species animation briefs (what each creature's idle/attack/hurt/KO looks like) are in **`data/glyph_animations.json`**. The sprite sheet generation pipeline reads these briefs + the existing portrait as a style reference to produce prompts. See `docs/art-direction.md` → Glyph Animations for the full art direction (which states need drawn frames vs. tween-only, design principles, perspective).
+
 When adding idle/attack/hit/KO animations, use this format:
 
 #### Frame dimensions

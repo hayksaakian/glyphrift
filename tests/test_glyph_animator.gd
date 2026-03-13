@@ -333,16 +333,26 @@ func _test_glyph_panel_with_animator() -> void:
 
 func _test_glyph_panel_fallback() -> void:
 	print("--- GlyphPanel: Fallback (No Sheet) ---")
-	## Use a species without a sprite sheet
+	## Use a species with a fake id that has no sprite sheet
 	var sp: GlyphSpecies = _data_loader.get_species("stonepaw")
-	var g: GlyphInstance = GlyphInstance.create_from_species(sp, _data_loader)
+	var fake_sp: GlyphSpecies = GlyphSpecies.new()
+	fake_sp.id = "no_sheet_species_xyz"
+	fake_sp.name = sp.name
+	fake_sp.tier = sp.tier
+	fake_sp.affinity = sp.affinity
+	fake_sp.base_hp = sp.base_hp
+	fake_sp.base_atk = sp.base_atk
+	fake_sp.base_def = sp.base_def
+	fake_sp.base_spd = sp.base_spd
+	fake_sp.technique_ids = sp.technique_ids
+	var g: GlyphInstance = GlyphInstance.create_from_species(fake_sp, _data_loader)
 
 	var panel: GlyphPanel = GlyphPanel.new()
 	panel.glyph = g
 	root.add_child(panel)
 
 	_assert(panel._animator != null, "GlyphPanel creates animator even for fallback")
-	_assert(not panel._animator.has_animations, "stonepaw has no sheet")
+	_assert(not panel._animator.has_animations, "fake species has no sheet")
 	## Static portrait should be visible
 	_assert(panel._affinity_rect.visible, "Affinity rect visible for fallback")
 
