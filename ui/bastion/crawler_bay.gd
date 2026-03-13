@@ -306,7 +306,8 @@ func _refresh_chassis() -> void:
 		card.add_child(row)
 
 		## Icon square
-		var art_frame: PanelContainer = _make_icon_square(info["icon"], is_active, unlocked)
+		var chassis_tex: Texture2D = GameArt.get_chassis_icon(chassis_id)
+		var art_frame: PanelContainer = _make_icon_square(info["icon"], is_active, unlocked, chassis_tex)
 		row.add_child(art_frame)
 
 		## Text
@@ -458,6 +459,11 @@ func _refresh_equipment_column(vbox: VBoxContainer, slot: String) -> void:
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(row)
 
+		## Equipment icon square
+		var equip_tex: Texture2D = GameArt.get_equipment_icon(eid)
+		var equip_frame: PanelContainer = _make_icon_square("", is_equipped, true, equip_tex)
+		row.add_child(equip_frame)
+
 		## Text
 		var text_col: VBoxContainer = VBoxContainer.new()
 		text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -604,7 +610,7 @@ func _make_selectable_card(is_active: bool, is_available: bool) -> PanelContaine
 	return card
 
 
-func _make_icon_square(icon_text: String, is_active: bool, is_available: bool) -> PanelContainer:
+func _make_icon_square(icon_text: String, is_active: bool, is_available: bool, tex: Texture2D = null) -> PanelContainer:
 	var frame: PanelContainer = PanelContainer.new()
 	frame.custom_minimum_size = Vector2(36, 36)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -621,18 +627,29 @@ func _make_icon_square(icon_text: String, is_active: bool, is_available: bool) -
 		style.bg_color = Color("#1A1A1A")
 	frame.add_theme_stylebox_override("panel", style)
 
-	var lbl: Label = Label.new()
-	lbl.text = icon_text
-	lbl.add_theme_font_size_override("font_size", 14)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if not is_available:
-		lbl.add_theme_color_override("font_color", Color("#444444"))
+	if tex != null:
+		var tex_rect: TextureRect = TextureRect.new()
+		tex_rect.texture = tex
+		tex_rect.custom_minimum_size = Vector2(32, 32)
+		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if not is_available:
+			tex_rect.modulate = Color(0.3, 0.3, 0.3, 1.0)
+		frame.add_child(tex_rect)
 	else:
-		lbl.add_theme_color_override("font_color", Color("#CCCCCC"))
-	frame.add_child(lbl)
+		var lbl: Label = Label.new()
+		lbl.text = icon_text
+		lbl.add_theme_font_size_override("font_size", 14)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if not is_available:
+			lbl.add_theme_color_override("font_color", Color("#444444"))
+		else:
+			lbl.add_theme_color_override("font_color", Color("#CCCCCC"))
+		frame.add_child(lbl)
 
 	return frame
 

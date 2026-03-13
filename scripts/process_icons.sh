@@ -19,6 +19,8 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 STATUS_IDS=(burn stun weaken slow corrode shield)
 ROOM_IDS=(start exit enemy hazard puzzle cache hidden boss empty)
+CHASSIS_IDS=(standard ironclad scout hauler)
+EQUIPMENT_IDS=(scan_amplifier energy_recycler affinity_filter capacitor_cell hull_plating cargo_rack repair_drone trophy_mount)
 
 FUZZ="35%"
 TARGET_SIZE=128
@@ -136,7 +138,7 @@ process_set() {
   local processed=0
   for f in "${files[@]}"; do
     local icon_id
-    icon_id="$(basename "$f" .png | tr '[:upper:]' '[:lower:]' | sed -E 's/[_ -].*//')"
+    icon_id="$(basename "$f" .png | tr '[:upper:]' '[:lower:]')"
 
     echo "  $(basename "$f") -> $icon_id"
 
@@ -170,12 +172,20 @@ case "${1:-all}" in
   room)
     process_set "room" "${ROOM_IDS[@]}"
     ;;
+  chassis)
+    process_set "chassis" "${CHASSIS_IDS[@]}"
+    ;;
+  equipment)
+    process_set "equipment" "${EQUIPMENT_IDS[@]}"
+    ;;
   all)
     process_set "status" "${STATUS_IDS[@]}"
     process_set "room" "${ROOM_IDS[@]}"
+    process_set "chassis" "${CHASSIS_IDS[@]}"
+    process_set "equipment" "${EQUIPMENT_IDS[@]}"
     ;;
   *)
-    echo "Usage: ./scripts/process_icons.sh {status|room|all}"
+    echo "Usage: ./scripts/process_icons.sh {status|room|chassis|equipment|all}"
     exit 1
     ;;
 esac

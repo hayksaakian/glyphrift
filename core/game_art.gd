@@ -7,11 +7,15 @@ extends RefCounted
 const NPC_PATH: String = "res://assets/sprites/npcs/%s.png"
 const STATUS_ICON_PATH: String = "res://assets/sprites/icons/status/%s.png"
 const ROOM_ICON_PATH: String = "res://assets/sprites/icons/rooms/%s.png"
+const CHASSIS_ICON_PATH: String = "res://assets/sprites/icons/chassis/%s.png"
+const EQUIPMENT_ICON_PATH: String = "res://assets/sprites/icons/equipment/%s.png"
 
 ## Cache: id -> Texture2D or &"_miss" sentinel
 static var _npc_cache: Dictionary = {}
 static var _status_cache: Dictionary = {}
 static var _room_cache: Dictionary = {}
+static var _chassis_cache: Dictionary = {}
+static var _equipment_cache: Dictionary = {}
 static var _MISS: StringName = &"_miss"
 
 
@@ -51,6 +55,30 @@ static func get_room_icon(room_type: String) -> Texture2D:
 	return tex
 
 
+static func get_chassis_icon(chassis_id: String) -> Texture2D:
+	if _chassis_cache.has(chassis_id):
+		var cached: Variant = _chassis_cache[chassis_id]
+		if cached is Texture2D:
+			return cached as Texture2D
+		return null
+	var path: String = CHASSIS_ICON_PATH % chassis_id
+	var tex: Texture2D = _try_load(path)
+	_chassis_cache[chassis_id] = tex if tex != null else _MISS
+	return tex
+
+
+static func get_equipment_icon(equipment_id: String) -> Texture2D:
+	if _equipment_cache.has(equipment_id):
+		var cached: Variant = _equipment_cache[equipment_id]
+		if cached is Texture2D:
+			return cached as Texture2D
+		return null
+	var path: String = EQUIPMENT_ICON_PATH % equipment_id
+	var tex: Texture2D = _try_load(path)
+	_equipment_cache[equipment_id] = tex if tex != null else _MISS
+	return tex
+
+
 static func _try_load(path: String) -> Texture2D:
 	if not ResourceLoader.exists(path):
 		return null
@@ -61,3 +89,5 @@ static func clear_cache() -> void:
 	_npc_cache.clear()
 	_status_cache.clear()
 	_room_cache.clear()
+	_chassis_cache.clear()
+	_equipment_cache.clear()

@@ -120,6 +120,77 @@ no fine details. No text, no effects, no shadow.
 
 ---
 
+## Crawler Chassis Icons
+
+**Source**: 128x128 PNG, magenta background
+**Display size**: 36x36 (Crawler Bay cards)
+**Output**: `assets/sprites/icons/chassis/{chassis_id}.png`
+
+### Shared Icon Style
+
+Same as status/room icons — simple symbolic shape, bold black outline, flat fill, must read at 36x36. Each chassis icon should convey the chassis's identity at a glance.
+
+### Individual Icons
+
+| Chassis | Color | Symbol | Prompt Description |
+|---------|-------|--------|-------------------|
+| **standard** | #888888 (grey) | Wheel/gear | A simple gear or wheel shape. Neutral grey with darker grey accents, black outline. Default all-purpose vehicle. |
+| **ironclad** | #4488FF (blue) | Heavy shield | A thick reinforced shield or armor plate. Blue with white rivet details, black outline. Conveys heavy protection and durability. |
+| **scout** | #44DD88 (green) | Radar dish | A small radar dish or antenna with signal waves. Green with lighter green accents, black outline. Conveys scanning and speed. |
+| **hauler** | #CC8844 (amber) | Cargo crate | A small cargo container or crate with a plus sign. Amber-brown with gold trim, black outline. Conveys extra carrying capacity. |
+
+### Generation Prompt Template
+
+```
+A single game UI icon on a solid magenta (#FF00FF) background. 128x128 pixels.
+Bold black outlines, flat color fills, no gradients. The icon is a simple
+{symbol_description}. Colors: {color_description}. The icon should be
+instantly readable at 36x36 pixels — keep the shape bold and simple with
+no fine details. No text, no effects, no shadow.
+```
+
+---
+
+## Crawler Equipment Icons
+
+**Source**: 128x128 PNG, magenta background
+**Display size**: 36x36 (Crawler Bay cards)
+**Output**: `assets/sprites/icons/equipment/{equipment_id}.png`
+
+### Shared Icon Style
+
+Same as other icons — simple symbolic shape, bold black outline, flat fill, must read at 36x36. Computer equipment uses cooler tones (cyan, blue, yellow). Accessory equipment uses warmer tones (amber, brown, gold).
+
+### Computer Slot Icons
+
+| Equipment | Color | Symbol | Prompt Description |
+|-----------|-------|--------|-------------------|
+| **scan_amplifier** | #00DDDD (cyan) | Radar/eye | A radar dish emitting signal arcs, or a glowing eye lens. Cyan with white highlight, black outline. Reveals all rooms on scan. |
+| **energy_recycler** | #44DD44 (green) | Circular arrows | Two arrows forming a recycling circle around an energy bolt. Green with lighter green accents, black outline. Regenerates energy. |
+| **affinity_filter** | #AA44FF (purple) | Prism | A triangular prism splitting a beam of light into colors. Purple body with colored light rays (red, blue, yellow), black outline. Boosts capture chance. |
+| **capacitor_cell** | #FFDD44 (yellow) | Battery | A battery or power cell with a lightning bolt symbol. Yellow with white charge indicator, black outline. Increases max energy. |
+
+### Accessory Slot Icons
+
+| Equipment | Color | Symbol | Prompt Description |
+|-----------|-------|--------|-------------------|
+| **hull_plating** | #4488FF (blue) | Armor plate | A thick rectangular armor plate with bolt marks. Blue with silver rivet details, black outline. Extra hull HP. |
+| **cargo_rack** | #CC8844 (amber) | Shelf/rack | A small shelving unit or rack with items on it. Amber-brown with gold shelf brackets, black outline. Extra bench slot. |
+| **repair_drone** | #FF8800 (orange) | Drone/wrench | A small hovering drone with a wrench or repair arm. Orange with white propeller accents, black outline. Auto-heals hull. |
+| **trophy_mount** | #FFD700 (gold) | Trophy/medal | A star medal or trophy cup on a small mount. Gold with white highlight, black outline. Boosts capture chance. |
+
+### Generation Prompt Template
+
+```
+A single game UI icon on a solid magenta (#FF00FF) background. 128x128 pixels.
+Bold black outlines, flat color fills, no gradients. The icon is a simple
+{symbol_description}. Colors: {color_description}. The icon should be
+instantly readable at 36x36 pixels — keep the shape bold and simple with
+no fine details. No text, no effects, no shadow.
+```
+
+---
+
 ## Asset Pipeline Summary
 
 | Asset Type | Source Size | Display Size | Gen Script | Process Script | Output Path |
@@ -129,3 +200,5 @@ no fine details. No text, no effects, no shadow.
 | NPC portraits | 512x512 | 48-80px | `generate_npc_portraits.py` | `process_npc_portraits.sh` | `assets/sprites/npcs/` |
 | Status icons | 128x128 | 22x22 | `generate_icons.py --type status` | `process_icons.sh` | `assets/sprites/icons/status/` |
 | Room icons | 128x128 | 24x24 | `generate_icons.py --type room` | `process_icons.sh` | `assets/sprites/icons/rooms/` |
+| Chassis icons | 128x128 | 36x36 | `generate_icons.py --type chassis` | `process_icons.sh` | `assets/sprites/icons/chassis/` |
+| Equipment icons | 128x128 | 36x36 | `generate_icons.py --type equipment` | `process_icons.sh` | `assets/sprites/icons/equipment/` |
