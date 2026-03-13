@@ -24,7 +24,7 @@ Implementation:
 - Support `--id zapplet` for single species, `--all` for batch, `--state idle` for single state
 - Output to `raw/sheets/{species_id}/{state}.png`
 
-**Status:** Not Started
+**Status:** Complete
 
 ---
 
@@ -44,8 +44,9 @@ Implementation:
 - Output to `assets/sprites/glyphs/sheets/{species_id}_sheet.png`
 - Run `godot --headless --import` at the end
 - Support single species or batch processing
+- **Note:** Gemini produces 2x2 grids (not strips) for 4-frame states. Script auto-detects grid vs strip layout based on aspect ratio.
 
-**Status:** Not Started
+**Status:** Complete
 
 ---
 
@@ -85,7 +86,7 @@ Implementation:
 - Frame size: 128x128, sheet is 512x512 (4 cols × 4 rows)
 - Fallback: if sheet doesn't exist, creates a TextureRect with the static portrait instead
 
-**Status:** Not Started
+**Status:** Complete (43 tests pass)
 
 ---
 
