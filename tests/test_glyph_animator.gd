@@ -2,9 +2,15 @@ extends SceneTree
 
 var pass_count: int = 0
 var fail_count: int = 0
+var _data_loader: Node = null
 
 
 func _init() -> void:
+	var dl_script: GDScript = load("res://core/data_loader.gd") as GDScript
+	_data_loader = dl_script.new() as Node
+	_data_loader.name = "DataLoader"
+	root.add_child(_data_loader)
+
 	await process_frame
 	_run_tests()
 	quit()
@@ -28,6 +34,11 @@ func _run_tests() -> void:
 	_test_set_species()
 	_test_play_unknown_anim()
 	_test_fallback_emits_finished()
+	_test_glyph_panel_with_animator()
+	_test_glyph_panel_fallback()
+	_test_glyph_panel_play_attack()
+	_test_glyph_panel_play_hit()
+	_test_glyph_panel_play_ko()
 
 	print("")
 	print("========================================")
@@ -297,3 +308,107 @@ func _test_fallback_emits_finished() -> void:
 	_assert(result["count"] == 1, "fallback play emits animation_finished")
 
 	_cleanup_node(animator)
+
+
+# ==========================================================================
+# GlyphPanel Integration Tests
+# ==========================================================================
+
+func _test_glyph_panel_with_animator() -> void:
+	print("--- GlyphPanel: Animator Integration ---")
+	var sp: GlyphSpecies = _data_loader.get_species("zapplet")
+	var g: GlyphInstance = GlyphInstance.create_from_species(sp, _data_loader)
+
+	var panel: GlyphPanel = GlyphPanel.new()
+	panel.glyph = g
+	root.add_child(panel)
+
+	_assert(panel._animator != null, "GlyphPanel creates animator")
+	_assert(panel._animator.has_animations, "GlyphPanel animator has zapplet sheet")
+	_assert(panel._affinity_rect.visible == false, "Affinity rect hidden when sheet exists")
+	_assert(panel._art_initial_label.visible == false, "Initial label hidden when sheet exists")
+
+	_cleanup_node(panel)
+
+
+func _test_glyph_panel_fallback() -> void:
+	print("--- GlyphPanel: Fallback (No Sheet) ---")
+	## Use a species without a sprite sheet
+	var sp: GlyphSpecies = _data_loader.get_species("stonepaw")
+	var g: GlyphInstance = GlyphInstance.create_from_species(sp, _data_loader)
+
+	var panel: GlyphPanel = GlyphPanel.new()
+	panel.glyph = g
+	root.add_child(panel)
+
+	_assert(panel._animator != null, "GlyphPanel creates animator even for fallback")
+	_assert(not panel._animator.has_animations, "stonepaw has no sheet")
+	## Static portrait should be visible
+	_assert(panel._affinity_rect.visible, "Affinity rect visible for fallback")
+
+	_cleanup_node(panel)
+
+
+func _test_glyph_panel_play_attack() -> void:
+	print("--- GlyphPanel: play_attack triggers sprite ---")
+	var sp: GlyphSpecies = _data_loader.get_species("zapplet")
+	var g: GlyphInstance = GlyphInstance.create_from_species(sp, _data_loader)
+
+	var panel: GlyphPanel = GlyphPanel.new()
+	panel.glyph = g
+	root.add_child(panel)
+
+	panel._animator.instant_mode = true
+	var result: Dictionary = {"played_attack": false}
+	panel._animator.animation_finished.connect(func() -> void:
+		if panel._animator.get_current_animation() == "idle":
+			result["played_attack"] = true  ## Attack finished → returned to idle
+	)
+	panel.play_attack(Vector2(200, 0))
+
+	## In instant_mode, attack plays → finishes → returns to idle
+	_assert(panel._animator.get_current_animation() == "idle", "play_attack returns to idle after finish")
+	_assert(result["played_attack"], "attack animation was played then idle resumed")
+
+	_cleanup_node(panel)
+
+
+func _test_glyph_panel_play_hit() -> void:
+	print("--- GlyphPanel: play_hit triggers sprite ---")
+	var sp: GlyphSpecies = _data_loader.get_species("zapplet")
+	var g: GlyphInstance = GlyphInstance.create_from_species(sp, _data_loader)
+
+	var panel: GlyphPanel = GlyphPanel.new()
+	panel.glyph = g
+	root.add_child(panel)
+
+	panel._animator.instant_mode = true
+	var result: Dictionary = {"played_hurt": false}
+	panel._animator.animation_finished.connect(func() -> void:
+		if panel._animator.get_current_animation() == "idle":
+			result["played_hurt"] = true  ## Hurt finished → returned to idle
+	)
+	panel.play_hit()
+
+	## In instant_mode, hurt plays → finishes → returns to idle
+	_assert(panel._animator.get_current_animation() == "idle", "play_hit returns to idle after finish")
+	_assert(result["played_hurt"], "hurt animation was played then idle resumed")
+
+	_cleanup_node(panel)
+
+
+func _test_glyph_panel_play_ko() -> void:
+	print("--- GlyphPanel: play_ko triggers sprite ---")
+	var sp: GlyphSpecies = _data_loader.get_species("zapplet")
+	var g: GlyphInstance = GlyphInstance.create_from_species(sp, _data_loader)
+
+	var panel: GlyphPanel = GlyphPanel.new()
+	panel.glyph = g
+	root.add_child(panel)
+
+	panel._animator.instant_mode = true
+	panel.play_ko()
+
+	_assert(panel._animator.get_current_animation() == "ko", "play_ko triggers ko sprite anim")
+
+	_cleanup_node(panel)

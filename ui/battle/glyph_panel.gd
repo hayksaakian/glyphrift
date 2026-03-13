@@ -61,6 +61,7 @@ var _art_container: PanelContainer = null
 var _active_border: Panel = null
 var _row_badge: PanelContainer = null
 var _mastery_stars: Label = null
+var _animator: GlyphAnimator = null
 
 
 func _ready() -> void:
@@ -91,7 +92,8 @@ func refresh() -> void:
 	var aff_color: Color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
 	_affinity_rect.color = aff_color
 	_art_initial_label.text = glyph.species.name[0].to_upper() if glyph.species else "?"
-	GlyphArt.apply_texture(_art_container, _affinity_rect, _art_initial_label, glyph.species.id if glyph.species else "", 60)
+	var species_id: String = glyph.species.id if glyph.species else ""
+	_setup_animator(species_id)
 
 	## HP bar
 	_hp_bar.max_value = glyph.max_hp
@@ -161,6 +163,8 @@ func flash_heal() -> void:
 
 
 func play_ko() -> void:
+	if _animator != null and _animator.has_animations:
+		_animator.play("ko")
 	var tween: Tween = create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(self, "modulate", Color(0.3, 0.3, 0.3, 0.5), 0.5)
@@ -169,7 +173,9 @@ func play_ko() -> void:
 
 
 func play_hit() -> void:
-	## Shake + white flash on damage received
+	## Sprite hurt animation + shake + white flash
+	if _animator != null and _animator.has_animations:
+		_animator.play("hurt")
 	var original_pos: Vector2 = position
 	var tween: Tween = create_tween()
 	tween.tween_property(self, "modulate", Color(2.0, 2.0, 2.0), 0.05)
@@ -182,7 +188,9 @@ func play_hit() -> void:
 
 
 func play_attack(target_pos: Vector2) -> void:
-	## Lunge toward target position, then snap back
+	## Sprite attack animation + lunge toward target
+	if _animator != null and _animator.has_animations:
+		_animator.play("attack")
 	var original_pos: Vector2 = position
 	var direction: Vector2 = (target_pos - original_pos).normalized()
 	var lunge_pos: Vector2 = original_pos + direction * 30.0
@@ -403,6 +411,41 @@ func _build_ui() -> void:
 	panel_style.corner_radius_bottom_left = 4
 	panel_style.corner_radius_bottom_right = 4
 	add_theme_stylebox_override("panel", panel_style)
+
+
+func _setup_animator(species_id: String) -> void:
+	## Try to set up animated sprite from sheet. Falls back to static portrait.
+	if _animator == null:
+		_animator = GlyphAnimator.new()
+		_animator.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_animator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_animator.animation_finished.connect(_on_animator_finished)
+		_art_container.add_child(_animator)
+
+	_animator.setup(species_id)
+
+	if _animator.has_animations:
+		## Hide static art elements — animator handles display
+		_affinity_rect.visible = false
+		_art_initial_label.visible = false
+		## Hide any existing GlyphTexture from GlyphArt
+		var existing_tex: TextureRect = _art_container.get_node_or_null("GlyphTexture") as TextureRect
+		if existing_tex != null:
+			existing_tex.visible = false
+	else:
+		## No sheet — use standard static portrait
+		_animator.visible = false
+		GlyphArt.apply_texture(_art_container, _affinity_rect, _art_initial_label, species_id, 60)
+
+
+func _on_animator_finished() -> void:
+	## Return to idle after attack/hurt animations finish
+	if _animator == null or not _animator.has_animations:
+		return
+	var current: String = _animator.get_current_animation()
+	if current == "attack" or current == "hurt":
+		_animator.play("idle")
+	## KO stays on last frame — no return to idle
 
 
 func flash_status(status_id: String) -> void:

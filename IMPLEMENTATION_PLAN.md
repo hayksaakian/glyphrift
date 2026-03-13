@@ -115,7 +115,7 @@ Implementation:
 - Ensure `instant_mode` propagation: BattleScene.instant_mode → AnimationQueue.instant_mode → GlyphAnimator.instant_mode
 - Fallback: if GlyphAnimator has no sheet, all events just play tweens as before (no regression)
 
-**Status:** Not Started
+**Status:** Complete (55 tests, 1800 total)
 
 ---
 
