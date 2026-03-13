@@ -548,23 +548,41 @@ func _build_npc_card(parent: Control, npc_name: String, npc_title: String, npc_c
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(center)
 
-	var art: ColorRect = ColorRect.new()
+	var npc_id: String = npc_name.to_lower()
+	var npc_tex: Texture2D = GameArt.get_npc_portrait(npc_id)
+
+	## Container for portrait art (either texture or colored square fallback)
+	var art: Control = Control.new()
 	art.custom_minimum_size = Vector2(48, 48)
-	art.color = npc_color
 	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(art)
 
-	var initial: Label = Label.new()
-	initial.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	initial.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	initial.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	initial.add_theme_font_size_override("font_size", 22)
-	initial.add_theme_color_override("font_color", Color.WHITE)
-	initial.add_theme_color_override("font_outline_color", Color.BLACK)
-	initial.add_theme_constant_override("outline_size", 3)
-	initial.text = npc_name[0].to_upper()
-	initial.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	art.add_child(initial)
+	if npc_tex != null:
+		var tex_rect: TextureRect = TextureRect.new()
+		tex_rect.texture = npc_tex
+		tex_rect.custom_minimum_size = Vector2(48, 48)
+		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		art.add_child(tex_rect)
+	else:
+		var color_bg: ColorRect = ColorRect.new()
+		color_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		color_bg.color = npc_color
+		color_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		art.add_child(color_bg)
+		var initial: Label = Label.new()
+		initial.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		initial.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		initial.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		initial.add_theme_font_size_override("font_size", 22)
+		initial.add_theme_color_override("font_color", Color.WHITE)
+		initial.add_theme_color_override("font_outline_color", Color.BLACK)
+		initial.add_theme_constant_override("outline_size", 3)
+		initial.text = npc_name[0].to_upper()
+		initial.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		color_bg.add_child(initial)
 
 	## Unread indicator (top-right of portrait)
 	var indicator: Label = Label.new()

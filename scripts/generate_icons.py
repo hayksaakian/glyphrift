@@ -69,8 +69,9 @@ ROOM_PROMPTS = {
         f"centered on canvas. {ICON_STYLE}"
     ),
     "exit": (
-        "A single game UI icon: descending stairs viewed from above, three steps going down. "
-        "Blue (#4488FF) with lighter blue step edges. Indicates a floor exit or descent, "
+        "A single game UI icon: a bold downward-pointing arrow inside a square or arch shape. "
+        "Solid blue (#4488FF) arrow on a darker blue background shape. Flat color only — "
+        "absolutely no gradient, no shading, no 3D effect. Indicates a floor exit or descent, "
         f"centered on canvas. {ICON_STYLE}"
     ),
     "enemy": (
@@ -84,13 +85,15 @@ ROOM_PROMPTS = {
         f"centered on canvas. {ICON_STYLE}"
     ),
     "puzzle": (
-        "A single game UI icon: a bold question mark inside a circle or gem shape. "
-        "Purple (#AA44FF) background shape with a white question mark. Indicates a mystery, "
-        f"centered on canvas. {ICON_STYLE}"
+        "A single game UI icon: a large solid purple (#AA44FF) filled circle with a bold white "
+        "question mark '?' in the center. The purple circle must be FILLED with color, not just "
+        "an outline. The question mark is bright white. Think of a purple coin or badge with a "
+        f"white '?' on it. Centered on canvas. {ICON_STYLE}"
     ),
     "cache": (
-        "A single game UI icon: a small closed treasure chest. "
-        "Gold (#FFD700) lid and clasp with brown chest body and a white highlight. "
+        "A single game UI icon: a small closed treasure chest in cartoon vector style. "
+        "Gold (#FFD700) lid and clasp with brown (#8B4513) chest body. Smooth curved outlines, "
+        "NOT pixel art — smooth anti-aliased vector lines like a mobile game icon. "
         f"Indicates loot or treasure, centered on canvas. {ICON_STYLE}"
     ),
     "hidden": (
@@ -104,9 +107,10 @@ ROOM_PROMPTS = {
         f"centered on canvas. {ICON_STYLE}"
     ),
     "empty": (
-        "A single game UI icon: a simple hollow circle, like a dot or ring. "
-        "Grey (#888888) with a slightly darker grey outline. Indicates an empty or "
-        f"unremarkable location, centered on canvas. {ICON_STYLE}"
+        "A single game UI icon: a simple small solid grey circle or dot. "
+        "Flat grey (#888888) fill with a black outline. No gradient, no 3D effect, no ring shape — "
+        "just a plain filled circle. Indicates an empty or unremarkable location, "
+        f"centered on canvas. {ICON_STYLE}"
     ),
 }
 

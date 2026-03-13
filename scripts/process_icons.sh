@@ -20,46 +20,84 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 STATUS_IDS=(burn stun weaken slow corrode shield)
 ROOM_IDS=(start exit enemy hazard puzzle cache hidden boss empty)
 
-FUZZ="5%"
+FUZZ="35%"
 TARGET_SIZE=128
 
 process_icon() {
   local src="$1"
   local output="$2"
 
-  ## Detect background color
+  ## Detect background color from top-left corner
   local bg_sample
   bg_sample="$(magick "$src" -crop 1x1+5+5 +repage -format '%[hex:p{0,0}]' info: 2>/dev/null)"
-  local bg_fuzz="$FUZZ"
-  local fill_target="white"
-  local border_col="white"
 
-  if [[ "$bg_sample" == *"FF00FF"* ]] || [[ "$bg_sample" == *"ff00ff"* ]]; then
-    fill_target="rgb(255,0,255)"
-    border_col="rgb(255,0,255)"
+  ## Check for magenta-ish background (Gemini often produces near-magenta like FE06FA)
+  local r g b is_magenta=0
+  r=$((16#${bg_sample:0:2}))
+  g=$((16#${bg_sample:2:2}))
+  b=$((16#${bg_sample:4:2}))
+  if (( r > 200 && g < 50 && b > 200 )); then
+    is_magenta=1
   fi
 
-  ## Background removal + resize to target
-  local src_dims
-  src_dims="$(magick identify -format '%w %h' "$src")"
-  local src_w src_h
-  src_w="$(echo "$src_dims" | cut -d' ' -f1)"
-  src_h="$(echo "$src_dims" | cut -d' ' -f2)"
-  local br_x=$((src_w))
-  local br_y=$((src_h))
+  ## Remove background: flood-fill from corners for magenta (preserves purple/pink
+  ## interior colors that global -transparent would strip), then decontaminate edges
+  if (( is_magenta )); then
+    local src_dims src_w src_h br_x br_y
+    src_dims="$(magick identify -format '%w %h' "$src")"
+    src_w="$(echo "$src_dims" | cut -d' ' -f1)"
+    src_h="$(echo "$src_dims" | cut -d' ' -f2)"
+    br_x=$((src_w))
+    br_y=$((src_h))
 
-  magick "$src" \
-    -bordercolor "$border_col" -border 1 \
-    -fuzz "$bg_fuzz" -fill none \
-    -floodfill +0+0 "$fill_target" \
-    -floodfill "+0+${br_y}" "$fill_target" \
-    -floodfill "+${br_x}+0" "$fill_target" \
-    -floodfill "+${br_x}+${br_y}" "$fill_target" \
-    -shave 1x1 \
-    -trim +repage \
-    -resize "${TARGET_SIZE}x${TARGET_SIZE}" \
-    -gravity center -background none -extent "${TARGET_SIZE}x${TARGET_SIZE}" \
-    "$output"
+    local tmp_flood tmp_rgb tmp_mask tmp_clean
+    tmp_flood="$(mktemp /tmp/icon_flood_XXXXXX.png)"
+    tmp_rgb="$(mktemp /tmp/icon_rgb_XXXXXX.png)"
+    tmp_mask="$(mktemp /tmp/icon_mask_XXXXXX.png)"
+    tmp_clean="$(mktemp /tmp/icon_clean_XXXXXX.png)"
+
+    ## Flood-fill from corners only — won't touch interior purple/pink
+    magick "$src" \
+      -bordercolor "rgb($r,$g,$b)" -border 1 \
+      -fuzz 15% -fill none \
+      -floodfill +0+0 "rgb($r,$g,$b)" \
+      -floodfill "+0+${br_y}" "rgb($r,$g,$b)" \
+      -floodfill "+${br_x}+0" "rgb($r,$g,$b)" \
+      -floodfill "+${br_x}+${br_y}" "rgb($r,$g,$b)" \
+      -shave 1x1 \
+      "$tmp_flood"
+
+    ## Decontaminate edge RGB (flatten onto black) + erode alpha
+    magick "$tmp_flood" -background black -alpha remove -alpha off "$tmp_rgb"
+    magick "$tmp_flood" -alpha extract -morphology Erode Disk:1 "$tmp_mask"
+    magick "$tmp_rgb" "$tmp_mask" -compose CopyOpacity -composite "$tmp_clean"
+    magick "$tmp_clean" -trim +repage \
+      -resize "${TARGET_SIZE}x${TARGET_SIZE}" \
+      -gravity center -background none -extent "${TARGET_SIZE}x${TARGET_SIZE}" \
+      "$output"
+    rm -f "$tmp_flood" "$tmp_rgb" "$tmp_mask" "$tmp_clean"
+  else
+    local src_dims
+    src_dims="$(magick identify -format '%w %h' "$src")"
+    local src_w src_h
+    src_w="$(echo "$src_dims" | cut -d' ' -f1)"
+    src_h="$(echo "$src_dims" | cut -d' ' -f2)"
+    local br_x=$((src_w))
+    local br_y=$((src_h))
+
+    magick "$src" \
+      -bordercolor white -border 1 \
+      -fuzz "$FUZZ" -fill none \
+      -floodfill +0+0 white \
+      -floodfill "+0+${br_y}" white \
+      -floodfill "+${br_x}+0" white \
+      -floodfill "+${br_x}+${br_y}" white \
+      -shave 1x1 \
+      -trim +repage \
+      -resize "${TARGET_SIZE}x${TARGET_SIZE}" \
+      -gravity center -background none -extent "${TARGET_SIZE}x${TARGET_SIZE}" \
+      "$output"
+  fi
 }
 
 process_set() {
@@ -142,5 +180,14 @@ case "${1:-all}" in
     ;;
 esac
 
+echo ""
+echo "Running Godot headless import..."
+GODOT="${GODOT:-godot}"
+if command -v "$GODOT" &>/dev/null; then
+  "$GODOT" --headless --import 2>/dev/null
+  echo "Import complete — new icons are ready to use."
+else
+  echo "WARNING: godot not found in PATH. Run 'godot --headless --import' manually."
+fi
 echo ""
 echo "All done."

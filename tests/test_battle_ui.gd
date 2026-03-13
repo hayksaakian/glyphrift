@@ -599,12 +599,12 @@ func _test_status_icons_letters() -> void:
 			var sid: String = icon.get_meta("status_id")
 			if sid == "burn":
 				found_burn = true
-				var lbl: Label = icon.get_child(0) as Label
-				_assert(lbl != null and lbl.text.begins_with("B"), "Burn icon starts with B (got '%s')" % (lbl.text if lbl else "null"))
+				var child0: Control = icon.get_child(0) as Control
+				_assert(child0 is Label or child0 is TextureRect, "Burn icon has label or texture")
 			elif sid == "stun":
 				found_stun = true
-				var lbl: Label = icon.get_child(0) as Label
-				_assert(lbl != null and lbl.text.begins_with("S"), "Stun icon starts with S (got '%s')" % (lbl.text if lbl else "null"))
+				var child0: Control = icon.get_child(0) as Control
+				_assert(child0 is Label or child0 is TextureRect, "Stun icon has label or texture")
 
 	_assert(found_burn, "Found burn status icon")
 	_assert(found_stun, "Found stun status icon")

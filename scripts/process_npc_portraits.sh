@@ -17,7 +17,7 @@ RAW_DIR="${1:-$PROJECT_DIR/raw/npcs}"
 OUTPUT_DIR="$PROJECT_DIR/assets/sprites/npcs"
 
 VALID_IDS=(kael lira maro)
-FUZZ="12%"
+FUZZ="35%"
 TARGET_SIZE=512
 FILL_PCT=80
 
@@ -36,51 +36,68 @@ process_one() {
   local npc_id="$2"
   local output="$OUTPUT_DIR/${npc_id}.png"
 
-  ## Detect background color
+  ## Detect background color from top-left corner
   local bg_sample
   bg_sample="$(magick "$src" -crop 1x1+5+5 +repage -format '%[hex:p{0,0}]' info: 2>/dev/null)"
   local bg_color="white"
-  local bg_fuzz="$FUZZ"
-  if [[ "$bg_sample" == *"FF00FF"* ]] || [[ "$bg_sample" == *"ff00ff"* ]]; then
-    bg_color="magenta"
-    bg_fuzz="5%"
-    echo "  background: magenta"
+  local is_magenta=0
+
+  ## Check for magenta-ish background (Gemini often produces near-magenta like FE06FA)
+  local r g b
+  r=$((16#${bg_sample:0:2}))
+  g=$((16#${bg_sample:2:2}))
+  b=$((16#${bg_sample:4:2}))
+  if (( r > 200 && g < 50 && b > 200 )); then
+    is_magenta=1
+    bg_color="rgb($r,$g,$b)"
+    echo "  background: magenta-like ($bg_sample)"
   fi
 
-  ## Background removal from edges
-  local src_dims
-  src_dims="$(magick identify -format '%w %h' "$src")"
-  local src_w src_h
-  src_w="$(echo "$src_dims" | cut -d' ' -f1)"
-  src_h="$(echo "$src_dims" | cut -d' ' -f2)"
-  local br_x=$((src_w))
-  local br_y=$((src_h))
+  ## Remove background: use -transparent for magenta (covers all regions),
+  ## flood-fill from edges for white backgrounds
+  if (( is_magenta )); then
+    ## Decontamination pipeline: global -transparent (safe for NPC portraits which
+    ## have no purple/pink interior fills) + flatten onto black + erode alpha
+    local tmp_alpha tmp_rgb tmp_mask tmp_clean
+    tmp_alpha="$(mktemp /tmp/npc_alpha_XXXXXX.png)"
+    tmp_rgb="$(mktemp /tmp/npc_rgb_XXXXXX.png)"
+    tmp_mask="$(mktemp /tmp/npc_mask_XXXXXX.png)"
+    tmp_clean="$(mktemp /tmp/npc_clean_XXXXXX.png)"
 
-  local fill_target="white"
-  local border_col="white"
-  if [[ "$bg_color" == "magenta" ]]; then
-    fill_target="rgb(255,0,255)"
-    border_col="rgb(255,0,255)"
+    magick "$src" -fuzz "$FUZZ" -transparent "$bg_color" "$tmp_alpha"
+    magick "$tmp_alpha" -background black -alpha remove -alpha off "$tmp_rgb"
+    magick "$tmp_alpha" -alpha extract -morphology Erode Disk:1 "$tmp_mask"
+    magick "$tmp_rgb" "$tmp_mask" -compose CopyOpacity -composite "$tmp_clean"
+    magick "$tmp_clean" -trim +repage \
+      -resize "${TARGET_SIZE}x${TARGET_SIZE}" \
+      -gravity center -background none -extent "${TARGET_SIZE}x${TARGET_SIZE}" \
+      "$output"
+    rm -f "$tmp_alpha" "$tmp_rgb" "$tmp_mask" "$tmp_clean"
+  else
+    local src_dims
+    src_dims="$(magick identify -format '%w %h' "$src")"
+    local src_w src_h
+    src_w="$(echo "$src_dims" | cut -d' ' -f1)"
+    src_h="$(echo "$src_dims" | cut -d' ' -f2)"
+    local br_x=$((src_w))
+    local br_y=$((src_h))
+
+    magick "$src" \
+      -bordercolor white -border 1 \
+      -fuzz "$FUZZ" -fill none \
+      -floodfill +0+0 white \
+      -floodfill "+0+${br_y}" white \
+      -floodfill "+${br_x}+0" white \
+      -floodfill "+${br_x}+${br_y}" white \
+      -shave 1x1 \
+      -trim +repage \
+      -resize "${TARGET_SIZE}x${TARGET_SIZE}" \
+      -gravity center -background none -extent "${TARGET_SIZE}x${TARGET_SIZE}" \
+      "$output"
   fi
 
-  magick "$src" \
-    -bordercolor "$border_col" -border 1 \
-    -fuzz "$bg_fuzz" -fill none \
-    -floodfill +0+0 "$fill_target" \
-    -floodfill "+0+${br_y}" "$fill_target" \
-    -floodfill "+${br_x}+0" "$fill_target" \
-    -floodfill "+${br_x}+${br_y}" "$fill_target" \
-    -shave 1x1 \
-    -trim +repage \
-    -resize "${TARGET_SIZE}x${TARGET_SIZE}" \
-    -gravity center -background none -extent "${TARGET_SIZE}x${TARGET_SIZE}" \
-    "$output"
-
-  ## AI cleanup for interior pockets (same as glyph pipeline)
-  if command -v python3 &>/dev/null && [[ -f "$SCRIPT_DIR/cleanup_sprites.py" ]]; then
-    python3 "$SCRIPT_DIR/cleanup_sprites.py" "$output" \
-      --bg-color "$bg_color" --fuzz "$bg_fuzz" 2>&1 | sed 's/^/  /' || true
-  fi
+  ## Note: AI cleanup (cleanup_sprites.py) not needed — decontamination pipeline
+  ## already handles edge fringe via flood-fill + black flatten + alpha erosion
 
   echo "  output: $output"
 }
@@ -127,4 +144,15 @@ done
 echo ""
 echo "=========================================="
 echo "Done: $processed processed"
+if [[ $processed -gt 0 ]]; then
+  echo ""
+  echo "Running Godot headless import..."
+  GODOT="${GODOT:-godot}"
+  if command -v "$GODOT" &>/dev/null; then
+    "$GODOT" --headless --import 2>/dev/null
+    echo "Import complete — new portraits are ready to use."
+  else
+    echo "WARNING: godot not found in PATH. Run 'godot --headless --import' manually."
+  fi
+fi
 echo ""

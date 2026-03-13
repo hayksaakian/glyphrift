@@ -255,15 +255,19 @@ func _test_room_node_states() -> void:
 	## Revealed
 	node.set_state(RoomNode.RoomState.REVEALED)
 	_assert(node.state == RoomNode.RoomState.REVEALED, "State set to REVEALED")
-	_assert(node._icon_label.text == "!", "Revealed enemy shows !")
-	_assert(node._icon_label.modulate.a < 1.0, "Revealed has reduced opacity")
+	var has_icon: bool = node._icon_texture.visible or node._icon_label.text == "!"
+	_assert(has_icon, "Revealed enemy shows icon or texture")
+	var revealed_alpha: float = node._icon_texture.modulate.a if node._icon_texture.visible else node._icon_label.modulate.a
+	_assert(revealed_alpha < 1.0, "Revealed has reduced opacity")
 	_assert(not node._border_panel.visible, "Revealed has no border")
 
 	## Visited
 	node.set_state(RoomNode.RoomState.VISITED)
 	_assert(node.state == RoomNode.RoomState.VISITED, "State set to VISITED")
-	_assert(node._icon_label.text == "!", "Visited enemy shows !")
-	_assert(is_equal_approx(node._icon_label.modulate.a, 1.0), "Visited has full opacity")
+	has_icon = node._icon_texture.visible or node._icon_label.text == "!"
+	_assert(has_icon, "Visited enemy shows icon or texture")
+	var visited_alpha: float = node._icon_texture.modulate.a if node._icon_texture.visible else node._icon_label.modulate.a
+	_assert(is_equal_approx(visited_alpha, 1.0), "Visited has full opacity")
 	_assert(not node._border_panel.visible, "Visited has no border")
 
 	## Current (border now hidden — crawler token shows position)
@@ -290,7 +294,9 @@ func _test_room_node_icons() -> void:
 		var node: RoomNode = RoomNode.new()
 		root.add_child(node)
 		node.setup({"id": "test", "x": 0, "y": 0, "type": room_type, "visited": true, "revealed": true})
-		_assert(node._icon_label.text == types_and_icons[room_type], "Type '%s' shows correct icon '%s'" % [room_type, types_and_icons[room_type]])
+		## Accept either texture icon or unicode fallback label
+		var shows_icon: bool = node._icon_texture.visible or node._icon_label.text == types_and_icons[room_type]
+		_assert(shows_icon, "Type '%s' shows icon texture or fallback '%s'" % [room_type, types_and_icons[room_type]])
 		_cleanup_node(node)
 
 
