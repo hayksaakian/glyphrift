@@ -357,7 +357,7 @@ func _on_capture_requested(wild_glyph: GlyphInstance) -> void:
 	var added_to_squad: bool = false
 	var squad_has_slot: bool = roster_state.active_squad.size() < crawler_state.slots
 	var squad_gp: int = _get_squad_gp()
-	var would_exceed_gp: bool = squad_gp + wild_glyph.get_gp_cost() > crawler_state.capacity
+	var would_exceed_gp: bool = squad_gp + wild_glyph.get_gp_cost() > crawler_state.get_effective_capacity()
 	if squad_has_slot and not would_exceed_gp:
 		roster_state.add_glyph(wild_glyph)
 		roster_state.active_squad.append(wild_glyph)

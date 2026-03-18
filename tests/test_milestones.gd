@@ -218,7 +218,7 @@ func _test_seal_major_rift() -> void:
 	var major: RiftTemplate = _data_loader.get_rift_template("major_01")
 	mt.on_rift_completed(major, true)
 	_assert(mt.is_completed("seal_major_rift"), "Seal major rift milestone completed")
-	_assert(mt.crawler_state.capacity == initial_capacity + 2, "Capacity increased by 2 (got %d)" % mt.crawler_state.capacity)
+	_assert(mt.crawler_state.capacity == initial_capacity + 3, "Capacity increased by 3 (got %d)" % mt.crawler_state.capacity)
 
 	_cleanup_crawler(mt)
 

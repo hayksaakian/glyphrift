@@ -429,7 +429,7 @@
     "name": "Solstice",
     "tier": 2,
     "affinity": "neutral",
-    "gp_cost": 3,
+    "gp_cost": 4,
     "base_hp": 22,
     "base_atk": 17,
     "base_def": 18,

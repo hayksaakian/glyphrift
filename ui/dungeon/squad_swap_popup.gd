@@ -162,7 +162,7 @@ func _refresh() -> void:
 
 	## Update status
 	var squad_gp: int = _get_squad_gp()
-	var max_gp: int = crawler_state.capacity if crawler_state else 12
+	var max_gp: int = crawler_state.get_effective_capacity() if crawler_state else 12
 	var squad_size: int = roster_state.active_squad.size() if roster_state else 0
 	var max_slots: int = crawler_state.slots if crawler_state else 3
 	var bench_size: int = _get_bench_glyphs().size()
@@ -333,8 +333,8 @@ func _deploy_glyph(g: GlyphInstance) -> void:
 		_refresh()
 		return
 	var current_gp: int = _get_squad_gp()
-	if current_gp + g.get_gp_cost() > crawler_state.capacity:
-		_show_feedback("Not enough GP! (%d + %d > %d)" % [current_gp, g.get_gp_cost(), crawler_state.capacity])
+	if current_gp + g.get_gp_cost() > crawler_state.get_effective_capacity():
+		_show_feedback("Not enough GP! (%d + %d > %d)" % [current_gp, g.get_gp_cost(), crawler_state.get_effective_capacity()])
 		return
 	var new_squad: Array[GlyphInstance] = roster_state.active_squad.duplicate()
 	new_squad.append(g)
@@ -356,8 +356,8 @@ func _execute_direct_swap(bench_glyph: GlyphInstance, squad_glyph: GlyphInstance
 	## Check GP: remove squad glyph's GP, add bench glyph's GP
 	var current_gp: int = _get_squad_gp()
 	var new_gp: int = current_gp - squad_glyph.get_gp_cost() + bench_glyph.get_gp_cost()
-	if new_gp > crawler_state.capacity:
-		_show_feedback("Not enough GP! (%d > %d)" % [new_gp, crawler_state.capacity])
+	if new_gp > crawler_state.get_effective_capacity():
+		_show_feedback("Not enough GP! (%d > %d)" % [new_gp, crawler_state.get_effective_capacity()])
 		_swap_source = null
 		_refresh()
 		return

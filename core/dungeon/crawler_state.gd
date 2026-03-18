@@ -73,6 +73,10 @@ func get_effective_energy() -> int:
 	return max_energy + _get_equipment_value("energy_bonus")
 
 
+func get_effective_capacity() -> int:
+	return capacity + _get_equipment_value("capacity_bonus")
+
+
 func get_effective_bench_slots() -> int:
 	var total: int = bench_slots
 	if active_chassis == "hauler":

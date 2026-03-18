@@ -177,7 +177,7 @@ func _refresh_stats() -> void:
 	var stats: Array[Dictionary] = [
 		{"label": "Hull HP", "value": str(eff_hull), "bonus": eff_hull != crawler_state.max_hull_hp},
 		{"label": "Energy", "value": str(eff_energy), "bonus": eff_energy != crawler_state.max_energy},
-		{"label": "Capacity (CP)", "value": str(crawler_state.capacity), "bonus": false},
+		{"label": "Capacity (CP)", "value": str(crawler_state.get_effective_capacity()), "bonus": crawler_state.get_effective_capacity() != crawler_state.capacity},
 		{"label": "Squad Slots", "value": str(crawler_state.slots), "bonus": false},
 		{"label": "Bench Slots", "value": str(eff_bench), "bonus": eff_bench != crawler_state.bench_slots},
 	]

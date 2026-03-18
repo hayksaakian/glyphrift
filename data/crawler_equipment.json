@@ -70,5 +70,14 @@
     "effect_type": "capture_bonus",
     "effect_value": 20,
     "rarity": "rare"
+  },
+  {
+    "id": "resonance_core",
+    "name": "Resonance Core",
+    "slot": "accessory",
+    "description": "+2 squad capacity (CP) for the run.",
+    "effect_type": "capacity_bonus",
+    "effect_value": 2,
+    "rarity": "rare"
   }
 ]

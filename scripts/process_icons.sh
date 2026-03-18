@@ -20,7 +20,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 STATUS_IDS=(burn stun weaken slow corrode shield)
 ROOM_IDS=(start exit enemy hazard puzzle cache hidden boss empty)
 CHASSIS_IDS=(standard ironclad scout hauler)
-EQUIPMENT_IDS=(scan_amplifier energy_recycler affinity_filter capacitor_cell hull_plating cargo_rack repair_drone trophy_mount)
+EQUIPMENT_IDS=(scan_amplifier energy_recycler affinity_filter capacitor_cell hull_plating cargo_rack repair_drone trophy_mount resonance_core)
 
 FUZZ="35%"
 TARGET_SIZE=128

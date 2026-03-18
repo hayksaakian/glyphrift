@@ -337,7 +337,7 @@ func _run_tests() -> void:
 	var solstice_sp: GlyphSpecies = _data_loader.get_species("solstice")
 	var sol_ok: bool = (
 		solstice_sp.base_hp == 22 and solstice_sp.base_atk == 17 and solstice_sp.base_def == 18
-		and solstice_sp.base_spd == 16 and solstice_sp.base_res == 17 and solstice_sp.gp_cost == 3
+		and solstice_sp.base_spd == 16 and solstice_sp.base_res == 17 and solstice_sp.gp_cost == 4
 		and solstice_sp.tier == 2 and solstice_sp.affinity == "neutral"
 	)
 	if sol_ok:

@@ -181,6 +181,11 @@ EQUIPMENT_PROMPTS = {
         "Gold (#FFD700) with white highlight gleam. Boosts capture chance. "
         f"Centered on canvas. {ICON_STYLE}"
     ),
+    "resonance_core": (
+        "A single game UI icon: a glowing crystal orb or core with concentric resonance rings around it. "
+        "Deep purple (#8844CC) with bright violet (#CC66FF) inner glow. Amplifies squad capacity. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
 }
 
 ALL_PROMPT_SETS = {

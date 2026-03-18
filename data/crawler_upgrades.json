@@ -48,8 +48,8 @@
     "id": "seal_major_rift",
     "milestone": "Seal a Major Rift",
     "type": "capacity",
-    "value": 2,
-    "description": "+2 Capacity (CP)"
+    "value": 3,
+    "description": "+3 Capacity (CP)"
   },
   {
     "id": "seal_apex_rift",

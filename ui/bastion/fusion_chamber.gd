@@ -490,7 +490,7 @@ func _show_preview(preview: Dictionary) -> void:
 	_preview_gp.text = "GP: %d" % gp
 
 	## GP warning
-	if crawler_state != null and gp > crawler_state.capacity:
+	if crawler_state != null and gp > crawler_state.get_effective_capacity():
 		_gp_warning.visible = true
 	else:
 		_gp_warning.visible = false
