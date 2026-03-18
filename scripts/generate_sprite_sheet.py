@@ -22,7 +22,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = PROJECT_DIR / ".env"
 ANIMATIONS_FILE = PROJECT_DIR / "data" / "glyph_animations.json"
 PORTRAITS_DIR = PROJECT_DIR / "assets" / "sprites" / "glyphs" / "portraits"
-TEMPLATES_DIR = PROJECT_DIR / "raw" / "templates"
+TEMPLATES_DIR = PROJECT_DIR / "scripts" / "templates"
 DEFAULT_RAW_DIR = PROJECT_DIR / "raw" / "sheets"
 
 MODEL = "gemini-3-pro-image-preview"
