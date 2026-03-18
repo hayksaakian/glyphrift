@@ -92,22 +92,23 @@ def build_prompt(species: dict, state: str) -> str:
 
     if frame_count == 4:
         grid_desc = (
-            "The second image is a GRID TEMPLATE with a 2x2 grid of cells. "
+            "The second image is a GRID TEMPLATE with a 2x2 grid of 4 cells on a magenta background. "
             "Draw one pose per cell, filling each cell. The character in every cell must be "
             "the SAME SIZE and CENTERED in the cell. Read order: top-left=frame 1, "
             "top-right=frame 2, bottom-left=frame 3, bottom-right=frame 4."
         )
     elif frame_count == 2:
         grid_desc = (
-            "The second image is a GRID TEMPLATE with 2 side-by-side cells. "
+            "The second image is a GRID TEMPLATE with 2 cells stacked vertically on a magenta background. "
             "Draw one pose per cell, filling each cell. The character in every cell must be "
-            "the SAME SIZE and CENTERED in the cell. Left=frame 1, right=frame 2."
+            "the SAME SIZE and CENTERED in the cell. Top cell=frame 1, bottom cell=frame 2."
         )
     elif frame_count == 3:
         grid_desc = (
-            "The second image is a GRID TEMPLATE with 3 side-by-side cells. "
+            "The second image is a GRID TEMPLATE with 3 cells on a magenta background: "
+            "2 cells on top (side by side) and 1 wide cell on the bottom. "
             "Draw one pose per cell, filling each cell. The character in every cell must be "
-            "the SAME SIZE and CENTERED in the cell. Left=frame 1, middle=frame 2, right=frame 3."
+            "the SAME SIZE and CENTERED in the cell. Top-left=frame 1, top-right=frame 2, bottom=frame 3."
         )
     else:
         grid_desc = ""

@@ -87,14 +87,25 @@ remove_magenta_bg() {
   ## Uses -transparent with wide fuzz to catch all magenta variants.
   local tmp_demagenta
   tmp_demagenta="$(mktemp /tmp/sheet_demag_XXXXXX.png)"
-  magick "$tmp_pass2" -fuzz 30% -transparent "rgb(255,0,255)" "$tmp_demagenta"
+  ## Also catch purple-magenta variants (pink, violet, fuchsia)
+  magick "$tmp_pass2" \
+    -fuzz 35% -transparent "rgb(255,0,255)" \
+    -fuzz 35% -transparent "rgb(255,0,200)" \
+    -fuzz 35% -transparent "rgb(200,0,255)" \
+    "$tmp_demagenta"
 
   ## Pass 3: Decontaminate edge RGB + erode alpha slightly
   magick "$tmp_demagenta" -background black -alpha remove -alpha off "$tmp_rgb"
   magick "$tmp_demagenta" -alpha extract -morphology Erode Disk:1 "$tmp_mask"
-  magick "$tmp_rgb" "$tmp_mask" -compose CopyOpacity -composite "$out"
+  local tmp_composite
+  tmp_composite="$(mktemp /tmp/sheet_comp_XXXXXX.png)"
+  magick "$tmp_rgb" "$tmp_mask" -compose CopyOpacity -composite "$tmp_composite"
 
-  rm -f "$tmp_pass1" "$tmp_pass2" "$tmp_rgb" "$tmp_mask" "$tmp_demagenta"
+  ## Pass 4: Kill low-alpha pixels (semi-transparent magenta wisps)
+  ## Any pixel with alpha < 40% becomes fully transparent
+  magick "$tmp_composite" -channel A -threshold 40% +channel "$out"
+
+  rm -f "$tmp_pass1" "$tmp_pass2" "$tmp_rgb" "$tmp_mask" "$tmp_demagenta" "$tmp_composite"
 }
 
 split_into_frames() {
@@ -137,19 +148,47 @@ split_into_frames() {
       echo "  Layout: 1x4 strip (${fw}x${h} per frame)"
     fi
   elif [[ "$frame_count" -eq 2 ]]; then
-    ## 2 frames: split horizontally
-    local fw=$((w / 2))
-    magick "$src" -crop "${fw}x${h}+0+0" +repage "${out_prefix}_0.png"
-    magick "$src" -crop "${fw}x${h}+${fw}+0" +repage "${out_prefix}_1.png"
-    echo "  Layout: 1x2 strip (${fw}x${h} per frame)"
+    ## 2 frames: horizontal strip or vertical stack
+    local is_vertical
+    is_vertical="$(echo "$aspect" | awk '{print ($1 <= 1.2) ? 1 : 0}')"
+
+    if [[ "$is_vertical" -eq 1 ]]; then
+      ## Square/tall image: split top/bottom
+      local fh=$((h / 2))
+      magick "$src" -crop "${w}x${fh}+0+0" +repage "${out_prefix}_0.png"
+      magick "$src" -crop "${w}x${fh}+0+${fh}" +repage "${out_prefix}_1.png"
+      echo "  Layout: 2x1 vertical (${w}x${fh} per frame)"
+    else
+      ## Wide image: split left/right
+      local fw=$((w / 2))
+      magick "$src" -crop "${fw}x${h}+0+0" +repage "${out_prefix}_0.png"
+      magick "$src" -crop "${fw}x${h}+${fw}+0" +repage "${out_prefix}_1.png"
+      echo "  Layout: 1x2 strip (${fw}x${h} per frame)"
+    fi
   elif [[ "$frame_count" -eq 3 ]]; then
-    ## 3 frames: split horizontally into thirds
-    local fw=$((w / 3))
-    for i in 0 1 2; do
-      local ox=$((i * fw))
-      magick "$src" -crop "${fw}x${h}+${ox}+0" +repage "${out_prefix}_${i}.png"
-    done
-    echo "  Layout: 1x3 strip (${fw}x${h} per frame)"
+    ## 3 frames: horizontal strip or 2+1 grid
+    local is_square
+    is_square="$(echo "$aspect" | awk '{print ($1 < 1.5) ? 1 : 0}')"
+
+    if [[ "$is_square" -eq 1 ]]; then
+      ## Square image: 2+1 layout (2 on top, 1 on bottom)
+      ## Split as 2x2 quadrants, use first 3
+      local fw=$((w / 2))
+      local fh=$((h / 2))
+      magick "$src" -crop "${fw}x${fh}+0+0" +repage "${out_prefix}_0.png"
+      magick "$src" -crop "${fw}x${fh}+${fw}+0" +repage "${out_prefix}_1.png"
+      ## Bottom frame: take full width bottom half (creature may be centered)
+      magick "$src" -crop "${w}x${fh}+0+${fh}" +repage "${out_prefix}_2.png"
+      echo "  Layout: 2+1 grid (${fw}x${fh} top, ${w}x${fh} bottom)"
+    else
+      ## Wide image: 1x3 horizontal strip
+      local fw=$((w / 3))
+      for i in 0 1 2; do
+        local ox=$((i * fw))
+        magick "$src" -crop "${fw}x${h}+${ox}+0" +repage "${out_prefix}_${i}.png"
+      done
+      echo "  Layout: 1x3 strip (${fw}x${h} per frame)"
+    fi
   fi
 }
 
