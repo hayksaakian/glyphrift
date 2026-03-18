@@ -26,6 +26,7 @@ var _mastered_banner: Label = null
 var _location_label: Label = null
 var _close_button: Button = null
 var _art_panel: PanelContainer = null
+var _animator: GlyphAnimator = null
 
 const _RANGE_TAGS: Dictionary = {
 	"melee": "\ud83d\udc4a",
@@ -66,6 +67,8 @@ func hide_popup() -> void:
 	visible = false
 	glyph = null
 	species = null
+	if _animator != null:
+		_animator.visible = false
 
 
 func _animate_show() -> void:
@@ -93,9 +96,7 @@ func _refresh() -> void:
 	_header_label.add_theme_color_override("font_color", aff_color)
 
 	## Art placeholder
-	_art_rect.color = aff_color
-	_initial_label.text = sp.name[0].to_upper()
-	GlyphArt.apply_texture(_art_panel, _art_rect, _initial_label, sp.id, 64)
+	_setup_art(sp.id, aff_color)
 
 	## Stats
 	_stats_label.text = "HP: %d  ATK: %d  DEF: %d  SPD: %d  RES: %d" % [
@@ -119,9 +120,7 @@ func _refresh_species(sp: GlyphSpecies, data_loader: Node, is_captured: bool) ->
 	_header_label.add_theme_color_override("font_color", aff_color)
 
 	## Art placeholder
-	_art_rect.color = aff_color
-	_initial_label.text = sp.name[0].to_upper()
-	GlyphArt.apply_texture(_art_panel, _art_rect, _initial_label, sp.id, 64)
+	_setup_art(sp.id, aff_color)
 
 	## Base stats (species-level, not instance)
 	_stats_label.text = "HP: %d  ATK: %d  DEF: %d  SPD: %d  RES: %d" % [
@@ -261,6 +260,30 @@ func _refresh_mastery() -> void:
 			label.add_theme_color_override("font_color", Color("#AAAAAA"))
 
 		_mastery_vbox.add_child(label)
+
+
+func _setup_art(species_id: String, aff_color: Color) -> void:
+	## Try animated idle; fall back to static portrait
+	if _animator == null:
+		_animator = GlyphAnimator.new()
+		_animator.custom_minimum_size = Vector2(64, 64)
+		_animator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_art_panel.add_child(_animator)
+
+	_animator.setup(species_id)
+
+	if _animator.has_animations:
+		_animator.visible = true
+		_art_rect.visible = false
+		_initial_label.visible = false
+		_animator.play("idle")
+	else:
+		_animator.visible = false
+		_art_rect.color = aff_color
+		_initial_label.text = species_id[0].to_upper() if species_id != "" else "?"
+		_art_rect.visible = true
+		_initial_label.visible = true
+		GlyphArt.apply_texture(_art_panel, _art_rect, _initial_label, species_id, 64)
 
 
 func _build_ui() -> void:

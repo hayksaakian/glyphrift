@@ -11,10 +11,10 @@ extends Control
 ##   animator.play("attack")  # Plays attack, emits animation_finished when done
 ##
 ## Sprite sheet format: 512x512 PNG, 4 rows × 4 cols of 128x128 frames.
-## Row 0: idle (4 frames, 4 FPS, loops)
-## Row 1: attack (4 frames, 8 FPS, no loop)
-## Row 2: hurt (2 frames, 6 FPS, no loop)
-## Row 3: ko (3 frames, 4 FPS, no loop, hold last)
+## Row 0: idle (4 unique frames, ping-pong → 6 visual frames, 6 FPS, loops)
+## Row 1: attack (4 frames, 10 FPS, no loop, variable timing)
+## Row 2: hurt (2 frames, 8 FPS, no loop)
+## Row 3: ko (3 frames, 6 FPS, no loop, hold last)
 
 signal animation_finished
 
@@ -23,11 +23,31 @@ const SHEET_PATH: String = "res://assets/sprites/glyphs/sheets/%s_sheet.png"
 const FRAME_SIZE: int = 128
 const COLS: int = 4
 
+## Animation config:
+##   row: sprite sheet row
+##   frames: unique frames on the sheet
+##   fps: base playback speed
+##   loop: whether to loop
+##   pingpong: if true, play 0-1-2-3-2-1 instead of 0-1-2-3 (smoother loops)
+##   durations: per-frame duration multipliers (1.0 = normal, >1 = hold longer, <1 = faster)
+##              Applied to the final frame sequence (after ping-pong expansion)
 const ANIMS: Dictionary = {
-	"idle": {"row": 0, "frames": 4, "fps": 4.0, "loop": true},
-	"attack": {"row": 1, "frames": 4, "fps": 8.0, "loop": false},
-	"hurt": {"row": 2, "frames": 2, "fps": 6.0, "loop": false},
-	"ko": {"row": 3, "frames": 3, "fps": 4.0, "loop": false},
+	"idle": {
+		"row": 0, "frames": 4, "fps": 6.0, "loop": true, "pingpong": true,
+		"durations": [1.5, 0.8, 0.8, 1.5, 0.8, 0.8],
+	},
+	"attack": {
+		"row": 1, "frames": 4, "fps": 10.0, "loop": false, "pingpong": false,
+		"durations": [1.0, 0.7, 1.5, 1.2],
+	},
+	"hurt": {
+		"row": 2, "frames": 2, "fps": 8.0, "loop": false, "pingpong": false,
+		"durations": [],
+	},
+	"ko": {
+		"row": 3, "frames": 3, "fps": 6.0, "loop": false, "pingpong": false,
+		"durations": [],
+	},
 }
 
 ## If true, animations skip to final frame immediately (for headless testing).
@@ -83,7 +103,8 @@ func play(anim_name: String) -> void:
 		## (setting animation resets frame to 0, so frame must come after)
 		_sprite.stop()
 		_sprite.animation = anim_name
-		_sprite.set_frame_and_progress(anim_data["frames"] - 1, 0.0)
+		var total_frames: int = _sprite_frames.get_frame_count(anim_name)
+		_sprite.set_frame_and_progress(total_frames - 1, 0.0)
 		animation_finished.emit()
 		return
 
@@ -113,12 +134,30 @@ func _setup_animated(sheet_tex: Texture2D) -> void:
 
 		var row: int = anim_data["row"]
 		var frame_count: int = anim_data["frames"]
+		var is_pingpong: bool = anim_data.get("pingpong", false)
 
+		## Build frame index sequence (e.g., [0,1,2,3] or [0,1,2,3,2,1] for ping-pong)
+		var frame_indices: Array[int] = []
+		for i: int in range(frame_count):
+			frame_indices.append(i)
+		if is_pingpong and frame_count > 2:
+			for i: int in range(frame_count - 2, 0, -1):
+				frame_indices.append(i)
+
+		## Pre-create atlas textures for each unique sheet column
+		var atlas_cache: Array[AtlasTexture] = []
 		for i: int in range(frame_count):
 			var atlas: AtlasTexture = AtlasTexture.new()
 			atlas.atlas = sheet_tex
 			atlas.region = Rect2(i * FRAME_SIZE, row * FRAME_SIZE, FRAME_SIZE, FRAME_SIZE)
-			_sprite_frames.add_frame(anim_name, atlas)
+			atlas_cache.append(atlas)
+
+		## Add frames in sequence order with per-frame duration multipliers
+		var durations: Array = anim_data.get("durations", [])
+		for idx: int in range(frame_indices.size()):
+			var col: int = frame_indices[idx]
+			var dur: float = float(durations[idx]) if idx < durations.size() else 1.0
+			_sprite_frames.add_frame(anim_name, atlas_cache[col], dur)
 
 	_sprite = AnimatedSprite2D.new()
 	_sprite.sprite_frames = _sprite_frames

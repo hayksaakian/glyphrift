@@ -41,70 +41,60 @@ frame_count_for() {
 ## ---------------------------------------------------------------------------
 
 remove_magenta_bg() {
-  ## Remove magenta background via flood-fill from corners + edge decontamination.
-  ## Same approach as process_icons.sh.
+  ## Remove background via multi-pass approach:
+  ## 1. Flood-fill from corners for whatever bg color is there (white, magenta, etc.)
+  ## 2. Always do a global magenta pixel replacement (catches interior/partial magenta)
+  ## 3. Edge decontamination (flatten on black + erode alpha)
   local img="$1"
   local out="$2"
 
-  ## Detect magenta in top-left corner
-  local bg_sample is_magenta=0 r g b
-  bg_sample="$(magick "$img" -crop 1x1+5+5 +repage -format '%[hex:p{0,0}]' info: 2>/dev/null)"
-  r=$(printf '%d' "0x${bg_sample:0:2}" 2>/dev/null || echo 0)
-  g=$(printf '%d' "0x${bg_sample:2:2}" 2>/dev/null || echo 0)
-  b=$(printf '%d' "0x${bg_sample:4:2}" 2>/dev/null || echo 0)
-  if [ "$r" -gt 200 ] && [ "$g" -lt 80 ] && [ "$b" -gt 200 ]; then
-    is_magenta=1
-  fi
+  local src_dims src_w src_h br_x br_y
+  src_dims="$(magick identify -format '%w %h' "$img")"
+  src_w="$(echo "$src_dims" | cut -d' ' -f1)"
+  src_h="$(echo "$src_dims" | cut -d' ' -f2)"
+  br_x=$((src_w))
+  br_y=$((src_h))
 
-  if [ "$is_magenta" -eq 1 ]; then
-    local src_dims src_w src_h br_x br_y
-    src_dims="$(magick identify -format '%w %h' "$img")"
-    src_w="$(echo "$src_dims" | cut -d' ' -f1)"
-    src_h="$(echo "$src_dims" | cut -d' ' -f2)"
-    br_x=$((src_w))
-    br_y=$((src_h))
+  local tmp_pass1 tmp_pass2 tmp_rgb tmp_mask
+  tmp_pass1="$(mktemp /tmp/sheet_pass1_XXXXXX.png)"
+  tmp_pass2="$(mktemp /tmp/sheet_pass2_XXXXXX.png)"
+  tmp_rgb="$(mktemp /tmp/sheet_rgb_XXXXXX.png)"
+  tmp_mask="$(mktemp /tmp/sheet_mask_XXXXXX.png)"
 
-    local tmp_flood tmp_rgb tmp_mask
-    tmp_flood="$(mktemp /tmp/sheet_flood_XXXXXX.png)"
-    tmp_rgb="$(mktemp /tmp/sheet_rgb_XXXXXX.png)"
-    tmp_mask="$(mktemp /tmp/sheet_mask_XXXXXX.png)"
+  ## Pass 1: Flood-fill from corners with both white AND magenta
+  magick "$img" \
+    -bordercolor white -border 1 \
+    -fuzz "$FUZZ" -fill none \
+    -floodfill +0+0 white \
+    -floodfill "+0+${br_y}" white \
+    -floodfill "+${br_x}+0" white \
+    -floodfill "+${br_x}+${br_y}" white \
+    -shave 1x1 \
+    "$tmp_pass1"
 
-    ## Flood-fill from all corners
-    magick "$img" \
-      -bordercolor "rgb($r,$g,$b)" -border 1 \
-      -fuzz "$FUZZ" -fill none \
-      -floodfill +0+0 "rgb($r,$g,$b)" \
-      -floodfill "+0+${br_y}" "rgb($r,$g,$b)" \
-      -floodfill "+${br_x}+0" "rgb($r,$g,$b)" \
-      -floodfill "+${br_x}+${br_y}" "rgb($r,$g,$b)" \
-      -shave 1x1 \
-      "$tmp_flood"
+  ## Also flood-fill magenta from corners (handles images with magenta bg)
+  magick "$tmp_pass1" \
+    -bordercolor "rgb(255,0,255)" -border 1 \
+    -fuzz "$FUZZ" -fill none \
+    -floodfill +0+0 "rgb(255,0,255)" \
+    -floodfill "+0+${br_y}" "rgb(255,0,255)" \
+    -floodfill "+${br_x}+0" "rgb(255,0,255)" \
+    -floodfill "+${br_x}+${br_y}" "rgb(255,0,255)" \
+    -shave 1x1 \
+    "$tmp_pass2"
 
-    ## Decontaminate edge RGB + erode alpha slightly
-    magick "$tmp_flood" -background black -alpha remove -alpha off "$tmp_rgb"
-    magick "$tmp_flood" -alpha extract -morphology Erode Disk:1 "$tmp_mask"
-    magick "$tmp_rgb" "$tmp_mask" -compose CopyOpacity -composite "$out"
+  ## Pass 2: Global magenta removal — make all magenta-ish pixels transparent.
+  ## Uses -transparent with wide fuzz to catch all magenta variants.
+  local tmp_demagenta
+  tmp_demagenta="$(mktemp /tmp/sheet_demag_XXXXXX.png)"
+  magick "$tmp_pass2" -fuzz 30% -transparent "rgb(255,0,255)" "$tmp_demagenta"
 
-    rm -f "$tmp_flood" "$tmp_rgb" "$tmp_mask"
-  else
-    ## Non-magenta: try white background removal
-    local src_dims src_w src_h br_x br_y
-    src_dims="$(magick identify -format '%w %h' "$img")"
-    src_w="$(echo "$src_dims" | cut -d' ' -f1)"
-    src_h="$(echo "$src_dims" | cut -d' ' -f2)"
-    br_x=$((src_w))
-    br_y=$((src_h))
+  ## Pass 3: Decontaminate edge RGB + erode alpha slightly
+  magick "$tmp_demagenta" -background black -alpha remove -alpha off "$tmp_rgb"
+  magick "$tmp_demagenta" -alpha extract -morphology Erode Disk:1 "$tmp_mask"
+  magick "$tmp_rgb" "$tmp_mask" -compose CopyOpacity -composite "$out"
 
-    magick "$img" \
-      -bordercolor white -border 1 \
-      -fuzz "$FUZZ" -fill none \
-      -floodfill +0+0 white \
-      -floodfill "+0+${br_y}" white \
-      -floodfill "+${br_x}+0" white \
-      -floodfill "+${br_x}+${br_y}" white \
-      -shave 1x1 \
-      "$out"
-  fi
+  rm -f "$tmp_pass1" "$tmp_pass2" "$tmp_rgb" "$tmp_mask" "$tmp_demagenta"
 }
 
 split_into_frames() {
@@ -205,17 +195,52 @@ process_species() {
     ## Step 2: Split into individual frames
     split_into_frames "$clean_strip" "$frame_count" "$tmp_dir/${state}"
 
-    ## Step 3: Trim, resize, and center each frame to 128x128
+    ## Step 3: Find union bounding box across all frames, then apply same crop to all.
+    ## This keeps characters at consistent scale/position across frames.
+    local union_x1=999999 union_y1=999999 union_x2=0 union_y2=0
+    for i in $(seq 0 $((frame_count - 1))); do
+      local frame_in="$tmp_dir/${state}_${i}.png"
+      local trim_info
+      trim_info="$(magick "$frame_in" -format '%@' info: 2>/dev/null)"
+      ## Format: WxH+X+Y (e.g., "200x180+30+40")
+      if [[ "$trim_info" == "0x0+0+0" ]] || [[ -z "$trim_info" ]]; then
+        continue
+      fi
+      local tw th tx ty
+      tw="$(echo "$trim_info" | sed 's/x.*//; s/+.*//')"
+      th="$(echo "$trim_info" | sed 's/[^x]*x//; s/+.*//')"
+      tx="$(echo "$trim_info" | sed 's/[^+]*+//; s/+.*//')"
+      ty="$(echo "$trim_info" | sed 's/.*+//')"
+      local tx2=$((tx + tw))
+      local ty2=$((ty + th))
+      if [ "$tx" -lt "$union_x1" ]; then union_x1=$tx; fi
+      if [ "$ty" -lt "$union_y1" ]; then union_y1=$ty; fi
+      if [ "$tx2" -gt "$union_x2" ]; then union_x2=$tx2; fi
+      if [ "$ty2" -gt "$union_y2" ]; then union_y2=$ty2; fi
+    done
+
+    local union_w=$((union_x2 - union_x1))
+    local union_h=$((union_y2 - union_y1))
+    echo "  Union bbox: ${union_w}x${union_h}+${union_x1}+${union_y1}"
+
     local frame_files=()
     for i in $(seq 0 $((frame_count - 1))); do
       local frame_in="$tmp_dir/${state}_${i}.png"
       local frame_out="$tmp_dir/${state}_final_${i}.png"
 
-      magick "$frame_in" \
-        -trim +repage \
-        -resize "${FRAME_SIZE}x${FRAME_SIZE}" \
-        -gravity center -background none -extent "${FRAME_SIZE}x${FRAME_SIZE}" \
-        "$frame_out"
+      if [ "$union_w" -gt 0 ] && [ "$union_h" -gt 0 ]; then
+        magick "$frame_in" \
+          -crop "${union_w}x${union_h}+${union_x1}+${union_y1}" +repage \
+          -resize "${FRAME_SIZE}x${FRAME_SIZE}" \
+          -gravity center -background none -extent "${FRAME_SIZE}x${FRAME_SIZE}" \
+          "$frame_out"
+      else
+        ## Fallback: just resize and center
+        magick "$frame_in" \
+          -resize "${FRAME_SIZE}x${FRAME_SIZE}" \
+          -gravity center -background none -extent "${FRAME_SIZE}x${FRAME_SIZE}" \
+          "$frame_out"
+      fi
 
       frame_files+=("$frame_out")
     done

@@ -117,28 +117,28 @@ func _test_anim_config() -> void:
 	var sf: SpriteFrames = animator._sprite_frames
 	_assert(sf != null, "SpriteFrames exists")
 
-	## idle: 4 frames, 4 FPS, loops
+	## idle: 4 unique frames, ping-pong → 6 visual frames, 6 FPS, loops
 	_assert(sf.has_animation("idle"), "idle animation exists")
-	_assert(sf.get_frame_count("idle") == 4, "idle has 4 frames")
-	_assert(sf.get_animation_speed("idle") == 4.0, "idle at 4 FPS")
+	_assert(sf.get_frame_count("idle") == 6, "idle has 6 frames (ping-pong)")
+	_assert(sf.get_animation_speed("idle") == 6.0, "idle at 6 FPS")
 	_assert(sf.get_animation_loop("idle"), "idle loops")
 
-	## attack: 4 frames, 8 FPS, no loop
+	## attack: 4 frames, 10 FPS, no loop
 	_assert(sf.has_animation("attack"), "attack animation exists")
 	_assert(sf.get_frame_count("attack") == 4, "attack has 4 frames")
-	_assert(sf.get_animation_speed("attack") == 8.0, "attack at 8 FPS")
+	_assert(sf.get_animation_speed("attack") == 10.0, "attack at 10 FPS")
 	_assert(not sf.get_animation_loop("attack"), "attack does not loop")
 
-	## hurt: 2 frames, 6 FPS, no loop
+	## hurt: 2 frames, 8 FPS, no loop
 	_assert(sf.has_animation("hurt"), "hurt animation exists")
 	_assert(sf.get_frame_count("hurt") == 2, "hurt has 2 frames")
-	_assert(sf.get_animation_speed("hurt") == 6.0, "hurt at 6 FPS")
+	_assert(sf.get_animation_speed("hurt") == 8.0, "hurt at 8 FPS")
 	_assert(not sf.get_animation_loop("hurt"), "hurt does not loop")
 
-	## ko: 3 frames, 4 FPS, no loop
+	## ko: 3 frames, 6 FPS, no loop
 	_assert(sf.has_animation("ko"), "ko animation exists")
 	_assert(sf.get_frame_count("ko") == 3, "ko has 3 frames")
-	_assert(sf.get_animation_speed("ko") == 4.0, "ko at 4 FPS")
+	_assert(sf.get_animation_speed("ko") == 6.0, "ko at 6 FPS")
 	_assert(not sf.get_animation_loop("ko"), "ko does not loop")
 
 	_cleanup_node(animator)
@@ -178,9 +178,9 @@ func _test_play_idle_loops() -> void:
 
 	animator.setup("zapplet")
 
-	## idle in instant_mode skips to last frame
+	## idle in instant_mode skips to last frame (ping-pong: 6 frames, last = index 5)
 	animator.play("idle")
-	_assert(animator._sprite.frame == 3, "idle instant_mode goes to last frame")
+	_assert(animator._sprite.frame == 5, "idle instant_mode goes to last frame")
 	_assert(animator.get_current_animation() == "idle", "current anim is idle")
 
 	_cleanup_node(animator)

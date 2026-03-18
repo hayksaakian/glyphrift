@@ -22,16 +22,17 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = PROJECT_DIR / ".env"
 ANIMATIONS_FILE = PROJECT_DIR / "data" / "glyph_animations.json"
 PORTRAITS_DIR = PROJECT_DIR / "assets" / "sprites" / "glyphs" / "portraits"
+TEMPLATES_DIR = PROJECT_DIR / "raw" / "templates"
 DEFAULT_RAW_DIR = PROJECT_DIR / "raw" / "sheets"
 
 MODEL = "gemini-3-pro-image-preview"
 
-# Animation states with their frame counts
+# Animation states with their frame counts and grid template filenames
 ANIM_STATES = {
-    "idle":   {"frames": 4, "description": "idle breathing/ambient loop"},
-    "attack": {"frames": 4, "description": "wind-up, strike, follow-through, settle"},
-    "hurt":   {"frames": 2, "description": "flinch/recoil"},
-    "ko":     {"frames": 3, "description": "collapse/dissolution"},
+    "idle":   {"frames": 4, "description": "idle breathing/ambient loop", "grid": "grid_2x2.png"},
+    "attack": {"frames": 4, "description": "wind-up, strike, follow-through, settle", "grid": "grid_2x2.png"},
+    "hurt":   {"frames": 2, "description": "flinch/recoil", "grid": "grid_1x2.png"},
+    "ko":     {"frames": 3, "description": "collapse/dissolution", "grid": "grid_1x3.png"},
 }
 
 SHARED_STYLE = (
@@ -73,30 +74,64 @@ def load_portrait_bytes(species_id: str) -> bytes | None:
     return portrait_path.read_bytes()
 
 
+def load_grid_template(state: str) -> bytes | None:
+    """Load the grid template image for a given animation state."""
+    grid_file = ANIM_STATES[state]["grid"]
+    grid_path = TEMPLATES_DIR / grid_file
+    if not grid_path.exists():
+        print(f"  WARNING: No grid template at {grid_path}")
+        return None
+    return grid_path.read_bytes()
+
+
 def build_prompt(species: dict, state: str) -> str:
     """Build the generation prompt for a specific animation state."""
     anim_info = ANIM_STATES[state]
     frame_count = anim_info["frames"]
     brief = species[state]
 
+    if frame_count == 4:
+        grid_desc = (
+            "The second image is a GRID TEMPLATE with a 2x2 grid of cells. "
+            "Draw one pose per cell, filling each cell. The character in every cell must be "
+            "the SAME SIZE and CENTERED in the cell. Read order: top-left=frame 1, "
+            "top-right=frame 2, bottom-left=frame 3, bottom-right=frame 4."
+        )
+    elif frame_count == 2:
+        grid_desc = (
+            "The second image is a GRID TEMPLATE with 2 side-by-side cells. "
+            "Draw one pose per cell, filling each cell. The character in every cell must be "
+            "the SAME SIZE and CENTERED in the cell. Left=frame 1, right=frame 2."
+        )
+    elif frame_count == 3:
+        grid_desc = (
+            "The second image is a GRID TEMPLATE with 3 side-by-side cells. "
+            "Draw one pose per cell, filling each cell. The character in every cell must be "
+            "the SAME SIZE and CENTERED in the cell. Left=frame 1, middle=frame 2, right=frame 3."
+        )
+    else:
+        grid_desc = ""
+
     prompt = (
-        f"I need a horizontal animation strip for a creature called \"{species['name']}\" "
+        f"I need a sprite sheet for a creature called \"{species['name']}\" "
         f"(a {species['body_type']}, {species['affinity']} affinity).\n\n"
-        f"The reference image shows what this creature looks like. "
-        f"Draw exactly {frame_count} poses of this SAME character side by side in a single "
-        f"horizontal strip image. The image should be {frame_count * 128}x128 pixels total — "
-        f"each pose is 128x128 pixels.\n\n"
+        f"The first image is the CHARACTER REFERENCE — this is what the creature looks like. "
+        f"Match this character exactly: same species, same proportions, same colors.\n\n"
+        f"{grid_desc}\n\n"
+        f"CRITICAL: Fill the grid template cells with the character. Each cell must contain "
+        f"the character drawn at the SAME SCALE and CENTERED. Do not draw the character "
+        f"at different sizes in different cells.\n\n"
         f"Animation state: {state.upper()} ({anim_info['description']})\n"
         f"Animation description: {brief}\n\n"
-        f"Each frame should show a distinct pose progressing through the animation. "
-        f"The frames should read left-to-right as a sequence.\n\n"
+        f"Each frame should show a distinct pose progressing through the animation.\n\n"
         f"{SHARED_STYLE}"
     )
     return prompt
 
 
-def generate_strip(api_key: str, prompt: str, portrait_bytes: bytes | None) -> bytes | None:
-    """Call Gemini API with prompt + optional reference image. Returns PNG bytes or None."""
+def generate_strip(api_key: str, prompt: str, portrait_bytes: bytes | None,
+                    grid_bytes: bytes | None = None) -> bytes | None:
+    """Call Gemini API with prompt + reference images. Returns PNG bytes or None."""
     try:
         from google import genai
         from google.genai import types
@@ -106,10 +141,12 @@ def generate_strip(api_key: str, prompt: str, portrait_bytes: bytes | None) -> b
 
     client = genai.Client(api_key=api_key)
 
-    # Build contents: reference image (if available) + text prompt
+    # Build contents: portrait reference + grid template + text prompt
     contents = []
     if portrait_bytes:
         contents.append(types.Part.from_bytes(data=portrait_bytes, mime_type="image/png"))
+    if grid_bytes:
+        contents.append(types.Part.from_bytes(data=grid_bytes, mime_type="image/png"))
     contents.append(prompt)
 
     try:
@@ -157,7 +194,10 @@ def generate_species(api_key: str, species: dict, raw_dir: Path, states: list[st
         print(f"\n  {state.upper()} ({ANIM_STATES[state]['frames']} frames)...")
 
         prompt = build_prompt(species, state)
-        image_data = generate_strip(api_key, prompt, portrait_bytes)
+        grid_bytes = load_grid_template(state)
+        if grid_bytes:
+            print(f"  Using grid template: {ANIM_STATES[state]['grid']}")
+        image_data = generate_strip(api_key, prompt, portrait_bytes, grid_bytes)
 
         if image_data is None:
             print(f"  FAILED — no image returned for {state}")
