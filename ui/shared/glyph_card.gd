@@ -25,6 +25,7 @@ var _vbox: VBoxContainer = null
 var _affinity_rect: ColorRect = null
 var _initial_label: Label = null
 var _art_panel: PanelContainer = null
+var _animator: GlyphAnimator = null
 var _name_label: Label = null
 var _info_label: Label = null
 var _gp_label: Label = null
@@ -72,10 +73,8 @@ func refresh() -> void:
 	var aff: String = sp.affinity
 	var aff_color: Color = Affinity.COLORS.get(aff, Affinity.COLORS["neutral"])
 
-	## Art placeholder
-	_affinity_rect.color = aff_color
-	_initial_label.text = sp.name[0].to_upper()
-	GlyphArt.apply_texture(_art_panel, _affinity_rect, _initial_label, sp.id, 60)
+	## Art — animated idle if sheet exists, static portrait fallback
+	_setup_art(sp.id, aff_color)
 
 	## Text labels
 	_name_label.text = sp.name
@@ -343,6 +342,27 @@ func _build_ui() -> void:
 	mastery_style.corner_radius_bottom_right = 6
 	_mastery_border.add_theme_stylebox_override("panel", mastery_style)
 	add_child(_mastery_border)
+
+
+func _setup_art(species_id: String, aff_color: Color) -> void:
+	if _animator == null:
+		_animator = GlyphAnimator.new()
+		_animator.custom_minimum_size = Vector2(60, 60)
+		_animator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_art_panel.add_child(_animator)
+	_animator.setup(species_id)
+	if _animator.has_animations:
+		_animator.visible = true
+		_affinity_rect.visible = false
+		_initial_label.visible = false
+		_animator.play("idle")
+	else:
+		_animator.visible = false
+		_affinity_rect.color = aff_color
+		_initial_label.text = species_id[0].to_upper() if species_id != "" else "?"
+		_affinity_rect.visible = true
+		_initial_label.visible = true
+		GlyphArt.apply_texture(_art_panel, _affinity_rect, _initial_label, species_id, 60)
 
 
 func _update_border() -> void:
