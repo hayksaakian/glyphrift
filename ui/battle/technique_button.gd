@@ -13,6 +13,13 @@ const RANGE_TAGS: Dictionary = {
 	"piercing": "\ud83c\udfaf",
 }
 
+const INTERRUPT_TRIGGERS: Dictionary = {
+	"ON_MELEE": "vs Melee",
+	"ON_RANGED": "vs Ranged",
+	"ON_AOE": "vs AoE",
+	"ON_SUPPORT": "vs Support",
+}
+
 var technique: TechniqueDef = null
 var is_usable: bool = true
 var _has_advantage: bool = false
@@ -52,7 +59,12 @@ func _update_display() -> void:
 	var aff_tag: String = Affinity.EMOJI.get(technique.affinity, "?")
 	var range_tag: String = RANGE_TAGS.get(technique.range_type, "?")
 
-	if technique.power > 0:
+	if technique.category == "interrupt":
+		var trigger_label: String = INTERRUPT_TRIGGERS.get(technique.interrupt_trigger, "Guard")
+		text = "%s %s  \U0001f6e1\ufe0f %s" % [aff_tag, technique.name, trigger_label]
+		if technique.power > 0:
+			text += "  Pw:%d" % technique.power
+	elif technique.power > 0:
 		text = "%s %s  %s %d" % [aff_tag, technique.name, range_tag, technique.power]
 	elif technique.category == "support":
 		text = "%s %s  %s" % [aff_tag, technique.name, technique.support_effect.capitalize()]

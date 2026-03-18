@@ -905,17 +905,20 @@ func _rebuild_action_panel() -> void:
 	sep.add_theme_constant_override("separation", 2)
 	_action_menu.add_child(sep)
 
-	## Guard
+	## Guard — show interrupt techniques as proper TechniqueButtons, else plain Guard
 	var has_interrupt: bool = false
 	for tech: TechniqueDef in _current_actor.techniques:
 		if tech.category == "interrupt":
 			has_interrupt = true
-			break
-	if has_interrupt:
-		_guard_button.text = "Guard [Static Guard]"
-	else:
-		_guard_button.text = "Guard"
-	_action_menu.add_child(_guard_button)
+			var usable: bool = _current_actor.is_technique_ready(tech)
+			var btn: TechniqueButton = TechniqueButton.new()
+			btn.name = "GuardTechButton_%s" % tech.id
+			btn.setup(tech, usable)
+			btn.technique_selected.connect(_on_guard_technique_chosen)
+			_action_menu.add_child(btn)
+	if not has_interrupt:
+		_guard_button.text = "\U0001f6e1\ufe0f Guard"
+		_action_menu.add_child(_guard_button)
 
 	## Swap (move to other row)
 	_action_menu.add_child(_swap_button)
@@ -933,6 +936,14 @@ func _rebuild_action_panel() -> void:
 		sep2.add_theme_constant_override("separation", 2)
 		_action_menu.add_child(sep2)
 		_action_menu.add_child(_flee_button)
+
+
+func _on_guard_technique_chosen(tech: TechniqueDef) -> void:
+	if _state != UIState.ACTION_MENU:
+		return
+	_action_menu.visible = false
+	_state = UIState.ANIMATING
+	combat_engine.submit_action({"action": "guard"})
 
 
 func _on_guard_pressed() -> void:

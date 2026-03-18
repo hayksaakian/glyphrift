@@ -4,7 +4,7 @@ _Completed items have been moved to `docs/changelog.md`._
 
 ## Open Bugs
 
-- [ ] **BUG-032** (P2): Interrupt/Guard techniques poorly communicated — see `docs/bugs.md`
+_No open bugs._
 
 ## Gameplay
 
@@ -37,17 +37,9 @@ _Currently all glyphs are static portraits (single PNG). Animating them would br
 
 - [x] **Define animation states needed** — 4 drawn states (Idle, Attack, Hurt, KO) + tween-only for Guard, Status, Capture, Victory/Defeat. See `docs/art-direction.md` → Glyph Animations.
 - [x] **Per-species animation briefs** — all 18 species have idle/attack/hurt/ko descriptions in `data/glyph_animations.json`, sourced from creature design and signature techniques.
-- [ ] **Sprite sheet generation pipeline** — extend existing Gemini-based pipeline to produce animated sprite sheets from static portraits:
-  1. Standard sheet format: 128x128 frames, 4 rows x 4 cols = 512x512 per species (see `sprite-asset-spec.md` §5)
-  2. Generation script: reads `data/glyph_animations.json` for per-species briefs + existing portrait as style reference, prompts AI for each animation state, assembles into sprite sheet PNG
-  3. Processing: remove magenta backgrounds, standardize to 128x128 frames, validate frame count per row
-  4. Fallback: if sprite sheet is missing, current static portrait still works — animation is progressive enhancement
-- [ ] **Godot sprite sheet consumer** — code to load and play sprite sheet animations:
-  1. `GlyphArt` extension or new `GlyphAnimator` class: loads sprite sheets, creates `SpriteFrames` resources, manages animation state
-  2. Replace `TextureRect` with `AnimatedSprite2D` (or `AnimatedTextureRect` wrapper) in display contexts
-  3. Animation triggers: `play("attack")`, `play("hurt")`, etc. — called from BattleScene signal handlers, replacing current tween-based flash/shake
-  4. `instant_mode` support: skip to final frame in headless tests
-- [ ] **Integrate into battle flow** — wire AnimationQueue events to sprite animations instead of (or alongside) current tween effects (damage flash, KO grey-out, phase overlay)
+- [x] **Sprite sheet generation pipeline** — Gemini-based pipeline with grid templates (2x2, 1x2, 1x3), multi-pass magenta removal, union bounding box alignment. All 18 species generated.
+- [x] **Godot sprite sheet consumer** — `GlyphAnimator` class: loads sprite sheets, creates `SpriteFrames` with ping-pong looping and per-frame duration multipliers, `instant_mode` for testing.
+- [x] **Integrate into battle flow** — `GlyphPanel` uses `GlyphAnimator` for idle/attack/hurt/ko sprite animations. `GlyphDetailPopup` shows idle animation in bastion.
 
 ### Dungeon map animations
 _Crawler token is currently a diamond-shaped `Polygon2D` that tweens between rooms. Replace with the actual crawler visual (same as bastion — chassis + equipment appearance) and expand map animations._

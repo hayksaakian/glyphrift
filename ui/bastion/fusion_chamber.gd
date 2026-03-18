@@ -58,6 +58,13 @@ const _RANGE_TAGS: Dictionary = {
 	"piercing": "\ud83c\udfaf",
 }
 
+const _INTERRUPT_TRIGGERS: Dictionary = {
+	"ON_MELEE": "vs Melee",
+	"ON_RANGED": "vs Ranged",
+	"ON_AOE": "vs AoE",
+	"ON_SUPPORT": "vs Support",
+}
+
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -688,7 +695,15 @@ func _build_technique_tooltip(tech: TechniqueDef) -> String:
 func _format_technique_text(tech: TechniqueDef) -> String:
 	var aff_tag: String = Affinity.EMOJI.get(tech.affinity, "?")
 	var range_tag: String = _RANGE_TAGS.get(tech.range_type, "?")
-	if tech.power > 0:
+	if tech.category == "interrupt":
+		var trigger_label: String = _INTERRUPT_TRIGGERS.get(tech.interrupt_trigger, "Guard")
+		var result: String = "%s %s  \U0001f6e1\ufe0f %s" % [aff_tag, tech.name, trigger_label]
+		if tech.power > 0:
+			result += "  Pw:%d" % tech.power
+		if tech.cooldown > 0:
+			result += "  \u231b%d" % tech.cooldown
+		return result
+	elif tech.power > 0:
 		var result: String = "%s %s  %s %d" % [aff_tag, tech.name, range_tag, tech.power]
 		if tech.cooldown > 0:
 			result += "  \u231b%d" % tech.cooldown

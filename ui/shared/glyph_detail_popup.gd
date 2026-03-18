@@ -35,6 +35,20 @@ const _RANGE_TAGS: Dictionary = {
 	"piercing": "\ud83c\udfaf",
 }
 
+const _INTERRUPT_TRIGGERS: Dictionary = {
+	"ON_MELEE": "vs Melee",
+	"ON_RANGED": "vs Ranged",
+	"ON_AOE": "vs AoE",
+	"ON_SUPPORT": "vs Support",
+}
+
+const _INTERRUPT_EFFECTS: Dictionary = {
+	"reduce_incoming_50": "Halves damage",
+	"block_attack": "Blocks attack",
+	"evade_aoe": "Evades AoE",
+	"cancel_support": "Cancels support",
+}
+
 
 
 func _ready() -> void:
@@ -440,7 +454,14 @@ func _format_technique(tech: TechniqueDef) -> String:
 	var aff_tag: String = Affinity.EMOJI.get(tech.affinity, "?")
 	var range_tag: String = _RANGE_TAGS.get(tech.range_type, "?")
 	var text: String = ""
-	if tech.power > 0:
+	if tech.category == "interrupt":
+		var trigger_label: String = _INTERRUPT_TRIGGERS.get(tech.interrupt_trigger, "Guard")
+		text = "%s %s  \U0001f6e1\ufe0f %s" % [aff_tag, tech.name, trigger_label]
+		if tech.power > 0:
+			text += "  Pw:%d" % tech.power
+		if tech.support_effect != "":
+			text += "  %s" % _format_interrupt_effect(tech)
+	elif tech.power > 0:
 		text = "%s %s  %s %d" % [aff_tag, tech.name, range_tag, tech.power]
 	elif tech.category == "support":
 		text = "%s %s  %s" % [aff_tag, tech.name, tech.support_effect.capitalize()]
@@ -451,6 +472,14 @@ func _format_technique(tech: TechniqueDef) -> String:
 	if tech.status_effect != "":
 		text += "  [%s %d%%]" % [tech.status_effect.capitalize(), tech.status_accuracy]
 	return text
+
+
+func _format_interrupt_effect(tech: TechniqueDef) -> String:
+	if _INTERRUPT_EFFECTS.has(tech.support_effect):
+		return _INTERRUPT_EFFECTS[tech.support_effect]
+	if tech.support_effect != "":
+		return tech.support_effect.capitalize()
+	return ""
 
 
 func _gui_input(event: InputEvent) -> void:
