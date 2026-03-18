@@ -64,9 +64,11 @@ _Crawler Bay is currently all text/stats. A visual crawler that changes appearan
 
 _Glyph portraits (18 species) + silhouettes are done. Everything else is placeholder. All art direction in `docs/art-direction.md`._
 
-- [ ] **NPC portraits** (Kael/Lira/Maro) — 80x80 in dialogue modal, 48x48 on bastion hub cards
-- [ ] **Status effect icons** — 22x22 colored letter badges; functional but not visually distinct
-- [ ] **Room type icons** — unicode symbols on 64x56 tiles; readable but generic
+- [x] **NPC portraits** (Kael/Lira/Maro) — generated and integrated via GameArt.get_npc_portrait()
+- [x] **Status effect icons** — 22x22 icons generated and integrated via GameArt.get_status_icon()
+- [x] **Room type icons** — 32x32 icons generated and integrated via GameArt.get_room_icon()
+- [x] **Chassis icons** — 32x32 icons generated and integrated via GameArt.get_chassis_icon()
+- [x] **Equipment icons** — 32x32 icons generated and integrated via GameArt.get_equipment_icon()
 - [ ] **Crawler ability icons** — text-only buttons ("Scan 🔋5", "Reinforce 🔋8")
 - [ ] **Technique range icons** — emoji (melee, ranged, aoe, piercing)
 - [ ] **Bastion nav buttons** — plain text
