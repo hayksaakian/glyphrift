@@ -46,6 +46,12 @@ func show_capture(glyph: GlyphInstance, chance: float, breakdown: Dictionary = {
 	wild_glyph = glyph
 	capture_chance = chance
 
+	## Reset art from any previous escape animation
+	if _art_container != null:
+		_art_container.position = Vector2.ZERO
+		_art_container.modulate = Color.WHITE
+		_art_container.scale = Vector2.ONE
+
 	_title_label.text = "WILD GLYPH DEFEATED!"
 
 	var aff_color: Color = Affinity.COLORS.get(glyph.species.affinity, Color.WHITE)
@@ -409,19 +415,13 @@ func _play_capture_success() -> void:
 
 
 func _play_capture_failure() -> void:
-	## Quick dash to the right and fade
+	## Quick dash to the right and fade out completely
 	if _art_container == null:
 		return
-	var orig_pos: Vector2 = _art_container.position
 	var tween: Tween = create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(_art_container, "position", orig_pos + Vector2(80, 0), 0.2).set_ease(Tween.EASE_IN)
-	tween.tween_property(_art_container, "modulate", Color(1, 1, 1, 0.3), 0.2)
-	tween.chain().tween_callback(func() -> void:
-		## Reset for next use
-		_art_container.position = orig_pos
-		_art_container.modulate = Color.WHITE
-	)
+	tween.tween_property(_art_container, "position", _art_container.position + Vector2(80, 0), 0.2).set_ease(Tween.EASE_IN)
+	tween.tween_property(_art_container, "modulate", Color(1, 1, 1, 0), 0.2)
 
 
 ## Deterministic capture for testing (no animation)

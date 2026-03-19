@@ -282,6 +282,7 @@ func _build_action_buttons() -> void:
 	_guard_button.name = "GuardButton"
 	_guard_button.text = "Guard"
 	_guard_button.custom_minimum_size = Vector2(200, 34)
+	_guard_button.tooltip_text = "Skip turn and reduce incoming damage by 50%."
 	_guard_button.pressed.connect(_on_guard_pressed)
 	_apply_button_fx(_guard_button)
 
@@ -917,7 +918,7 @@ func _rebuild_action_panel() -> void:
 			btn.technique_selected.connect(_on_guard_technique_chosen)
 			_action_menu.add_child(btn)
 	if not has_interrupt:
-		_guard_button.text = "\U0001f6e1\ufe0f Guard"
+		_guard_button.text = "\ud83d\udee1 Guard"
 		_action_menu.add_child(_guard_button)
 
 	## Swap (move to other row)
@@ -943,6 +944,9 @@ func _on_guard_technique_chosen(tech: TechniqueDef) -> void:
 		return
 	_action_menu.visible = false
 	_state = UIState.ANIMATING
+	if _current_actor != null:
+		var trigger_emoji: String = TechniqueButton.INTERRUPT_TRIGGERS.get(tech.interrupt_trigger, "")
+		_current_actor.guard_technique_name = "%s %s" % [tech.name.to_upper(), trigger_emoji]
 	combat_engine.submit_action({"action": "guard"})
 
 

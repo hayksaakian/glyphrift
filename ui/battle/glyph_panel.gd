@@ -111,8 +111,13 @@ func refresh() -> void:
 		else:
 			bar_style.bg_color = Color("#F44336")
 
-	## Guard visual
+	## Guard visual — show technique name for player glyphs, shield emoji on all
 	_guard_border.visible = glyph.is_guarding
+	if glyph.is_guarding and _guard_label != null:
+		if glyph.side == "player" and glyph.guard_technique_name != "":
+			_guard_label.text = "\ud83d\udee1 %s" % glyph.guard_technique_name
+		else:
+			_guard_label.text = "\ud83d\udee1 GUARD"
 
 	## KO modulate
 	if glyph.is_knocked_out:

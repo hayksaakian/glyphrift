@@ -14,10 +14,23 @@ const RANGE_TAGS: Dictionary = {
 }
 
 const INTERRUPT_TRIGGERS: Dictionary = {
-	"ON_MELEE": "vs Melee",
-	"ON_RANGED": "vs Ranged",
-	"ON_AOE": "vs AoE",
-	"ON_SUPPORT": "vs Support",
+	"ON_MELEE": "\ud83d\udc4a",
+	"ON_RANGED": "\ud83c\udff9",
+	"ON_AOE": "\ud83d\udca5",
+	"ON_SUPPORT": "\u2764",
+}
+
+const SUPPORT_TAGS: Dictionary = {
+	"heal_percent": "\u2764",
+	"heal_percent_all": "\u2764",
+	"shield": "\u2b50",
+	"shield_all": "\u2b50",
+	"atk_buff": "\u2b06",
+	"status_immunity": "\u2728",
+	"reduce_incoming_50": "\u2b50",
+	"block_attack": "\ud83d\udc4a",
+	"evade_aoe": "\ud83d\udca5",
+	"cancel_support": "\u274c",
 }
 
 var technique: TechniqueDef = null
@@ -60,14 +73,16 @@ func _update_display() -> void:
 	var range_tag: String = RANGE_TAGS.get(technique.range_type, "?")
 
 	if technique.category == "interrupt":
-		var trigger_label: String = INTERRUPT_TRIGGERS.get(technique.interrupt_trigger, "Guard")
-		text = "%s %s  \U0001f6e1\ufe0f %s" % [aff_tag, technique.name, trigger_label]
+		var trigger_emoji: String = INTERRUPT_TRIGGERS.get(technique.interrupt_trigger, "\ud83d\udc4a")
 		if technique.power > 0:
-			text += "  Pw:%d" % technique.power
+			text = "%s %s  %s %d" % [aff_tag, technique.name, trigger_emoji, technique.power]
+		else:
+			text = "%s %s  %s" % [aff_tag, technique.name, trigger_emoji]
 	elif technique.power > 0:
 		text = "%s %s  %s %d" % [aff_tag, technique.name, range_tag, technique.power]
 	elif technique.category == "support":
-		text = "%s %s  %s" % [aff_tag, technique.name, technique.support_effect.capitalize()]
+		var support_tag: String = SUPPORT_TAGS.get(technique.support_effect, "\u2764")
+		text = "%s %s  %s" % [aff_tag, technique.name, support_tag]
 	else:
 		text = "%s %s  %s" % [aff_tag, technique.name, range_tag]
 

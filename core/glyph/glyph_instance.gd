@@ -32,6 +32,7 @@ var cooldowns: Dictionary = {}           ## technique_id → turns remaining
 var active_statuses: Dictionary = {}     ## status_id → turns remaining
 var status_immunities: Dictionary = {}   ## status_id → turns remaining (1-turn immunity)
 var is_guarding: bool = false
+var guard_technique_name: String = ""    ## Name of interrupt technique used while guarding
 var is_knocked_out: bool = false
 var took_turn_this_round: bool = false
 var row_position: String = "front"       ## "front" or "back"
@@ -131,6 +132,7 @@ func reset_combat_state() -> void:
 	active_statuses.clear()
 	status_immunities.clear()
 	is_guarding = false
+	guard_technique_name = ""
 	took_turn_this_round = false
 	took_turn_this_battle = false
 	boss_phase = 1
