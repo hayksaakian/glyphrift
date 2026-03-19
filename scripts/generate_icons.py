@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Generate status effect and room type icons using Gemini.
+"""Generate game icons using Gemini.
 
 Usage:
     python3 scripts/generate_icons.py --type status
     python3 scripts/generate_icons.py --type room
-    python3 scripts/generate_icons.py --type status --id burn
+    python3 scripts/generate_icons.py --type item
+    python3 scripts/generate_icons.py --type item --id repair_patch
     python3 scripts/generate_icons.py --list
 
 Saves raw output to raw/icons/ directory.
@@ -138,6 +139,54 @@ CHASSIS_PROMPTS = {
     ),
 }
 
+ITEM_PROMPTS = {
+    "repair_patch": (
+        "A single game UI icon: a square adhesive patch with a bold white plus '+' cross symbol on it. "
+        "Green (#4CAF50) patch with white cross. Conveys hull repair and first aid. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
+    "surge_cell": (
+        "A single game UI icon: a small cylindrical battery or power cell with a lightning bolt on it. "
+        "Blue (#2196F3) cell body with a bright white lightning bolt symbol. Conveys energy recharge. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
+    "vital_shard": (
+        "A single game UI icon: a pointed crystal shard or gem glowing with life energy. "
+        "Pink (#E91E63) crystal with a white inner glow highlight. Conveys healing and vitality. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
+    "ward_charm": (
+        "A single game UI icon: a small circular amulet or charm with a shield symbol inside. "
+        "Purple (#9C27B0) amulet with white shield detail and small sparkle accents. Conveys status immunity. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
+    "echo_lure": (
+        "A single game UI icon: a small glowing orb or beacon emitting concentric signal rings. "
+        "Orange (#FF9800) orb with lighter orange signal arcs radiating outward. Conveys attracting or luring. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
+    "rift_beacon": (
+        "A single game UI icon: a tall narrow beacon or lighthouse emitting light rays from its top. "
+        "Yellow (#FFEB3B) beacon tower with white light rays fanning out from the top. Conveys revealing hidden areas. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
+    "revival_core": (
+        "A single game UI icon: a glowing heart or core shape with a circular arrow or revival symbol around it. "
+        "Red-orange (#FF5722) heart-core with white circular arrow. Conveys reviving or restoring life. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
+    "affinity_prism": (
+        "A single game UI icon: a triangular prism or faceted gem with three colored light beams emerging from one side. "
+        "Red (#F44336) prism body with small yellow, blue, and green light beams. Conveys power amplification. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
+    "hull_shield": (
+        "A single game UI icon: a dome-shaped energy barrier or force field with small impact lines on the surface. "
+        "Steel-blue (#607D8B) dome with lighter blue energy lines. Conveys hazard protection and blocking damage. "
+        f"Centered on canvas. {ICON_STYLE}"
+    ),
+}
+
 EQUIPMENT_PROMPTS = {
     "scan_amplifier": (
         "A single game UI icon: a radar dish emitting signal arcs, or a glowing eye lens. "
@@ -193,6 +242,7 @@ ALL_PROMPT_SETS = {
     "room": ROOM_PROMPTS,
     "chassis": CHASSIS_PROMPTS,
     "equipment": EQUIPMENT_PROMPTS,
+    "item": ITEM_PROMPTS,
 }
 
 

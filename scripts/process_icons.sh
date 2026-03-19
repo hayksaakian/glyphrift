@@ -21,6 +21,7 @@ STATUS_IDS=(burn stun weaken slow corrode shield)
 ROOM_IDS=(start exit enemy hazard puzzle cache hidden boss empty)
 CHASSIS_IDS=(standard ironclad scout hauler)
 EQUIPMENT_IDS=(scan_amplifier energy_recycler affinity_filter capacitor_cell hull_plating cargo_rack repair_drone trophy_mount resonance_core)
+ITEM_IDS=(repair_patch surge_cell vital_shard ward_charm echo_lure rift_beacon revival_core affinity_prism hull_shield)
 
 FUZZ="35%"
 TARGET_SIZE=128
@@ -178,14 +179,18 @@ case "${1:-all}" in
   equipment)
     process_set "equipment" "${EQUIPMENT_IDS[@]}"
     ;;
+  item)
+    process_set "item" "${ITEM_IDS[@]}"
+    ;;
   all)
     process_set "status" "${STATUS_IDS[@]}"
     process_set "room" "${ROOM_IDS[@]}"
     process_set "chassis" "${CHASSIS_IDS[@]}"
     process_set "equipment" "${EQUIPMENT_IDS[@]}"
+    process_set "item" "${ITEM_IDS[@]}"
     ;;
   *)
-    echo "Usage: ./scripts/process_icons.sh {status|room|chassis|equipment|all}"
+    echo "Usage: ./scripts/process_icons.sh {status|room|chassis|equipment|item|all}"
     exit 1
     ;;
 esac
