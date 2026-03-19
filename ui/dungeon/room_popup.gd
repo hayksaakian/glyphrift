@@ -14,7 +14,7 @@ const ROOM_TITLES: Dictionary = {
 	"enemy": "Wild Glyphs Ahead!",
 	"cache": "Supply Cache Found!",
 	"hazard": "Hazard Zone!",
-	"puzzle": "Puzzle Room",
+	"event": "Event",
 	"boss": "RIFT GUARDIAN",
 	"empty": "Nothing here.",
 	"exit": "Stairs Down",
@@ -26,7 +26,7 @@ const ACTION_LABELS: Dictionary = {
 	"enemy": "Fight",
 	"cache": "Open",
 	"hazard": "Continue",
-	"puzzle": "Attempt",
+	"event": "Engage",
 	"boss": "Challenge Boss",
 	"empty": "Continue",
 	"exit": "Descend",
@@ -387,8 +387,8 @@ func _get_description(room_type: String, extra_info: String) -> String:
 			if extra_info != "":
 				return "Crawler takes %s damage." % extra_info
 			return "The crawler takes damage from environmental hazards."
-		"puzzle":
-			return "A mysterious mechanism awaits."
+		"event":
+			return "Something unusual stirs in this room."
 		"boss":
 			var warning: String = "\n[Defeat means emergency extraction!]"
 			if scan_info != "":

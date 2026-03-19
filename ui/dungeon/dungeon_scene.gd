@@ -22,7 +22,7 @@ enum UIState {
 	CAPTURE,
 	FLOOR_TRANSITION,
 	RESULT,
-	PUZZLE,
+	EVENT,
 	SQUAD_SWAP,
 }
 
@@ -74,6 +74,14 @@ const RIFT_LORE: Dictionary = {
 		"A researcher's final log: \"The void isn't empty. It's full. Full of things that want to come through.\"",
 		"Cracks in space itself — tiny fractures through which darkness seeps like liquid.",
 	],
+	"major_02": [
+		"The stone here breathes. Slow, rhythmic expansions that make the walls groan.",
+		"A seismograph, needle pinned to the right: \"RESONANCE BEYOND SCALE. LITHOSURGE ACTIVE.\"",
+		"Fossilized roots the size of corridors thread through the rock. Something enormous grew here.",
+		"The ground trembles in patterns — three short, one long. Almost like footsteps.",
+		"A miner's last entry: \"The throne room isn't carved. It grew. The mountain shaped itself around it.\"",
+		"Crystal formations hum at a frequency you can feel in your teeth.",
+	],
 	"apex_01": [
 		"The walls are made of something that isn't quite matter. Your instruments can't classify it.",
 		"A recording, barely audible: \"The Nullweaver doesn't destroy. It unmakes. There's a difference.\"",
@@ -110,7 +118,7 @@ var _repair_vbox: VBoxContainer = null
 var _swap_overlay: ColorRect = null
 var _swap_vbox: VBoxContainer = null
 var _swap_pending_item: ItemDef = null
-var _swap_source: String = ""  ## "cache" or "puzzle"
+var _swap_source: String = ""  ## "cache" or "event"
 
 ## Active item bonuses (consumed after next combat)
 var _capture_item_bonus: float = 0.0
@@ -126,6 +134,7 @@ var _last_ko_list: Array[GlyphInstance] = []  ## KO order (first KO'd → last K
 var _boss_capture_pending: bool = false  ## Show rift result after boss capture dismissal
 
 var _background: ColorRect = null
+var _map_scroll: ScrollContainer = null
 var _floor_map: FloorMap = null
 var _crawler_hud: CrawlerHUD = null
 var _room_popup: RoomPopup = null
@@ -345,12 +354,19 @@ func _build_scene_tree() -> void:
 	_background.mouse_filter = Control.MOUSE_FILTER_PASS
 	add_child(_background)
 
-	## Floor map (centered area below HUD)
+	## Floor map inside a ScrollContainer (allows scrolling for tall maps)
+	_map_scroll = ScrollContainer.new()
+	_map_scroll.name = "MapScroll"
+	_map_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_map_scroll.offset_top = 50.0  ## Below HUD
+	_map_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_map_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	add_child(_map_scroll)
+
 	_floor_map = FloorMap.new()
 	_floor_map.name = "FloorMap"
-	_floor_map.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_floor_map.offset_top = 50.0  ## Below HUD
-	add_child(_floor_map)
+	_floor_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_map_scroll.add_child(_floor_map)
 
 	## Crawler HUD (top bar)
 	_crawler_hud = CrawlerHUD.new()
@@ -490,26 +506,28 @@ func _build_scene_tree() -> void:
 	_swap_overlay.visible = false
 	add_child(_swap_overlay)
 
-	var swap_panel: PanelContainer = PanelContainer.new()
+	## Use Panel (not PanelContainer) so it doesn't auto-grow past its fixed size
+	var swap_panel: Panel = Panel.new()
 	swap_panel.set_anchors_preset(Control.PRESET_CENTER)
-	swap_panel.custom_minimum_size = Vector2(340, 240)
 	swap_panel.offset_left = -170.0
 	swap_panel.offset_right = 170.0
-	swap_panel.offset_top = -200.0
-	swap_panel.offset_bottom = 200.0
+	swap_panel.offset_top = -220.0
+	swap_panel.offset_bottom = 220.0
+	swap_panel.clip_contents = true
 	var swap_style: StyleBoxFlat = StyleBoxFlat.new()
 	swap_style.bg_color = Color("#1A1A2E")
 	swap_style.set_corner_radius_all(8)
 	swap_style.border_color = Color("#FFD700")
 	swap_style.set_border_width_all(2)
-	swap_style.content_margin_left = 12
-	swap_style.content_margin_right = 12
-	swap_style.content_margin_top = 10
-	swap_style.content_margin_bottom = 10
 	swap_panel.add_theme_stylebox_override("panel", swap_style)
 	_swap_overlay.add_child(swap_panel)
 
 	_swap_vbox = VBoxContainer.new()
+	_swap_vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_swap_vbox.offset_left = 12.0
+	_swap_vbox.offset_right = -12.0
+	_swap_vbox.offset_top = 10.0
+	_swap_vbox.offset_bottom = -10.0
 	_swap_vbox.add_theme_constant_override("separation", 6)
 	swap_panel.add_child(_swap_vbox)
 
@@ -791,12 +809,12 @@ func _connect_internal_signals() -> void:
 	_formation_setup.formation_confirmed.connect(_on_dungeon_formation_confirmed)
 
 	## Puzzle signals
-	_puzzle_sequence.puzzle_completed.connect(_on_puzzle_completed)
-	_puzzle_conduit.puzzle_completed.connect(_on_puzzle_completed)
+	_puzzle_sequence.puzzle_completed.connect(_on_event_completed)
+	_puzzle_conduit.puzzle_completed.connect(_on_event_completed)
 	_puzzle_conduit.success_reached.connect(_on_conduit_success)
-	_puzzle_echo.puzzle_completed.connect(_on_puzzle_completed)
+	_puzzle_echo.puzzle_completed.connect(_on_event_completed)
 	_puzzle_echo.echo_combat_requested.connect(_on_echo_combat_requested)
-	_puzzle_quiz.puzzle_completed.connect(_on_puzzle_completed)
+	_puzzle_quiz.puzzle_completed.connect(_on_event_completed)
 
 
 func _connect_dungeon_signals() -> void:
@@ -834,8 +852,26 @@ func _rebuild_floor() -> void:
 	_floor_map.build_floor(floor_data, dungeon_state)
 	_floor_map.set_current_room(dungeon_state.current_room_id)
 	_floor_map.refresh_all()
+	_scroll_to_current_room()
 	var rift_name: String = dungeon_state.rift_template.name if dungeon_state.rift_template != null else "Rift"
 	_floor_label.text = "%s — Floor %d/%d" % [rift_name, floor_idx + 1, dungeon_state.floors.size()]
+
+
+func _scroll_to_current_room() -> void:
+	if _map_scroll == null or _floor_map == null or dungeon_state == null:
+		return
+	if dungeon_state.current_room_id == "":
+		return
+	var center: Vector2 = _floor_map.get_room_center(dungeon_state.current_room_id)
+	if center == Vector2.ZERO:
+		return
+	var viewport_h: float = _map_scroll.size.y
+	var target_scroll: int = int(maxf(0.0, center.y - viewport_h / 2.0))
+	if instant_mode:
+		_map_scroll.scroll_vertical = target_scroll
+	else:
+		var tween: Tween = create_tween()
+		tween.tween_property(_map_scroll, "scroll_vertical", target_scroll, 0.3).set_ease(Tween.EASE_OUT)
 
 
 ## --- Signal handlers ---
@@ -875,7 +911,10 @@ func _re_engage_current_room() -> void:
 	if room.get("cleared", false):
 		return
 	var room_type: String = room.get("type", "empty")
-	if room_type not in ["boss", "puzzle", "enemy"]:
+	if room_type == "event":
+		_launch_event(room)
+		return
+	if room_type not in ["boss", "enemy"]:
 		return
 	## Re-show the popup with same logic as _on_room_entered
 	_state = UIState.POPUP
@@ -971,6 +1010,7 @@ func _room_nodes_visible(room_id: String) -> bool:
 func _on_room_entered(room: Dictionary) -> void:
 	_floor_map.set_current_room(room["id"])
 	_floor_map.refresh_all()
+	_scroll_to_current_room()
 
 	## Cleared rooms never retrigger — just pass through silently
 	if room.get("cleared", false):
@@ -1017,8 +1057,13 @@ func _on_room_entered(room: Dictionary) -> void:
 			return
 		room["hazard_seen"] = true
 
+	## Event rooms skip the popup and launch directly
+	if room_type == "event":
+		_launch_event(room)
+		return
+
 	## Show popup for actionable rooms
-	if room_type in ["enemy", "cache", "hazard", "puzzle", "boss", "hidden"]:
+	if room_type in ["enemy", "cache", "hazard", "boss", "hidden"]:
 		_state = UIState.POPUP
 		var extra: String = ""
 		if room_type == "hazard" and dungeon_state.rift_template != null:
@@ -1147,7 +1192,8 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 		"enemy":
 			_state = UIState.COMBAT
 			var scan_ids: Array = room_data_local.get("scan_species_ids", [])
-			var enemies: Array[GlyphInstance] = _generate_wild_enemies(scan_ids)
+			var room_tier: int = int(room_data_local.get("enemy_tier", 0))
+			var enemies: Array[GlyphInstance] = _generate_wild_enemies(scan_ids, room_tier)
 			## Store enemy species on room so it shows names after battle loss (BUG-028)
 			if scan_ids.is_empty() and not enemies.is_empty():
 				var species_ids: Array[String] = []
@@ -1175,6 +1221,17 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 			if room_data_local.get("cleared", false):
 				_state = UIState.EXPLORING
 			else:
+				## Check for fixed_item (guaranteed drop from template)
+				if room_data_local.has("fixed_item") and data_loader != null:
+					var fixed: ItemDef = data_loader.get_item(room_data_local["fixed_item"])
+					if fixed != null:
+						var added: bool = dungeon_state.crawler.add_item(fixed)
+						_clear_current_room("Found supplies.")
+						if not added:
+							_show_swap_picker(fixed, "cache")
+							return
+						_room_popup.show_result("Found: %s" % fixed.name, fixed.description)
+						return
 				var eq_result: Dictionary = _try_pick_equipment()
 				if eq_result.has("equipment"):
 					var eq: EquipmentDef = eq_result["equipment"]
@@ -1219,8 +1276,8 @@ func _on_popup_action(room_type: String, room_data_local: Dictionary) -> void:
 						_room_popup.show_result("Hidden Cache: %s" % found_item.name, "%s\n+%d Hull HP restored!" % [found_item.description, hull_bonus])
 					else:
 						_room_popup.show_result("Hidden Cache", "+%d Hull HP restored!" % hull_bonus)
-		"puzzle":
-			_launch_puzzle(room_data_local)
+		"event":
+			_launch_event(room_data_local)
 		"hazard":
 			## Hazards are persistent — they damage every pass-through.
 			## Only Purge ability converts them to empty. Don't mark cleared.
@@ -1613,8 +1670,10 @@ func _get_boss_affinity() -> String:
 	return boss_species.affinity
 
 
-func _get_filtered_pool() -> Array[String]:
-	## Filter wild_glyph_pool by enemy_tier_pool, then weight boss-affinity species 2x
+func _get_filtered_pool(tier_override: int = 0) -> Array[String]:
+	## Filter wild_glyph_pool by tier, then weight boss-affinity species 2x.
+	## If tier_override > 0, only include species of that exact tier.
+	## Otherwise use template.enemy_tier_pool.
 	if data_loader == null or dungeon_state == null:
 		return [] as Array[String]
 	var template: RiftTemplate = dungeon_state.rift_template
@@ -1625,7 +1684,12 @@ func _get_filtered_pool() -> Array[String]:
 	var filtered: Array[String] = []
 	for sid: String in template.wild_glyph_pool:
 		var species: GlyphSpecies = data_loader.get_species(sid)
-		if species != null and species.tier in template.enemy_tier_pool:
+		if species == null:
+			continue
+		if tier_override > 0:
+			if species.tier == tier_override:
+				filtered.append(sid)
+		elif species.tier in template.enemy_tier_pool:
 			filtered.append(sid)
 	if filtered.is_empty():
 		return [] as Array[String]
@@ -1653,9 +1717,9 @@ func _get_enemy_count() -> int:
 		return randi_range(2, 3)
 
 
-func _pick_enemy_species(count: int) -> Array[String]:
+func _pick_enemy_species(count: int, tier_override: int = 0) -> Array[String]:
 	## Pick species with uniqueness bias from filtered+weighted pool
-	var pool: Array[String] = _get_filtered_pool()
+	var pool: Array[String] = _get_filtered_pool(tier_override)
 	if pool.is_empty():
 		return [] as Array[String]
 
@@ -1723,7 +1787,7 @@ func _generate_boss_scan_info(room_id: String) -> void:
 			room["scan_species_ids"] = [boss_def.species_id] as Array[String]
 
 
-func _generate_wild_enemies(scan_species_ids: Array = []) -> Array[GlyphInstance]:
+func _generate_wild_enemies(scan_species_ids: Array = [], tier_override: int = 0) -> Array[GlyphInstance]:
 	var enemies: Array[GlyphInstance] = []
 	if data_loader == null or dungeon_state == null:
 		return enemies
@@ -1735,7 +1799,7 @@ func _generate_wild_enemies(scan_species_ids: Array = []) -> Array[GlyphInstance
 			ids.append(str(sid))
 	else:
 		var count: int = _get_enemy_count()
-		ids = _pick_enemy_species(count)
+		ids = _pick_enemy_species(count, tier_override)
 		if ids.is_empty():
 			return enemies
 
@@ -2142,7 +2206,7 @@ func _on_swap_use_selected(use_item: ItemDef) -> void:
 	_swap_overlay.visible = false
 	_crawler_hud.refresh()
 
-	if _swap_source == "puzzle":
+	if _swap_source == "event":
 		_state = UIState.EXPLORING
 	else:
 		_room_popup.show_result("Found: %s" % item_name, "Used %s to make room." % use_item.name)
@@ -2157,7 +2221,7 @@ func _on_swap_drop_selected(drop_item: ItemDef) -> void:
 	_swap_overlay.visible = false
 	_crawler_hud.refresh()
 
-	if _swap_source == "puzzle":
+	if _swap_source == "event":
 		_state = UIState.EXPLORING
 	else:
 		_room_popup.show_result("Found: %s" % item_name, "Swapped items.")
@@ -2168,7 +2232,7 @@ func _on_swap_leave() -> void:
 	_swap_pending_item = null
 	_swap_overlay.visible = false
 
-	if _swap_source == "puzzle":
+	if _swap_source == "event":
 		_state = UIState.EXPLORING
 	else:
 		_room_popup.show_result("Left Behind", "Inventory full — item left behind.")
@@ -2177,13 +2241,13 @@ func _on_swap_leave() -> void:
 
 ## --- Puzzle helpers ---
 
-func _launch_puzzle(room_data: Dictionary) -> void:
+func _launch_event(room_data: Dictionary) -> void:
 	## puzzle_type is pre-assigned by RiftGenerator; fallback to conduit if missing
-	if not room_data.has("puzzle_type"):
-		room_data["puzzle_type"] = "conduit"
+	if not room_data.has("event_type"):
+		room_data["event_type"] = "conduit"
 
-	_state = UIState.PUZZLE
-	var puzzle_type: String = room_data["puzzle_type"]
+	_state = UIState.EVENT
+	var puzzle_type: String = room_data["event_type"]
 
 	match puzzle_type:
 		"sequence":
@@ -2242,7 +2306,7 @@ func _start_quiz_fresh(room_data: Dictionary) -> void:
 		room_data["quiz_choice_ids"] = choice_ids
 
 
-func _on_puzzle_completed(success: bool, reward_type: String, _reward_data: Variant) -> void:
+func _on_event_completed(success: bool, reward_type: String, _reward_data: Variant) -> void:
 	## Hide all puzzle overlays
 	_puzzle_sequence.visible = false
 	_puzzle_conduit.visible = false
@@ -2255,7 +2319,7 @@ func _on_puzzle_completed(success: bool, reward_type: String, _reward_data: Vari
 				var result: Dictionary = _pick_item()
 				if result.get("full", false):
 					_clear_current_room("Puzzle solved — found supplies!")
-					_show_swap_picker(result["item"], "puzzle")
+					_show_swap_picker(result["item"], "event")
 					return
 				else:
 					_clear_current_room("Puzzle solved — found supplies!")

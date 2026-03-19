@@ -1,6 +1,6 @@
 extends Control
 
-## Session 9 visual harness — walks through Codex, NPC dialogue, and Puzzle rooms.
+## Session 9 visual harness — walks through Codex, NPC dialogue, and Event rooms.
 ## Run: ~/bin/godot --path . res://tests/session9_harness.tscn
 ##
 ## Produces PNGs in res://screenshots/session9/ for visual review.
@@ -180,7 +180,7 @@ func _run_step() -> void:
 			_main_scene._bastion_scene._npc_kael_btn.pressed.emit()
 
 		"11_dungeon_puzzle_room":
-			## Close NPC, enter a rift, navigate to puzzle room
+			## Close NPC, enter a rift, navigate to event room
 			_main_scene._bastion_scene._npc_panel.hide_popup()
 			_game_state.game_phase = 1
 			await get_tree().process_frame
@@ -188,14 +188,14 @@ func _run_step() -> void:
 			var template: RiftTemplate = _data_loader.get_rift_template("tutorial_01")
 			_main_scene._on_rift_selected(template)
 			await get_tree().process_frame
-			## Inject a custom floor with puzzle rooms for screenshot
+			## Inject a custom floor with event rooms for screenshot
 			var ds: DungeonState = _game_state.current_dungeon
 			if ds != null:
 				var floor_data: Dictionary = ds.floors[0]
 				## Find first non-start room and make it a puzzle
 				for room: Dictionary in floor_data.get("rooms", []):
 					if room.get("type", "") == "enemy":
-						room["type"] = "puzzle"
+						room["type"] = "event"
 						room["revealed"] = true
 						break
 				_main_scene._dungeon_scene._rebuild_floor()

@@ -15,7 +15,7 @@ const TYPE_ICONS: Dictionary = {
 	"exit": "\u25bc",
 	"enemy": "!",
 	"hazard": "\u26a0",
-	"puzzle": "?",
+	"event": "?",
 	"cache": "\u25c6",
 	"hidden": "H",
 	"boss": "\u2605",
@@ -27,7 +27,7 @@ const TYPE_COLORS: Dictionary = {
 	"exit": Color("#4488FF"),
 	"enemy": Color("#FF4444"),
 	"hazard": Color("#FF8800"),
-	"puzzle": Color("#AA44FF"),
+	"event": Color("#AA44FF"),
 	"cache": Color("#FFD700"),
 	"hidden": Color("#00DDDD"),
 	"boss": Color("#FF2222"),
@@ -39,7 +39,7 @@ const TYPE_NAMES: Dictionary = {
 	"exit": "Stairs",
 	"enemy": "Wild Glyph",
 	"hazard": "Hazard",
-	"puzzle": "Puzzle",
+	"event": "Event",
 	"cache": "Cache",
 	"hidden": "Hidden",
 	"boss": "Boss",
@@ -197,7 +197,7 @@ func refresh() -> void:
 			_type_label.modulate.a = 1.0
 			_border_panel.visible = false
 			## Show pointer cursor if room is interactable (boss, puzzle, enemy)
-			var interactable: bool = not is_cleared and room_type in ["boss", "puzzle", "enemy"]
+			var interactable: bool = not is_cleared and room_type in ["boss", "event", "enemy"]
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if interactable else Control.CURSOR_ARROW
 			if has_scan and not is_cleared:
 				_update_scan_sprites()

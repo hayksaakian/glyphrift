@@ -378,34 +378,34 @@ func _test_rift_generator_tutorial() -> void:
 				all_unrevealed = false
 	_assert(all_unrevealed, "RiftGenerator sets all rooms to unrevealed (DungeonState handles reveals)")
 
-	## Puzzle rooms should have puzzle_type from template
+	## Event rooms should have event_type from template
 	var puzzle_types: Array[String] = []
 	for r: Dictionary in f0_rooms:
-		if r["type"] == "puzzle":
-			_assert(r.has("puzzle_type"), "Puzzle room %s has puzzle_type" % r["id"])
-			puzzle_types.append(r["puzzle_type"])
-	_assert(puzzle_types.has("conduit"), "Tutorial floor 0 has conduit puzzle")
-	_assert(puzzle_types.has("echo"), "Tutorial floor 0 has echo puzzle")
-	_assert(puzzle_types.has("quiz"), "Tutorial floor 0 has quiz puzzle")
+		if r["type"] == "event":
+			_assert(r.has("event_type"), "Event room %s has event_type" % r["id"])
+			puzzle_types.append(r["event_type"])
+	_assert(puzzle_types.has("conduit"), "Tutorial floor 0 has conduit event")
+	_assert(puzzle_types.has("echo"), "Tutorial floor 0 has echo event")
+	_assert(puzzle_types.has("quiz"), "Tutorial floor 0 has quiz event")
 
 
 func _test_rift_generator_puzzle_type_assignment() -> void:
-	print("--- RiftGenerator: puzzle_type assigned to pool-generated puzzles ---")
+	print("--- RiftGenerator: event_type assigned to pool-generated events ---")
 
 	var template: RiftTemplate = _data_loader.get_rift_template("minor_01")
 	var gen_floors: Array[Dictionary] = RiftGenerator.generate(template)
 
-	## Every puzzle room across all floors should have a puzzle_type
+	## Every event room across all floors should have an event_type
 	var puzzle_count: int = 0
 	for floor_data: Dictionary in gen_floors:
 		for room: Dictionary in floor_data["rooms"]:
-			if room["type"] == "puzzle":
+			if room["type"] == "event":
 				puzzle_count += 1
-				_assert(room.has("puzzle_type"), "Pool-generated puzzle room has puzzle_type")
-				_assert(room["puzzle_type"] in RiftGenerator.PUZZLE_TYPES, "puzzle_type is valid: %s" % room["puzzle_type"])
+				_assert(room.has("event_type"), "Pool-generated event room has event_type")
+				_assert(room["event_type"] in RiftGenerator.EVENT_TYPES, "event_type is valid: %s" % room["event_type"])
 
-	## minor_01 should generate at least some puzzle rooms from pools
-	_assert(puzzle_count >= 0, "Puzzle rooms found or not (pool-dependent, count=%d)" % puzzle_count)
+	## minor_01 should generate at least some event rooms from pools
+	_assert(puzzle_count >= 0, "Event rooms found or not (pool-dependent, count=%d)" % puzzle_count)
 
 
 func _test_rift_generator_pool_resolution() -> void:
@@ -417,7 +417,7 @@ func _test_rift_generator_pool_resolution() -> void:
 	_assert(gen_floors.size() == 4, "minor_01 has 4 floors (got %d)" % gen_floors.size())
 
 	## All rooms should have a concrete type (no "pool_a" etc.)
-	var valid_types: Array[String] = ["start", "exit", "boss", "cache", "enemy", "empty", "hazard", "hidden", "puzzle"]
+	var valid_types: Array[String] = ["start", "exit", "boss", "cache", "enemy", "empty", "hazard", "hidden", "event"]
 	var all_valid: bool = true
 	var total_rooms: int = 0
 	for floor_data: Dictionary in gen_floors:

@@ -4,7 +4,7 @@ extends Node
 ## Top-level state machine per TDD 6.12.
 ## Orchestrates transitions between game phases and tracks progression.
 
-enum State { TITLE, BASTION, RIFT, COMBAT, PUZZLE }
+enum State { TITLE, BASTION, RIFT, COMBAT, EVENT }
 
 signal state_changed(new_state: int)
 signal phase_advanced(new_phase: int)
@@ -33,7 +33,7 @@ const PHASE_RIFTS: Dictionary = {
 	1: ["tutorial_01"],
 	2: ["minor_01", "minor_02", "minor_03", "minor_04"],
 	3: ["standard_01", "standard_02"],
-	4: ["major_01"],
+	4: ["major_01", "major_02"],
 	5: ["apex_01"],
 }
 

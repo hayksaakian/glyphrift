@@ -260,7 +260,7 @@ func _test_tutorial_boss_floor_cache() -> void:
 # ==========================================================
 
 func _test_tutorial_puzzle_types() -> void:
-	print("--- Tutorial Puzzle Types: Map-Driven ---")
+	print("--- Tutorial Event Types: Map-Driven ---")
 
 	var template: RiftTemplate = _data_loader.get_rift_template("tutorial_01")
 	var f0: Dictionary = template.floors[0]
@@ -268,19 +268,19 @@ func _test_tutorial_puzzle_types() -> void:
 
 	var puzzle_types: Array[String] = []
 	for r: Dictionary in rooms:
-		if r.get("type", "") == "puzzle" and r.has("puzzle_type"):
-			puzzle_types.append(r["puzzle_type"])
+		if r.get("type", "") == "event" and r.has("event_type"):
+			puzzle_types.append(r["event_type"])
 
-	_assert(puzzle_types.size() == 3, "Floor 0 has 3 puzzle rooms with puzzle_type (got %d)" % puzzle_types.size())
-	_assert(puzzle_types.has("conduit"), "Has conduit puzzle")
-	_assert(puzzle_types.has("echo"), "Has echo puzzle")
-	_assert(puzzle_types.has("quiz"), "Has quiz puzzle")
+	_assert(puzzle_types.size() == 3, "Floor 0 has 3 event rooms with event_type (got %d)" % puzzle_types.size())
+	_assert(puzzle_types.has("conduit"), "Has conduit event")
+	_assert(puzzle_types.has("echo"), "Has echo event")
+	_assert(puzzle_types.has("quiz"), "Has quiz event")
 
 	## No duplicates
 	var unique: Dictionary = {}
 	for pt: String in puzzle_types:
 		unique[pt] = true
-	_assert(unique.size() == puzzle_types.size(), "No duplicate puzzle types")
+	_assert(unique.size() == puzzle_types.size(), "No duplicate event types")
 
 
 # ==========================================================
@@ -376,9 +376,9 @@ func _test_minor_03_loads() -> void:
 			has_minor_03 = true
 	_assert(has_minor_03, "Phase 2 includes minor_03 rift")
 
-	## Total rift count: 9 templates, 9 bosses
-	_assert(_data_loader.rift_templates.size() == 9, "9 rift templates loaded (got %d)" % _data_loader.rift_templates.size())
-	_assert(_data_loader.bosses.size() == 9, "9 boss defs loaded (got %d)" % _data_loader.bosses.size())
+	## Total rift count: 10 templates, 10 bosses
+	_assert(_data_loader.rift_templates.size() == 10, "10 rift templates loaded (got %d)" % _data_loader.rift_templates.size())
+	_assert(_data_loader.bosses.size() == 10, "10 boss defs loaded (got %d)" % _data_loader.bosses.size())
 
 
 # ==========================================================

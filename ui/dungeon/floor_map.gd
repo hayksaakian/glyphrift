@@ -156,7 +156,8 @@ func _clear() -> void:
 
 
 func _calculate_offset(floor_data: Dictionary) -> void:
-	## Center map in the available viewport area
+	## Center map in the available viewport area.
+	## For tall maps (STS-style trees), expand minimum size so ScrollContainer can scroll.
 	var min_x: int = 999
 	var max_x: int = -999
 	var min_y: int = 999
@@ -171,11 +172,35 @@ func _calculate_offset(floor_data: Dictionary) -> void:
 
 	var map_width: float = float((max_x - min_x) * CELL_SIZE + RoomNode.ROOM_SIZE.x)
 	var map_height: float = float((max_y - min_y) * CELL_SIZE + RoomNode.ROOM_SIZE.y)
-	var available: Vector2 = size if size.x > 0.0 else Vector2(800, 500)
-	_offset = Vector2(
-		(available.x - map_width) / 2.0 - float(min_x * CELL_SIZE),
-		(available.y - map_height) / 2.0 - float(min_y * CELL_SIZE),
-	)
+
+	## Get viewport area — use ScrollContainer parent size if present
+	var available: Vector2 = Vector2.ZERO
+	var p: Control = get_parent() as Control
+	if p != null and p is ScrollContainer and p.size.x > 0.0:
+		available = p.size
+	elif size.x > 0.0:
+		available = size
+	if available.x <= 0.0:
+		available = Vector2(800, 500)
+
+	## Horizontal: always center
+	var offset_x: float = (available.x - map_width) / 2.0 - float(min_x * CELL_SIZE)
+
+	## Vertical: center if fits, otherwise top-align with padding for scrolling
+	var top_pad: float = 30.0
+	var bottom_pad: float = 40.0
+	var content_height: float = map_height + top_pad + bottom_pad
+	var offset_y: float
+	if content_height <= available.y:
+		## Map fits in viewport — center vertically, no scrolling needed
+		offset_y = (available.y - map_height) / 2.0 - float(min_y * CELL_SIZE)
+		custom_minimum_size.y = 0.0
+	else:
+		## Map taller than viewport — expand for scroll and top-align
+		offset_y = top_pad - float(min_y * CELL_SIZE)
+		custom_minimum_size.y = content_height
+
+	_offset = Vector2(offset_x, offset_y)
 
 
 func _spawn_rooms(floor_data: Dictionary) -> void:

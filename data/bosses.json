@@ -220,5 +220,33 @@
         "row_position": "back"
       }
     ]
+  },
+  {
+    "rift_id": "major_02",
+    "species_id": "lithosurge",
+    "mastery_stars": 2,
+    "phase1_technique_ids": ["worldbreaker", "tectonic_slam", "stone_wall"],
+    "phase2_technique_ids": ["harmonic_pulse"],
+    "phase2_stat_bonus": {"def": 0.15, "res": 0.1},
+    "squad": [
+      {
+        "species_id": "lithosurge",
+        "mastered": true,
+        "technique_ids": ["worldbreaker", "tectonic_slam", "stone_wall"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "terradon",
+        "mastered": true,
+        "technique_ids": ["spire_crush", "root_hold", "tremor_response"],
+        "row_position": "front"
+      },
+      {
+        "species_id": "ironbark",
+        "mastered": true,
+        "technique_ids": ["iron_ram", "fortress", "stone_wall"],
+        "row_position": "front"
+      }
+    ]
   }
 ]

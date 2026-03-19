@@ -11,9 +11,9 @@
         "floor_number": 0,
         "rooms": [
           {"id": "f0_r0", "x": 1, "y": 1, "type": "start"},
-          {"id": "f0_r1", "x": 0, "y": 0, "type": "puzzle", "puzzle_type": "conduit"},
-          {"id": "f0_r2", "x": 2, "y": 0, "type": "puzzle", "puzzle_type": "echo"},
-          {"id": "f0_r3", "x": 0, "y": 2, "type": "puzzle", "puzzle_type": "quiz"},
+          {"id": "f0_r1", "x": 0, "y": 0, "type": "event", "event_type": "conduit"},
+          {"id": "f0_r2", "x": 2, "y": 0, "type": "event", "event_type": "echo"},
+          {"id": "f0_r3", "x": 0, "y": 2, "type": "event", "event_type": "quiz"},
           {"id": "f0_r4", "x": 2, "y": 1, "type": "enemy"},
           {"id": "f0_r5", "x": 2, "y": 2, "type": "exit"}
         ],
@@ -58,7 +58,7 @@
     ],
     "content_pools": {
       "pool_a": {"enemy": 0.60, "empty": 0.25, "hazard": 0.15},
-      "pool_b": {"cache": 0.50, "puzzle": 0.30, "enemy": 0.20},
+      "pool_b": {"cache": 0.50, "event": 0.30, "enemy": 0.20},
       "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
     },
     "boss": {
@@ -160,7 +160,7 @@
     ],
     "content_pools": {
       "pool_a": {"enemy": 0.60, "empty": 0.25, "hazard": 0.15},
-      "pool_b": {"cache": 0.50, "puzzle": 0.30, "enemy": 0.20},
+      "pool_b": {"cache": 0.50, "event": 0.30, "enemy": 0.20},
       "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
     },
     "boss": {
@@ -262,7 +262,7 @@
     ],
     "content_pools": {
       "pool_a": {"enemy": 0.60, "empty": 0.25, "hazard": 0.15},
-      "pool_b": {"cache": 0.50, "puzzle": 0.30, "enemy": 0.20},
+      "pool_b": {"cache": 0.50, "event": 0.30, "enemy": 0.20},
       "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
     },
     "boss": {
@@ -365,7 +365,7 @@
     ],
     "content_pools": {
       "pool_a": {"enemy": 0.60, "empty": 0.25, "hazard": 0.15},
-      "pool_b": {"cache": 0.50, "puzzle": 0.30, "enemy": 0.20},
+      "pool_b": {"cache": 0.50, "event": 0.30, "enemy": 0.20},
       "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
     },
     "boss": {
@@ -461,7 +461,7 @@
     ],
     "content_pools": {
       "pool_a": {"enemy": 0.60, "empty": 0.25, "hazard": 0.15},
-      "pool_b": {"cache": 0.50, "puzzle": 0.30, "enemy": 0.20},
+      "pool_b": {"cache": 0.50, "event": 0.30, "enemy": 0.20},
       "pool_c": {"hazard": 0.40, "enemy": 0.35, "hidden_eligible": 0.25}
     },
     "boss": {
@@ -588,7 +588,7 @@
     ],
     "content_pools": {
       "pool_a": {"enemy": 0.55, "empty": 0.20, "hazard": 0.25},
-      "pool_b": {"cache": 0.40, "puzzle": 0.35, "enemy": 0.25},
+      "pool_b": {"cache": 0.40, "event": 0.35, "enemy": 0.25},
       "pool_c": {"hazard": 0.45, "enemy": 0.35, "hidden_eligible": 0.20}
     },
     "boss": {
@@ -708,7 +708,7 @@
     ],
     "content_pools": {
       "pool_a": {"enemy": 0.55, "empty": 0.20, "hazard": 0.25},
-      "pool_b": {"cache": 0.40, "puzzle": 0.35, "enemy": 0.25},
+      "pool_b": {"cache": 0.40, "event": 0.35, "enemy": 0.25},
       "pool_c": {"hazard": 0.45, "enemy": 0.35, "hidden_eligible": 0.20}
     },
     "boss": {
@@ -860,7 +860,7 @@
     ],
     "content_pools": {
       "pool_a": {"enemy": 0.50, "empty": 0.15, "hazard": 0.35},
-      "pool_b": {"cache": 0.35, "puzzle": 0.40, "enemy": 0.25},
+      "pool_b": {"cache": 0.35, "event": 0.40, "enemy": 0.25},
       "pool_c": {"hazard": 0.50, "enemy": 0.30, "hidden_eligible": 0.20}
     },
     "boss": {
@@ -1012,7 +1012,7 @@
     ],
     "content_pools": {
       "pool_a": {"enemy": 0.50, "empty": 0.10, "hazard": 0.40},
-      "pool_b": {"cache": 0.30, "puzzle": 0.40, "enemy": 0.30},
+      "pool_b": {"cache": 0.30, "event": 0.40, "enemy": 0.30},
       "pool_c": {"hazard": 0.50, "enemy": 0.30, "hidden_eligible": 0.20}
     },
     "boss": {
@@ -1021,6 +1021,154 @@
       "phase1_technique_ids": ["void_collapse", "null_beam", "flux_veil"],
       "phase2_technique_ids": ["phase_shift"],
       "phase2_stat_bonus": {"atk": 0.1, "spd": 0.1}
+    }
+  },
+  {
+    "rift_id": "major_02",
+    "name": "The Tectonic Throne",
+    "tier": "major",
+    "hazard_damage": 20,
+    "enemy_tier_pool": [2, 3],
+    "wild_glyph_pool": ["stonepaw", "mossling", "ironbark", "terradon", "thunderclaw", "vortail", "stormfang", "lithosurge", "riftmaw"],
+    "floors": [
+      {
+        "floor_number": 0,
+        "rooms": [
+          {"id": "r00", "x": 2, "y": 0, "type": "start"},
+          {"id": "r01", "x": 2, "y": 1, "type": "cache", "fixed_item": "rift_beacon"},
+          {"id": "r02", "x": 1, "y": 2, "pool": "pool_a", "enemy_tier": 2},
+          {"id": "r03", "x": 2, "y": 2, "pool": "pool_a", "enemy_tier": 2},
+          {"id": "r04", "x": 3, "y": 2, "pool": "pool_b"},
+          {"id": "r05", "x": 0, "y": 3, "pool": "pool_a", "enemy_tier": 2},
+          {"id": "r06", "x": 1, "y": 3, "pool": "pool_c"},
+          {"id": "r07", "x": 3, "y": 3, "pool": "pool_a", "enemy_tier": 2},
+          {"id": "r08", "x": 4, "y": 3, "pool": "pool_b"},
+          {"id": "r09", "x": 0, "y": 4, "pool": "pool_a", "enemy_tier": 2},
+          {"id": "r10", "x": 1, "y": 4, "pool": "pool_c"},
+          {"id": "r11", "x": 3, "y": 4, "pool": "pool_a", "enemy_tier": 2},
+          {"id": "r12", "x": 4, "y": 4, "pool": "pool_a", "enemy_tier": 2},
+          {"id": "r13", "x": 1, "y": 5, "pool": "pool_a"},
+          {"id": "r14", "x": 2, "y": 5, "pool": "pool_b"},
+          {"id": "r15", "x": 3, "y": 5, "pool": "pool_a"},
+          {"id": "r16", "x": 0, "y": 6, "pool": "pool_c"},
+          {"id": "r17", "x": 1, "y": 6, "pool": "pool_a"},
+          {"id": "r18", "x": 3, "y": 6, "pool": "pool_a"},
+          {"id": "r19", "x": 4, "y": 6, "pool": "pool_c"},
+          {"id": "r20", "x": 1, "y": 7, "pool": "pool_a"},
+          {"id": "r21", "x": 2, "y": 7, "pool": "pool_b"},
+          {"id": "r22", "x": 3, "y": 7, "pool": "pool_a"},
+          {"id": "r23", "x": 2, "y": 8, "type": "cache"},
+          {"id": "r24", "x": 1, "y": 9, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r25", "x": 2, "y": 9, "pool": "pool_c"},
+          {"id": "r26", "x": 3, "y": 9, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r27", "x": 0, "y": 10, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r28", "x": 1, "y": 10, "pool": "pool_b"},
+          {"id": "r29", "x": 3, "y": 10, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r30", "x": 4, "y": 10, "pool": "pool_c"},
+          {"id": "r31", "x": 1, "y": 11, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r32", "x": 2, "y": 11, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r33", "x": 3, "y": 11, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r34", "x": 0, "y": 12, "pool": "pool_c"},
+          {"id": "r35", "x": 1, "y": 12, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r36", "x": 3, "y": 12, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r37", "x": 4, "y": 12, "pool": "pool_b"},
+          {"id": "r38", "x": 1, "y": 13, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r39", "x": 2, "y": 13, "pool": "pool_c"},
+          {"id": "r40", "x": 3, "y": 13, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r41", "x": 1, "y": 14, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r42", "x": 2, "y": 14, "pool": "pool_b"},
+          {"id": "r43", "x": 3, "y": 14, "pool": "pool_a", "enemy_tier": 3},
+          {"id": "r44", "x": 2, "y": 15, "type": "cache", "fixed_item": "vital_shard"},
+          {"id": "r45", "x": 2, "y": 16, "type": "boss"}
+        ],
+        "connections": [
+          ["r00", "r01"],
+          ["r01", "r02"],
+          ["r01", "r03"],
+          ["r01", "r04"],
+          ["r02", "r05"],
+          ["r02", "r06"],
+          ["r03", "r06"],
+          ["r03", "r07"],
+          ["r04", "r07"],
+          ["r04", "r08"],
+          ["r05", "r09"],
+          ["r06", "r09"],
+          ["r06", "r10"],
+          ["r07", "r11"],
+          ["r07", "r12"],
+          ["r08", "r12"],
+          ["r09", "r13"],
+          ["r10", "r13"],
+          ["r10", "r14"],
+          ["r11", "r14"],
+          ["r11", "r15"],
+          ["r12", "r15"],
+          ["r13", "r16"],
+          ["r13", "r17"],
+          ["r14", "r17"],
+          ["r14", "r18"],
+          ["r15", "r18"],
+          ["r15", "r19"],
+          ["r16", "r20"],
+          ["r17", "r20"],
+          ["r17", "r21"],
+          ["r18", "r21"],
+          ["r18", "r22"],
+          ["r19", "r22"],
+          ["r20", "r23"],
+          ["r21", "r23"],
+          ["r22", "r23"],
+          ["r23", "r24"],
+          ["r23", "r25"],
+          ["r23", "r26"],
+          ["r24", "r27"],
+          ["r24", "r28"],
+          ["r25", "r28"],
+          ["r25", "r29"],
+          ["r26", "r29"],
+          ["r26", "r30"],
+          ["r27", "r31"],
+          ["r28", "r31"],
+          ["r28", "r32"],
+          ["r29", "r32"],
+          ["r29", "r33"],
+          ["r30", "r33"],
+          ["r31", "r34"],
+          ["r31", "r35"],
+          ["r32", "r35"],
+          ["r32", "r36"],
+          ["r33", "r36"],
+          ["r33", "r37"],
+          ["r34", "r38"],
+          ["r35", "r38"],
+          ["r35", "r39"],
+          ["r36", "r39"],
+          ["r36", "r40"],
+          ["r37", "r40"],
+          ["r38", "r41"],
+          ["r39", "r41"],
+          ["r39", "r42"],
+          ["r39", "r43"],
+          ["r40", "r43"],
+          ["r41", "r44"],
+          ["r42", "r44"],
+          ["r43", "r44"],
+          ["r44", "r45"]
+        ]
+      }
+    ],
+    "content_pools": {
+      "pool_a": {"enemy": 0.50, "empty": 0.20, "hazard": 0.30},
+      "pool_b": {"cache": 0.40, "event": 0.35, "enemy": 0.25},
+      "pool_c": {"hazard": 0.45, "enemy": 0.35, "hidden_eligible": 0.20}
+    },
+    "boss": {
+      "species_id": "lithosurge",
+      "stat_modifier": 1.0,
+      "phase1_technique_ids": ["worldbreaker", "tectonic_slam", "stone_wall"],
+      "phase2_technique_ids": ["harmonic_pulse"],
+      "phase2_stat_bonus": {"def": 0.15, "res": 0.1}
     }
   }
 ]

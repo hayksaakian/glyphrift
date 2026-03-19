@@ -268,7 +268,7 @@ func _move_to_best_room(dungeon: DungeonState) -> bool:
 	var adjacent: Array[Dictionary] = dungeon.get_adjacent_rooms()
 
 	## Priority 1: unvisited rooms (prefer boss > enemy > cache > exit > other)
-	var priority_types: Array[String] = ["boss", "enemy", "cache", "hidden", "puzzle", "hazard", "exit"]
+	var priority_types: Array[String] = ["boss", "enemy", "cache", "hidden", "event", "hazard", "exit"]
 	for ptype: String in priority_types:
 		for room: Dictionary in adjacent:
 			if not room.get("visited", false) and room.get("type", "") == ptype:

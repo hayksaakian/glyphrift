@@ -8,24 +8,24 @@ extends RefCounted
 ## DungeonState._enter_floor() handles revealing START, EXIT, and BOSS rooms.
 
 
-const PUZZLE_TYPES: Array[String] = ["conduit", "echo", "quiz"]
+const EVENT_TYPES: Array[String] = ["conduit", "echo", "quiz"]
 
 static func generate(template: RiftTemplate) -> Array[Dictionary]:
 	var floors: Array[Dictionary] = []
-	var puzzle_index: int = 0  ## Round-robin counter for puzzle type assignment
+	var event_index: int = 0  ## Round-robin counter for event type assignment
 
 	for floor_data: Dictionary in template.floors:
 		var runtime_rooms: Array[Dictionary] = []
 
 		for room_data: Dictionary in floor_data["rooms"]:
 			var room: Dictionary = _build_runtime_room(room_data, template)
-			## Assign puzzle_type for puzzle rooms
-			if room["type"] == "puzzle":
-				if room_data.has("puzzle_type"):
-					room["puzzle_type"] = room_data["puzzle_type"]
+			## Assign event_type for event rooms
+			if room["type"] == "event":
+				if room_data.has("event_type"):
+					room["event_type"] = room_data["event_type"]
 				else:
-					room["puzzle_type"] = PUZZLE_TYPES[puzzle_index % PUZZLE_TYPES.size()]
-					puzzle_index += 1
+					room["event_type"] = EVENT_TYPES[event_index % EVENT_TYPES.size()]
+					event_index += 1
 			runtime_rooms.append(room)
 
 		## Copy connections as-is (already bidirectional pairs)
@@ -53,7 +53,7 @@ static func _build_runtime_room(room_data: Dictionary, template: RiftTemplate) -
 	else:
 		room_type = "empty"
 
-	return {
+	var room: Dictionary = {
 		"id": room_data["id"],
 		"x": int(room_data["x"]),
 		"y": int(room_data["y"]),
@@ -61,6 +61,12 @@ static func _build_runtime_room(room_data: Dictionary, template: RiftTemplate) -
 		"visited": false,
 		"revealed": false,
 	}
+	## Carry over optional room attributes from template
+	if room_data.has("fixed_item"):
+		room["fixed_item"] = room_data["fixed_item"]
+	if room_data.has("enemy_tier"):
+		room["enemy_tier"] = int(room_data["enemy_tier"])
+	return room
 
 
 static func _resolve_pool(pool_name: String, content_pools: Dictionary) -> String:

@@ -332,7 +332,7 @@ func _handle_room(room: Dictionary, template: RiftTemplate) -> void:
 			room["looted"] = true
 		"hazard":
 			pass  ## Damage handled by DungeonState; display via signals + reinforced check
-		"start", "exit", "empty", "hidden", "puzzle":
+		"start", "exit", "empty", "hidden", "event":
 			print("  Nothing happens here.")
 
 

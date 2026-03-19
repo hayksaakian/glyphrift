@@ -20,7 +20,7 @@ func _run_tests() -> void:
 	print("")
 	print("========================================")
 	print("  GLYPHRIFT — Session 9 Tests")
-	print("  Codex UI + NPC Dialogue + Puzzle Rooms")
+	print("  Codex UI + NPC Dialogue + Event Rooms")
 	print("========================================")
 	print("")
 
@@ -89,7 +89,7 @@ func _run_tests() -> void:
 	_test_puzzle_echo_walk_past_signal()
 	_test_puzzle_echo_glyph_display()
 
-	## DungeonScene puzzle integration
+	## DungeonScene event integration
 	_test_dungeon_puzzle_state_exists()
 	_test_dungeon_puzzle_type_assignment()
 	_test_dungeon_puzzle_sequence_reward()
@@ -200,7 +200,7 @@ func _make_puzzle_floor() -> Dictionary:
 		"floor_number": 0,
 		"rooms": [
 			{"id": "r0", "x": 0, "y": 0, "type": "start", "visited": true, "revealed": true},
-			{"id": "r1", "x": 1, "y": 0, "type": "puzzle", "visited": false, "revealed": true},
+			{"id": "r1", "x": 1, "y": 0, "type": "event", "visited": false, "revealed": true},
 			{"id": "r2", "x": 2, "y": 0, "type": "exit", "visited": false, "revealed": true},
 		],
 		"connections": [["r0", "r1"], ["r1", "r2"]],
@@ -1148,20 +1148,20 @@ func _test_puzzle_echo_glyph_display() -> void:
 
 
 # ==========================================================================
-# DungeonScene Puzzle Integration Tests
+# DungeonScene Event Integration Tests
 # ==========================================================================
 
 func _test_dungeon_puzzle_state_exists() -> void:
-	print("--- DungeonScene: Puzzle UIState ---")
+	print("--- DungeonScene: Event UIState ---")
 	var ds_scene: DungeonScene = DungeonScene.new()
 	root.add_child(ds_scene)
-	## PUZZLE should be a valid UIState
-	_assert(DungeonScene.UIState.PUZZLE == 7, "PUZZLE UIState exists")
+	## EVENT should be a valid UIState
+	_assert(DungeonScene.UIState.EVENT == 7, "EVENT UIState exists")
 	_cleanup_node(ds_scene)
 
 
 func _test_dungeon_puzzle_type_assignment() -> void:
-	print("--- DungeonScene: Puzzle Type Assignment ---")
+	print("--- DungeonScene: Event Type Assignment ---")
 	var floor_data: Dictionary = _make_puzzle_floor()
 	var ds: DungeonState = _make_dungeon_state_with_floors([floor_data])
 
@@ -1172,11 +1172,11 @@ func _test_dungeon_puzzle_type_assignment() -> void:
 	root.add_child(ds_scene)
 	ds_scene.start_rift(ds)
 
-	## Navigate to puzzle room
+	## Navigate to event room
 	ds.move_to_room("r1")
 
-	## Room popup should show for puzzle
-	_assert(ds_scene.get_ui_state() == DungeonScene.UIState.POPUP, "popup shown for puzzle room")
+	## Event rooms launch directly (no popup)
+	_assert(ds_scene.get_ui_state() == DungeonScene.UIState.EVENT, "event launched directly")
 
 	_cleanup_node(ds_scene)
 	_cleanup_node(ds_scene.roster_state)
@@ -1194,9 +1194,9 @@ func _test_dungeon_puzzle_sequence_reward() -> void:
 	root.add_child(ds_scene)
 	ds_scene.start_rift(ds)
 
-	## Simulate puzzle completion with item reward
-	ds_scene._on_puzzle_completed(true, "item", null)
-	_assert(ds_scene.get_ui_state() == DungeonScene.UIState.EXPLORING, "back to exploring after puzzle")
+	## Simulate event completion with item reward
+	ds_scene._on_event_completed(true, "item", null)
+	_assert(ds_scene.get_ui_state() == DungeonScene.UIState.EXPLORING, "back to exploring after event")
 
 	_cleanup_node(ds_scene)
 	_cleanup_node(ds_scene.roster_state)
@@ -1218,9 +1218,9 @@ func _test_dungeon_puzzle_conduit_reward() -> void:
 
 	var before_count: int = cx.get_discovery_count()
 
-	## Simulate conduit success → reveal species, then puzzle completed
+	## Simulate conduit success → reveal species, then event completed
 	ds_scene._on_conduit_success()
-	ds_scene._on_puzzle_completed(true, "codex_reveal", null)
+	ds_scene._on_event_completed(true, "codex_reveal", null)
 
 	var after_count: int = cx.get_discovery_count()
 	_assert(after_count > before_count, "new species discovered from conduit")
@@ -1273,7 +1273,7 @@ func _test_dungeon_echo_capture_on_win() -> void:
 	root.add_child(ds_scene)
 	ds_scene.start_rift(ds)
 
-	## Move to puzzle room first so we have a current room to clear
+	## Move to event room first so we have a current room to clear
 	ds.move_to_room("r1")
 
 	## Simulate echo combat request then win
@@ -1294,7 +1294,7 @@ func _test_dungeon_echo_capture_on_win() -> void:
 
 
 func _test_dungeon_puzzle_room_cleared() -> void:
-	print("--- DungeonScene: Puzzle Room Cleared ---")
+	print("--- DungeonScene: Event Room Cleared ---")
 	var ds_scene: DungeonScene = DungeonScene.new()
 	ds_scene.instant_mode = true
 	ds_scene.data_loader = _data_loader
@@ -1304,15 +1304,15 @@ func _test_dungeon_puzzle_room_cleared() -> void:
 	root.add_child(ds_scene)
 	ds_scene.start_rift(ds)
 
-	## Move to puzzle room
+	## Move to event room
 	ds.move_to_room("r1")
 
-	## Simulate puzzle completion
-	ds_scene._on_puzzle_completed(true, "item", null)
+	## Simulate event completion
+	ds_scene._on_event_completed(true, "item", null)
 
 	## Room should be cleared
 	var room: Dictionary = ds._get_room(0, "r1")
-	_assert(room.get("cleared", false), "puzzle room marked cleared")
+	_assert(room.get("cleared", false), "event room marked cleared")
 
 	_cleanup_node(ds_scene)
 	_cleanup_node(ds_scene.roster_state)
